@@ -108,11 +108,12 @@
 
 .team-score {
     font-family: 'Monaco', 'Consolas', monospace;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: #64748b;
-    min-width: 24px;
+    color: #f1f5f9;
+    min-width: 28px;
     text-align: right;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .team-score.winner {
