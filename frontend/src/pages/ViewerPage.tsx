@@ -114,10 +114,12 @@ export function ViewerPage() {
                             <span className={`status-badge status-${tournament.status}`}>
                                 {getStatusLabel(tournament.status)}
                             </span>
-                            <span className="live-badge">
-                                <Wifi size={12} />
-                                Live
-                            </span>
+                            {tournament.status !== 'completed' && (
+                                <span className="live-badge">
+                                    <Wifi size={12} />
+                                    Live
+                                </span>
+                            )}
                         </div>
                     </div>
 
