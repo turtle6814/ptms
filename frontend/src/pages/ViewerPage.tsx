@@ -141,7 +141,7 @@ export function ViewerPage() {
                                     <PoolStandings
                                         poolName={pool.name}
                                         standings={pool.standings}
-                                        highlightTop={tournament.status === 'pool_play' ? 2 : 0}
+                                        highlightTop={2}
                                     />
 
                                     <div className="pool-matches-view">

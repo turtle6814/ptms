@@ -20,7 +20,7 @@ export function generateId(): string {
  */
 export function generatePoolMatches(
     tournamentId: string,
-    poolId: string,
+    // poolId: string,
     teamIds: string[]
 ): Match[] {
     const matches: Match[] = [];

@@ -212,7 +212,7 @@ export function AdminDashboard() {
                                                 <PoolStandings
                                                     poolName={pool.name}
                                                     standings={pool.standings}
-                                                    highlightTop={selectedTournament.status === 'pool_play' ? 2 : 0}
+                                                    highlightTop={2}
                                                 />
 
                                                 <div className="pool-matches">
