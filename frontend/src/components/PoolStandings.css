@@ -1,0 +1,107 @@
+.pool-standings {
+  background: linear-gradient(145deg, #1e1e2e, #252538);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.pool-title {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #a78bfa;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pool-title::before {
+  content: '🏓';
+}
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.standings-table th,
+.standings-table td {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.standings-table th {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.standings-table td {
+  color: #e2e8f0;
+  font-size: 0.95rem;
+}
+
+.standings-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.standings-table tbody tr:hover {
+  background: rgba(167, 139, 250, 0.1);
+}
+
+.standings-table tbody tr.qualified {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.standings-table tbody tr.qualified:hover {
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.rank-col {
+  width: 40px;
+  font-weight: 600;
+}
+
+.team-col {
+  text-align: left !important;
+  font-weight: 500;
+}
+
+.record-col {
+  font-weight: 600;
+  color: #f8fafc !important;
+}
+
+.pts-col {
+  color: #94a3b8 !important;
+  font-size: 0.875rem !important;
+}
+
+.diff-col {
+  font-weight: 600;
+}
+
+.diff-col.positive {
+  color: #22c55e !important;
+}
+
+.diff-col.negative {
+  color: #ef4444 !important;
+}
+
+.qualify-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 0.5rem;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.625rem;
+  font-weight: 700;
+}

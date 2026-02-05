@@ -1,0 +1,232 @@
+.match-card {
+    background: rgba(30, 30, 46, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+    min-width: 220px;
+}
+
+.match-card:hover {
+    background: rgba(30, 30, 46, 0.85);
+    border-color: rgba(148, 163, 184, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.match-status {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(100, 116, 139, 0.1);
+    font-size: 0.65rem;
+}
+
+.match-status.completed {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.match-status.live {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.match-status.pending {
+    color: #64748b;
+}
+
+.edit-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    opacity: 0.7;
+}
+
+.edit-btn:hover {
+    color: #a78bfa;
+    background: rgba(167, 139, 250, 0.1);
+    opacity: 1;
+}
+
+.teams-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.team-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid transparent;
+    min-height: 2rem;
+}
+
+.team-row.winner {
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.15), rgba(0, 0, 0, 0.2));
+    border-color: rgba(34, 197, 94, 0.2);
+}
+
+.team-name {
+    font-weight: 500;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    word-break: break-word;
+    /* Allow wrapping if really long */
+}
+
+.team-name.winner {
+    color: #4ade80;
+    font-weight: 700;
+}
+
+.team-score {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #64748b;
+    min-width: 24px;
+    text-align: right;
+}
+
+.team-score.winner {
+    color: #4ade80;
+}
+
+.vs-divider {
+    text-align: center;
+    font-size: 0.65rem;
+    color: #475569;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin: -0.25rem 0;
+    position: relative;
+    z-index: 1;
+    opacity: 0.5;
+}
+
+/* Edit Mode Beautification */
+.edit-overlay {
+    /* No visual overlay, just container logic */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* We hide the default score display when editing, handled by React conditional */
+/* But we style the INPUT to look like the score */
+
+/* Hide spin buttons */
+.score-input::-webkit-outer-spin-button,
+.score-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.score-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.score-input {
+    width: 48px;
+    height: 36px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.score-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    background: rgba(15, 23, 42, 0.8);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+    transform: scale(1.05);
+}
+
+.edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.save-btn,
+.cancel-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.35rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.save-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+}
+
+.save-btn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.cancel-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.tbd-message {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #64748b;
+    font-style: italic;
+    opacity: 0.6;
+}

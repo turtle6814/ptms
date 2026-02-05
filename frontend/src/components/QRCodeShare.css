@@ -1,0 +1,97 @@
+.qr-share-container {
+    background: linear-gradient(145deg, #1e1e2e, #252538);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.qr-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #a78bfa;
+}
+
+.qr-code-wrapper {
+    display: inline-flex;
+    padding: 1rem;
+    background: rgba(15, 15, 25, 0.5);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.qr-instructions {
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    color: #94a3b8;
+}
+
+.share-url-box {
+    background: rgba(15, 15, 25, 0.6);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.url-text {
+    font-size: 0.8rem;
+    color: #64748b;
+    word-break: break-all;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.share-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.copy-btn,
+.native-share-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.copy-btn {
+    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    color: white;
+}
+
+.copy-btn:hover {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    transform: translateY(-1px);
+}
+
+.native-share-btn {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.native-share-btn:hover {
+    background: rgba(34, 197, 94, 0.3);
+}
+
+.viewer-note {
+    margin: 0;
+    padding: 0.75rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: #60a5fa;
+}
