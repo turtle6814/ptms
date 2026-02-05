@@ -14,10 +14,17 @@ export function Header({ tournamentName, isAdmin }: HeaderProps) {
     return (
         <header className="app-header">
             <div className="header-left">
-                <Link to="/" className="logo">
-                    <Trophy size={28} />
-                    <span className="logo-text">Pickleball<span className="logo-accent">Pro</span></span>
-                </Link>
+                {isViewerPage ? (
+                    <div className="logo">
+                        <Trophy size={28} />
+                        <span className="logo-text">Pickleball<span className="logo-accent">Pro</span></span>
+                    </div>
+                ) : (
+                    <Link to="/" className="logo">
+                        <Trophy size={28} />
+                        <span className="logo-text">Pickleball<span className="logo-accent">Pro</span></span>
+                    </Link>
+                )}
 
                 {tournamentName && (
                     <div className="tournament-badge">

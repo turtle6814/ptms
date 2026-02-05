@@ -27,16 +27,6 @@ export function EliminationBracket({
                 Elimination Bracket
             </h2>
 
-            {champion && (
-                <div className="champion-banner">
-                    <div className="champion-trophy">🏆</div>
-                    <div className="champion-text">
-                        <span className="champion-label">Champion</span>
-                        <span className="champion-name">{champion.name}</span>
-                    </div>
-                </div>
-            )}
-
             <div className="bracket-container">
                 {bracket.rounds.map((round, roundIndex) => (
                     <div key={round.roundNumber} className="bracket-round">
@@ -63,6 +53,17 @@ export function EliminationBracket({
                     </div>
                 ))}
             </div>
+
+            {champion && (
+                <div className="champion-banner">
+                    <div className="champion-trophy">🏆</div>
+                    <div className="champion-text">
+                        <span className="champion-label">Champion</span>
+                        <span className="champion-name">{champion.name}</span>
+                    </div>
+                </div>
+            )}
+            
         </div>
     );
 }
