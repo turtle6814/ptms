@@ -5,9 +5,10 @@ interface PoolStandingsProps {
     poolName: string;
     standings: PoolStanding[];
     highlightTop?: number;
+    showQualifyBadge?: boolean;
 }
 
-export function PoolStandings({ poolName, standings, highlightTop = 2 }: PoolStandingsProps) {
+export function PoolStandings({ poolName, standings, highlightTop = 2, showQualifyBadge = true }: PoolStandingsProps) {
     return (
         <div className="pool-standings">
             <h3 className="pool-title">{poolName}</h3>
@@ -31,7 +32,7 @@ export function PoolStandings({ poolName, standings, highlightTop = 2 }: PoolSta
                             <td className="rank-col">{index + 1}</td>
                             <td className="team-col">
                                 {standing.teamName}
-                                {index < highlightTop && (
+                                {showQualifyBadge && index < highlightTop && (
                                     <span className="qualify-badge">✓</span>
                                 )}
                             </td>

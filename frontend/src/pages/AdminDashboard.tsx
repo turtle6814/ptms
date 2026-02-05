@@ -213,6 +213,7 @@ export function AdminDashboard() {
                                                     poolName={pool.name}
                                                     standings={pool.standings}
                                                     highlightTop={2}
+                                                    showQualifyBadge={false}
                                                 />
 
                                                 <div className="pool-matches">
