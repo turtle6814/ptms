@@ -7,6 +7,7 @@ interface EliminationBracketProps {
     bracket: BracketType;
     teams: Team[];
     isAdmin?: boolean;
+    showPlaceholders?: boolean;
     onScoreUpdate?: (matchId: string, team1Score: number, team2Score: number) => void;
 }
 
@@ -14,6 +15,7 @@ export function EliminationBracket({
     bracket,
     teams,
     isAdmin = false,
+    showPlaceholders = false,
     onScoreUpdate,
 }: EliminationBracketProps) {
     const champion = bracket.champion ? teams.find(t => t.id === bracket.champion) : null;
@@ -43,9 +45,9 @@ export function EliminationBracket({
                             {round.matches.map((match) => (
                                 <div key={match.id} className="bracket-match-wrapper">
                                     <MatchCard
-                                        match={match}
+                                        match={showPlaceholders ? { ...match, team1Id: '', team2Id: '', team1Score: null, team2Score: null, winnerId: null, status: 'pending' } : match}
                                         teams={teams}
-                                        isAdmin={isAdmin}
+                                        isAdmin={isAdmin && !showPlaceholders}
                                         onScoreUpdate={onScoreUpdate}
                                     />
                                 </div>

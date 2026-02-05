@@ -4,6 +4,7 @@ import { Header } from '../components/Header';
 import { PoolStandings } from '../components/PoolStandings';
 import { MatchCard } from '../components/MatchCard';
 import { EliminationBracket } from '../components/EliminationBracket';
+import { TournamentTabs } from '../components/TournamentTabs';
 import { getTournament, subscribeTournament, pollTournament } from '../api/mockApi';
 import { Tournament } from '../api/types';
 import { RefreshCw, Wifi } from 'lucide-react';
@@ -130,50 +131,60 @@ export function ViewerPage() {
                     )}
                 </div>
 
-                {/* Pool Play Section */}
-                {tournament.pools.length > 0 && (
-                    <section className="viewer-section">
-                        <h2 className="section-title">🏓 Pool Standings</h2>
+                <TournamentTabs
+                    hasPoolPlay={tournament.pools.length > 0}
+                    hasPlayoffs={!!tournament.eliminationBracket}
+                >
+                    {{
+                        poolPlay: (
+                            <section className="viewer-section">
+                                {tournament.pools.map(pool => (
+                                    <div key={pool.id} className="pool-view-container">
+                                        <div className="pool-view-grid">
+                                            <PoolStandings
+                                                poolName={pool.name}
+                                                standings={pool.standings}
+                                                highlightTop={2}
+                                            />
 
-                        {tournament.pools.map(pool => (
-                            <div key={pool.id} className="pool-view-container">
-                                <div className="pool-view-grid">
-                                    <PoolStandings
-                                        poolName={pool.name}
-                                        standings={pool.standings}
-                                        highlightTop={2}
-                                    />
-
-                                    <div className="pool-matches-view">
-                                        <h4>Match Results</h4>
-                                        <div className="matches-view-grid">
-                                            {pool.matches.map((match) => (
-                                                <MatchCard
-                                                    key={match.id}
-                                                    match={match}
-                                                    teams={tournament.teams}
-                                                    isAdmin={false}
-                                                    poolTeamIds={pool.teamIds}
-                                                />
-                                            ))}
+                                            <div className="pool-matches-view">
+                                                <h4>Match Results</h4>
+                                                <div className="matches-view-grid">
+                                                    {pool.matches.map((match) => (
+                                                        <MatchCard
+                                                            key={match.id}
+                                                            match={match}
+                                                            teams={tournament.teams}
+                                                            isAdmin={false}
+                                                            poolTeamIds={pool.teamIds}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        ))}
-                    </section>
-                )}
-
-                {/* Elimination Bracket Section */}
-                {tournament.eliminationBracket && (
-                    <section className="viewer-section">
-                        <EliminationBracket
-                            bracket={tournament.eliminationBracket}
-                            teams={tournament.teams}
-                            isAdmin={false}
-                        />
-                    </section>
-                )}
+                                ))}
+                            </section>
+                        ),
+                        playoffs: (
+                            <section className="viewer-section">
+                                {tournament.eliminationBracket ? (
+                                    <EliminationBracket
+                                        bracket={tournament.eliminationBracket}
+                                        teams={tournament.teams}
+                                        isAdmin={false}
+                                    />
+                                ) : (
+                                    <div className="empty-bracket-message">
+                                        <div className="empty-icon">🏆</div>
+                                        <h3>Playoffs Not Started</h3>
+                                        <p>The elimination bracket will appear here once pool play is complete.</p>
+                                    </div>
+                                )}
+                            </section>
+                        )
+                    }}
+                </TournamentTabs>
 
                 {/* Tournament Complete Message */}
                 {tournament.status === 'completed' && tournament.eliminationBracket?.champion && (

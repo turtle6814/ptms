@@ -5,6 +5,7 @@ import { PoolStandings } from '../components/PoolStandings';
 import { MatchCard } from '../components/MatchCard';
 import { EliminationBracket } from '../components/EliminationBracket';
 import { QRCodeShare } from '../components/QRCodeShare';
+import { TournamentTabs } from '../components/TournamentTabs';
 import {
     getTournament,
     getAllTournaments,
@@ -201,53 +202,63 @@ export function AdminDashboard() {
                                 </div>
                             </div>
 
-                            {/* Pool Play Section */}
-                            {selectedTournament.pools.length > 0 && (
-                                <section className="pools-section">
-                                    <h2 className="section-title">Pool Play</h2>
+                            <TournamentTabs
+                                hasPoolPlay={selectedTournament.pools.length > 0}
+                                hasPlayoffs={!!selectedTournament.eliminationBracket}
+                            >
+                                {{
+                                    poolPlay: (
+                                        <section className="pools-section">
+                                            {selectedTournament.pools.map(pool => (
+                                                <div key={pool.id} className="pool-container">
+                                                    <div className="pool-grid">
+                                                        <PoolStandings
+                                                            poolName={pool.name}
+                                                            standings={pool.standings}
+                                                            highlightTop={2}
+                                                            showQualifyBadge={false}
+                                                        />
 
-                                    {selectedTournament.pools.map(pool => (
-                                        <div key={pool.id} className="pool-container">
-                                            <div className="pool-grid">
-                                                <PoolStandings
-                                                    poolName={pool.name}
-                                                    standings={pool.standings}
-                                                    highlightTop={2}
-                                                    showQualifyBadge={false}
-                                                />
-
-                                                <div className="pool-matches">
-                                                    <h4>Matches</h4>
-                                                    <div className="matches-grid">
-                                                        {pool.matches.map((match) => (
-                                                            <MatchCard
-                                                                key={match.id}
-                                                                match={match}
-                                                                teams={selectedTournament.teams}
-                                                                isAdmin={true}
-                                                                poolTeamIds={pool.teamIds}
-                                                                onScoreUpdate={handleScoreUpdate}
-                                                            />
-                                                        ))}
+                                                        <div className="pool-matches">
+                                                            <h4>Matches</h4>
+                                                            <div className="matches-grid">
+                                                                {pool.matches.map((match) => (
+                                                                    <MatchCard
+                                                                        key={match.id}
+                                                                        match={match}
+                                                                        teams={selectedTournament.teams}
+                                                                        isAdmin={true}
+                                                                        poolTeamIds={pool.teamIds}
+                                                                        onScoreUpdate={handleScoreUpdate}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </section>
-                            )}
-
-                            {/* Elimination Bracket Section */}
-                            {selectedTournament.eliminationBracket && (
-                                <section className="elimination-section">
-                                    <EliminationBracket
-                                        bracket={selectedTournament.eliminationBracket}
-                                        teams={selectedTournament.teams}
-                                        isAdmin={true}
-                                        onScoreUpdate={handleScoreUpdate}
-                                    />
-                                </section>
-                            )}
+                                            ))}
+                                        </section>
+                                    ),
+                                    playoffs: (
+                                        <section className="elimination-section">
+                                            {selectedTournament.eliminationBracket ? (
+                                                <EliminationBracket
+                                                    bracket={selectedTournament.eliminationBracket}
+                                                    teams={selectedTournament.teams}
+                                                    isAdmin={true}
+                                                    onScoreUpdate={handleScoreUpdate}
+                                                />
+                                            ) : (
+                                                <div className="empty-bracket-message">
+                                                    <div className="empty-icon">🏆</div>
+                                                    <h3>Playoffs Not Started</h3>
+                                                    <p>Complete all pool matches to generate the elimination bracket.</p>
+                                                </div>
+                                            )}
+                                        </section>
+                                    )
+                                }}
+                            </TournamentTabs>
                         </>
                     )}
                 </div>

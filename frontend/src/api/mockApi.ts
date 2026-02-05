@@ -23,6 +23,7 @@ import {
     advanceWinnerInBracket,
     getTopTeamsFromPool,
 } from '../utils/tournamentLogic';
+import { updateBracketWithPoolWinners } from '../utils/bracketUpdateLogic';
 
 // ================================
 // Local Storage Keys
@@ -105,7 +106,7 @@ export async function createTournament(
 
             const poolId = generateId();
             const teamIds = poolTeams.map(t => t.id);
-            const poolMatches = generatePoolMatches(tournamentId, poolId, teamIds);
+            const poolMatches = generatePoolMatches(tournamentId, teamIds);
 
             const pool: Pool = {
                 id: poolId,
@@ -126,7 +127,7 @@ export async function createTournament(
             status: 'pool_play',
             teams: allTeams,
             pools: pools,
-            eliminationBracket: null,
+            eliminationBracket: generateEliminationBracket(tournamentId, pools, allTeams, true),
             createdAt: now,
             updatedAt: now,
         };
@@ -262,15 +263,19 @@ export async function updateMatchScore(
             return { success: false, error: 'Match not found' };
         }
 
-        // Check if should advance to elimination
-        if (tournament.status === 'pool_play' && tournament.pools.every(p => p.isComplete)) {
-            // Generate elimination bracket using all pools
-            tournament.eliminationBracket = generateEliminationBracket(
-                tournamentId,
-                tournament.pools,
-                tournament.teams
-            );
-            tournament.status = 'elimination';
+        // Check if should advance to elimination or update bracket
+        if (tournament.status === 'pool_play') {
+            if (tournament.eliminationBracket) {
+                tournament.eliminationBracket = updateBracketWithPoolWinners(
+                    tournament.eliminationBracket,
+                    tournament.pools,
+                    tournament.teams
+                );
+            }
+
+            if (tournament.pools.every(p => p.isComplete)) {
+                tournament.status = 'elimination';
+            }
         }
 
         // Check if tournament is complete

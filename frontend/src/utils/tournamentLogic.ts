@@ -169,7 +169,8 @@ export function getTopTeamsFromPool(pool: Pool, teams: Team[], count: number = 2
 export function generateEliminationBracket(
     tournamentId: string,
     pools: Pool[],
-    teams: Team[]
+    teams: Team[],
+    usePlaceholders: boolean = false
 ): EliminationBracket {
     const rounds: BracketRound[] = [];
     const advancingTeams: { teamId: string, poolIndex: number, rank: number }[] = [];
@@ -187,6 +188,7 @@ export function generateEliminationBracket(
     });
 
     // 2. Pair teams (Standard: Pool A #1 vs Pool B #2, etc.)
+    // 2. Pair teams (Standard: Pool A #1 vs Pool B #2, etc.)
     // We will pair Pool(i) #1  vs Pool(i+1) #2
     // If only 1 pool, it's 1 vs 2 (Finals).
 
@@ -195,14 +197,22 @@ export function generateEliminationBracket(
 
     if (poolCount === 1) {
         // Single pool fallback: 1 vs 2 (Finals).
-        const top2 = advancingTeams.filter(t => t.rank <= 2);
+        let team1Id = '';
+        let team2Id = '';
+
+        if (!usePlaceholders) {
+            const top2 = advancingTeams.filter(t => t.rank <= 2);
+            team1Id = top2.find(t => t.rank === 1)?.teamId || '';
+            team2Id = top2.find(t => t.rank === 2)?.teamId || '';
+        }
+
         initialMatches.push({
             id: generateId(),
             tournamentId,
             bracketRound: 1,
             bracketPosition: 1,
-            team1Id: top2.find(t => t.rank === 1)?.teamId || '',
-            team2Id: top2.find(t => t.rank === 2)?.teamId || '',
+            team1Id,
+            team2Id,
             team1Score: null,
             team2Score: null,
             winnerId: null,
@@ -214,19 +224,27 @@ export function generateEliminationBracket(
     } else {
         // Multiple pools: 1st vs 2nd crossover
         for (let i = 0; i < poolCount; i++) {
-            const pool1Index = i;
-            const pool2Index = (i + 1) % poolCount; // Wrap around for the last pool
+            let team1Id = '';
+            let team2Id = '';
 
-            const team1 = advancingTeams.find(t => t.poolIndex === pool1Index && t.rank === 1);
-            const team2 = advancingTeams.find(t => t.poolIndex === pool2Index && t.rank === 2);
+            if (!usePlaceholders) {
+                const pool1Index = i;
+                const pool2Index = (i + 1) % poolCount; // Wrap around for the last pool
+
+                const team1 = advancingTeams.find(t => t.poolIndex === pool1Index && t.rank === 1);
+                const team2 = advancingTeams.find(t => t.poolIndex === pool2Index && t.rank === 2);
+
+                team1Id = team1?.teamId || '';
+                team2Id = team2?.teamId || '';
+            }
 
             initialMatches.push({
                 id: generateId(),
                 tournamentId,
                 bracketRound: 1,
                 bracketPosition: i + 1,
-                team1Id: team1?.teamId || '',
-                team2Id: team2?.teamId || '',
+                team1Id,
+                team2Id,
                 team1Score: null,
                 team2Score: null,
                 winnerId: null,
