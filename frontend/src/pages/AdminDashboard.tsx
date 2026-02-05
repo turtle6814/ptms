@@ -218,12 +218,13 @@ export function AdminDashboard() {
                                                 <div className="pool-matches">
                                                     <h4>Matches</h4>
                                                     <div className="matches-grid">
-                                                        {pool.matches.map(match => (
+                                                        {pool.matches.map((match) => (
                                                             <MatchCard
                                                                 key={match.id}
                                                                 match={match}
                                                                 teams={selectedTournament.teams}
                                                                 isAdmin={true}
+                                                                poolTeamIds={pool.teamIds}
                                                                 onScoreUpdate={handleScoreUpdate}
                                                             />
                                                         ))}

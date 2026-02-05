@@ -7,10 +7,11 @@ interface MatchCardProps {
     match: Match;
     teams: Team[];
     isAdmin?: boolean;
+    poolTeamIds?: string[]; // For calculating seed positions
     onScoreUpdate?: (matchId: string, team1Score: number, team2Score: number) => void;
 }
 
-export function MatchCard({ match, teams, isAdmin = false, onScoreUpdate }: MatchCardProps) {
+export function MatchCard({ match, teams, isAdmin = false, poolTeamIds, onScoreUpdate }: MatchCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [team1Score, setTeam1Score] = useState<string>(match.team1Score?.toString() ?? '');
     const [team2Score, setTeam2Score] = useState<string>(match.team2Score?.toString() ?? '');
@@ -47,10 +48,25 @@ export function MatchCard({ match, teams, isAdmin = false, onScoreUpdate }: Matc
     const team2Name = team2?.name || (match.team2Id ? 'Unknown' : 'TBD');
     const isTBD = !match.team1Id || !match.team2Id;
 
+    // Calculate seed positions (1-based) for Berger Table display
+    const getMatchOrder = () => {
+        if (!poolTeamIds) return null;
+        const seed1 = poolTeamIds.indexOf(match.team1Id) + 1;
+        const seed2 = poolTeamIds.indexOf(match.team2Id) + 1;
+        if (seed1 > 0 && seed2 > 0) {
+            return `${seed1}-${seed2}`;
+        }
+        return null;
+    };
+    const matchOrder = getMatchOrder();
+
     return (
         <div className={`match-card ${match.status}`}>
             <div className="match-header">
-                {getStatusBadge()}
+                <div className="match-meta">
+                    {matchOrder && <span className="match-order">{matchOrder}</span>}
+                    {getStatusBadge()}
+                </div>
                 {isAdmin && !isEditing && match.team1Id && match.team2Id && (
                     <button className="edit-btn" onClick={() => setIsEditing(true)}>
                         <Edit2 size={14} />

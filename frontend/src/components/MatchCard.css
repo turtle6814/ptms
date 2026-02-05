@@ -30,6 +30,22 @@
     font-weight: 600;
 }
 
+.match-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.match-order {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #a78bfa;
+    background: rgba(139, 92, 246, 0.15);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
 .match-status {
     padding: 0.2rem 0.5rem;
     border-radius: 4px;

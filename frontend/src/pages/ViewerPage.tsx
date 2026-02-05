@@ -147,12 +147,13 @@ export function ViewerPage() {
                                     <div className="pool-matches-view">
                                         <h4>Match Results</h4>
                                         <div className="matches-view-grid">
-                                            {pool.matches.map(match => (
+                                            {pool.matches.map((match) => (
                                                 <MatchCard
                                                     key={match.id}
                                                     match={match}
                                                     teams={tournament.teams}
                                                     isAdmin={false}
+                                                    poolTeamIds={pool.teamIds}
                                                 />
                                             ))}
                                         </div>
