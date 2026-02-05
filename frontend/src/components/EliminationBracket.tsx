@@ -38,11 +38,11 @@ export function EliminationBracket({
             )}
 
             <div className="bracket-container">
-                {bracket.rounds.map((round) => (
+                {bracket.rounds.map((round, roundIndex) => (
                     <div key={round.roundNumber} className="bracket-round">
                         <h3 className="round-title">{round.name}</h3>
                         <div className="round-matches">
-                            {round.matches.map((match) => (
+                            {round.matches.map((match, index) => (
                                 <div key={match.id} className="bracket-match-wrapper">
                                     <MatchCard
                                         match={showPlaceholders ? { ...match, team1Id: '', team2Id: '', team1Score: null, team2Score: null, winnerId: null, status: 'pending' } : match}
@@ -50,6 +50,13 @@ export function EliminationBracket({
                                         isAdmin={isAdmin && !showPlaceholders}
                                         onScoreUpdate={onScoreUpdate}
                                     />
+                                    {/* Add connectors for all except the last round (Finals) */}
+                                    {roundIndex < bracket.rounds.length - 1 && (
+                                        <div className={`match-connector ${index % 2 === 0 ? 'connector-down' : 'connector-up'}`}>
+                                            <div className="connector-line"></div>
+                                            <div className="connector-elbow"></div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

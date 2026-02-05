@@ -108,40 +108,147 @@
     min-height: 200px;
 }
 
+/* Connector lines logic */
 .bracket-match-wrapper {
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
-/* Connector lines between rounds */
-.bracket-match-wrapper::after {
-    content: '';
+.match-connector {
     position: absolute;
     right: -2rem;
+    /* Extend into the gap */
+    width: 2rem;
+    height: 100%;
+    /* Connectors sit to the right of the card */
+    display: flex;
+    align-items: center;
+}
+
+/* Horizontal line coming out of the match card */
+.match-connector::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 1rem;
+    /* First segment */
+    height: 2px;
+    background-color: #475569;
+}
+
+/* The vertical elbow connector */
+.connector-elbow {
+    position: absolute;
+    right: 0;
+    width: 1rem;
+    border-right: 2px solid #475569;
+}
+
+/* Down connector (Top match of a pair) */
+.connector-down .connector-elbow {
+    top: 50%;
+    height: 50%;
+    border-top: 2px solid #475569;
+    border-top-right-radius: 12px;
+}
+
+/* Up connector (Bottom match of a pair) */
+.connector-up .connector-elbow {
+    bottom: 50%;
+    height: 50%;
+    border-bottom: 2px solid #475569;
+    border-bottom-right-radius: 12px;
+}
+
+/* Remove default gap and ensure alignment */
+.round-matches {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    /* Ensure the round takes full height to space items evenly */
+    height: 100%;
+    gap: 0;
+    /* Remove gap, rely on justify-content: space-around */
+}
+
+/* Ensure round has height so space-around works */
+.bracket-round {
+    display: flex;
+    flex-direction: column;
+    min-width: 320px;
+}
+
+.bracket-container {
+    display: flex;
+    gap: 4rem;
+    /* Increase gap to fit connectors */
+    padding: 2rem 0;
+    align-items: stretch;
+    /* Stretch rounds to same height */
+    min-height: 600px;
+    /* Force minimum height for nice spacing */
+}
+
+/* Incoming connector on the left side of matches (except first round) */
+.bracket-round:not(:first-child) .bracket-match-wrapper::after {
+    content: '';
+    position: absolute;
+    left: -2rem;
     top: 50%;
     width: 2rem;
     height: 2px;
-    background: linear-gradient(90deg, #a78bfa, transparent);
+    background-color: #475569;
 }
 
-.bracket-round:last-child .bracket-match-wrapper::after {
-    display: none;
-}
-
+/* Responsive Cleanup */
 @media (max-width: 768px) {
+    .elimination-bracket {
+        padding: 1rem;
+    }
+
     .bracket-container {
         flex-direction: column;
         gap: 1.5rem;
+        height: auto;
+        min-height: auto;
+        padding: 1rem 0;
     }
+
+    /* ... rest of the existing media query ... */
 
     .bracket-round {
-        min-width: 100%;
+        min-width: 0;
+        /* Allow full shrinkage */
+        width: 100%;
+        margin-bottom: 2rem;
     }
 
-    .bracket-match-wrapper::after {
-        display: none;
+    .round-title {
+        text-align: center;
+        margin-bottom: 1rem;
+        background: rgba(30, 30, 46, 0.5);
+        padding: 0.5rem;
+        border-radius: 8px;
+    }
+
+    /* Force hide all connectors with high specificity */
+    .match-connector,
+    .connector-elbow,
+    .connector-line,
+    .bracket-match-wrapper::after,
+    .bracket-round:not(:first-child) .bracket-match-wrapper::after {
+        display: none !important;
+    }
+
+    .bracket-match-wrapper {
+        margin-bottom: 1rem;
+        width: 100%;
     }
 
     .round-matches {
-        min-height: auto;
+        gap: 1rem;
+        /* Restore gap for vertical list */
+        height: auto;
     }
 }
