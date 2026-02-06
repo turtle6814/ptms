@@ -315,6 +315,7 @@ export function generateEliminationBracket(
 
 /**
  * Advance winner to next round in elimination bracket
+ * Also handles bye matches (when odd number of matches means a team auto-advances)
  */
 export function advanceWinnerInBracket(
     bracket: EliminationBracket,
@@ -340,6 +341,7 @@ export function advanceWinnerInBracket(
     }
 
     // Find next round and update the appropriate match
+    const currentRound = bracket.rounds[currentRoundIndex];
     const nextRound = bracket.rounds[currentRoundIndex + 1];
     const nextMatchIndex = Math.floor((completedMatch.bracketPosition! - 1) / 2);
 
@@ -353,7 +355,32 @@ export function advanceWinnerInBracket(
             nextMatch.team2Id = completedMatch.winnerId;
         }
 
+        // Check if this is a "bye match" - only one feeder expected
+        // This happens when the current round has an odd number of matches
+        // and this is the last match in the next round
+        const currentRoundMatchCount = currentRound.matches.length;
+        const isLastMatchInNextRound = nextMatchIndex === nextRound.matches.length - 1;
+        const currentRoundIsOdd = currentRoundMatchCount % 2 === 1;
+
+        // If current round has odd matches and this is the last match in next round,
+        // only one team will ever fill this match (the winner of the last match in current round)
+        // So we should auto-advance this team
+        if (currentRoundIsOdd && isLastMatchInNextRound && completedMatch.bracketPosition === currentRoundMatchCount) {
+            // This is a bye match - the team from the odd match auto-advances
+            nextMatch.team2Id = ''; // No opponent
+            nextMatch.winnerId = completedMatch.winnerId;
+            nextMatch.status = 'completed';
+            nextMatch.team1Score = 0; // Bye
+            nextMatch.team2Score = 0;
+        }
+
         nextRound.matches[nextMatchIndex] = nextMatch;
+
+        // If the nextMatch is now complete (bye), recursively advance
+        if (nextMatch.status === 'completed' && nextMatch.winnerId) {
+            const updatedBracket = { ...bracket };
+            return advanceWinnerInBracket(updatedBracket, nextMatch);
+        }
     }
 
     return { ...bracket };

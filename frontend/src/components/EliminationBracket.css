@@ -21,7 +21,7 @@
     justify-content: center;
     gap: 1rem;
     padding: 1.5rem;
-    margin-top: 2rem;
+    margin-bottom: 2rem;
     background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1));
     border: 2px solid rgba(251, 191, 36, 0.4);
     border-radius: 16px;
@@ -77,141 +77,87 @@
     color: #f8fafc;
 }
 
+/* ========== BRACKET LAYOUT ========== */
 .bracket-container {
     display: flex;
-    gap: 2rem;
+    gap: 1.5rem;
     overflow-x: auto;
     padding: 1rem 0;
+    align-items: stretch;
 }
 
 .bracket-round {
     flex: 0 0 auto;
     min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    background: rgba(30, 30, 46, 0.4);
+    border-radius: 16px;
+    padding: 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.08);
+    transition: all 0.3s ease;
+}
+
+.bracket-round:hover {
+    background: rgba(30, 30, 46, 0.6);
+    border-color: rgba(148, 163, 184, 0.12);
+}
+
+/* Visual progression - rounds get progressively highlighted */
+.bracket-round.round-1 {
+    border-left: 3px solid rgba(59, 130, 246, 0.5);
+}
+
+.bracket-round.round-2 {
+    border-left: 3px solid rgba(139, 92, 246, 0.5);
+}
+
+.bracket-round.round-3 {
+    border-left: 3px solid rgba(236, 72, 153, 0.5);
+}
+
+.bracket-round.round-4 {
+    border-left: 3px solid rgba(251, 191, 36, 0.5);
+}
+
+/* Finals gets special treatment */
+.bracket-round:last-child {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(245, 158, 11, 0.04));
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-left: 3px solid rgba(251, 191, 36, 0.6);
 }
 
 .round-title {
     margin: 0 0 1rem;
-    padding-bottom: 0.5rem;
-    font-size: 1rem;
-    font-weight: 600;
+    padding-bottom: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
     color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    text-align: center;
+}
+
+/* Finals title styling */
+.bracket-round:last-child .round-title {
+    color: #fbbf24;
+    border-bottom-color: rgba(251, 191, 36, 0.3);
 }
 
 .round-matches {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    justify-content: space-around;
-    min-height: 200px;
+    gap: 0.75rem;
+    justify-content: center;
+    flex: 1;
 }
 
-/* Connector lines logic */
 .bracket-match-wrapper {
     position: relative;
-    display: flex;
-    align-items: center;
 }
 
-.match-connector {
-    position: absolute;
-    right: -2rem;
-    /* Extend into the gap */
-    width: 2rem;
-    height: 100%;
-    /* Connectors sit to the right of the card */
-    display: flex;
-    align-items: center;
-}
-
-/* Horizontal line coming out of the match card */
-.match-connector::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    width: 1rem;
-    /* First segment */
-    height: 2px;
-    background-color: #475569;
-}
-
-/* The vertical elbow connector */
-.connector-elbow {
-    position: absolute;
-    right: 0;
-    width: 1rem;
-    border-right: 2px solid #475569;
-}
-
-/* Down connector (Top match of a pair) */
-.connector-down .connector-elbow {
-    top: 50%;
-    height: 50%;
-    border-top: 2px solid #475569;
-    border-top-right-radius: 12px;
-}
-
-/* Up connector (Bottom match of a pair) */
-.connector-up .connector-elbow {
-    bottom: 50%;
-    height: 50%;
-    border-bottom: 2px solid #475569;
-    border-bottom-right-radius: 12px;
-}
-
-/* Straight connector (Single unpaired match - odd one out) */
-.connector-straight .connector-elbow {
-    display: none;
-}
-
-.connector-straight::before {
-    width: 2rem;
-    /* Full width straight line */
-}
-
-/* Remove default gap and ensure alignment */
-.round-matches {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    /* Ensure the round takes full height to space items evenly */
-    height: 100%;
-    gap: 0;
-    /* Remove gap, rely on justify-content: space-around */
-}
-
-/* Ensure round has height so space-around works */
-.bracket-round {
-    display: flex;
-    flex-direction: column;
-    min-width: 320px;
-}
-
-.bracket-container {
-    display: flex;
-    gap: 4rem;
-    /* Increase gap to fit connectors */
-    padding: 2rem 0;
-    align-items: stretch;
-    /* Stretch rounds to same height */
-    min-height: 600px;
-    /* Force minimum height for nice spacing */
-}
-
-/* Incoming connector on the left side of matches (except first round) */
-.bracket-round:not(:first-child) .bracket-match-wrapper::after {
-    content: '';
-    position: absolute;
-    left: -2rem;
-    top: 50%;
-    width: 2rem;
-    height: 2px;
-    background-color: #475569;
-}
-
-/* Responsive Cleanup */
+/* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
     .elimination-bracket {
         padding: 1rem;
@@ -219,46 +165,19 @@
 
     .bracket-container {
         flex-direction: column;
-        gap: 1.5rem;
-        height: auto;
-        min-height: auto;
-        padding: 1rem 0;
+        gap: 1rem;
     }
-
-    /* ... rest of the existing media query ... */
 
     .bracket-round {
         min-width: 0;
-        /* Allow full shrinkage */
         width: 100%;
-        margin-bottom: 2rem;
     }
 
     .round-title {
-        text-align: center;
-        margin-bottom: 1rem;
-        background: rgba(30, 30, 46, 0.5);
-        padding: 0.5rem;
-        border-radius: 8px;
-    }
-
-    /* Force hide all connectors with high specificity */
-    .match-connector,
-    .connector-elbow,
-    .connector-line,
-    .bracket-match-wrapper::after,
-    .bracket-round:not(:first-child) .bracket-match-wrapper::after {
-        display: none !important;
+        margin-bottom: 0.75rem;
     }
 
     .bracket-match-wrapper {
-        margin-bottom: 1rem;
         width: 100%;
-    }
-
-    .round-matches {
-        gap: 1rem;
-        /* Restore gap for vertical list */
-        height: auto;
     }
 }
