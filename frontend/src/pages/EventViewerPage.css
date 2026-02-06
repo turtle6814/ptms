@@ -1,0 +1,185 @@
+.event-viewer-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+}
+
+/* Tournament Selector Dropdown */
+.tournament-selector {
+    position: relative;
+    margin-top: 0.75rem;
+}
+
+.selector-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(30, 30, 46, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 12px;
+    color: #f8fafc;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 300px;
+}
+
+.selector-btn:hover {
+    background: rgba(30, 30, 46, 1);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.selector-btn.open {
+    background: rgba(30, 30, 46, 1);
+    border-color: rgba(139, 92, 246, 0.4);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.selector-btn svg:first-child {
+    color: #fbbf24;
+}
+
+.selector-btn span:first-of-type {
+    flex: 1;
+    text-align: left;
+}
+
+.dropdown-arrow {
+    color: #64748b;
+    transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+    transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.tournament-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(30, 30, 46, 0.98);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-top: none;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background: rgba(139, 92, 246, 0.1);
+}
+
+.dropdown-item.active {
+    background: rgba(139, 92, 246, 0.15);
+}
+
+.dropdown-item.active::before {
+    content: '✓';
+    margin-right: 0.5rem;
+    color: #8b5cf6;
+}
+
+.dropdown-item .tournament-name {
+    flex: 1;
+    text-align: left;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.status-pool_play {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.status-badge.status-elimination {
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+}
+
+.status-badge.status-completed {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.status-badge.status-setup {
+    background: rgba(100, 116, 139, 0.2);
+    color: #94a3b8;
+}
+
+/* No Tournaments State */
+.no-tournaments {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+    color: #64748b;
+    text-align: center;
+}
+
+.no-tournaments svg {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.no-tournaments h2 {
+    margin: 0 0 0.5rem;
+    color: #f8fafc;
+}
+
+.no-tournaments p {
+    margin: 0;
+}
+
+/* Event Info Header */
+.event-info h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .selector-btn {
+        min-width: 100%;
+    }
+
+    .event-info h1 {
+        font-size: 1.5rem;
+    }
+}

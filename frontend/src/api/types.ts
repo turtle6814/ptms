@@ -56,8 +56,23 @@ export interface BracketRound {
   matches: Match[];
 }
 
+// ================================
+// Event (contains multiple tournaments)
+// ================================
+export interface Event {
+  id: string;
+  name: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  tournamentIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Tournament {
   id: string;
+  eventId?: string;  // Optional link to parent event
   name: string;
   status: 'setup' | 'pool_play' | 'elimination' | 'completed';
   teams: Team[];
@@ -84,10 +99,27 @@ export interface ScoreUpdate {
 // Create tournament payload
 export interface CreateTournamentPayload {
   name: string;
+  eventId?: string;  // Optional: link to parent event
   pools: {
     name: string;
     teamNames: string[];
   }[];
+}
+
+// Create event payload
+export interface CreateEventPayload {
+  name: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+// Update event payload
+export interface UpdateEventPayload {
+  name?: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 // ================================

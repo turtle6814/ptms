@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Trophy, Settings, Eye, Plus, LogIn, LogOut, User } from 'lucide-react';
+import { Trophy, Settings, Eye, Plus, LogIn, LogOut, User, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Header.css';
 
@@ -80,6 +80,10 @@ export function Header({ tournamentName, isAdmin }: HeaderProps) {
                                         <Plus size={16} />
                                         New
                                     </Link> */}
+                                    <Link to="/events" className="nav-link nav-link-events">
+                                        <Calendar size={16} />
+                                        Events
+                                    </Link>
                                     <Link to="/admin" className="nav-link nav-link-dashboard">
                                         <Settings size={16} />
                                         Dashboard

@@ -16,6 +16,9 @@ import {
     LoginPayload,
     SignupPayload,
     AuthResponse,
+    Event,
+    CreateEventPayload,
+    UpdateEventPayload,
 } from './types';
 
 import {
@@ -34,6 +37,7 @@ import { updateBracketWithPoolWinners } from '../utils/bracketUpdateLogic';
 // ================================
 const STORAGE_KEYS = {
     TOURNAMENTS: 'pickleball_tournaments',
+    EVENTS: 'pickleball_events',
     USERS: 'pickleball_users',
     CURRENT_USER: 'pickleball_current_user',
     AUTH_TOKEN: 'pickleball_auth_token',
@@ -59,6 +63,15 @@ function getTournamentsFromStorage(): Tournament[] {
 
 function saveTournamentsToStorage(tournaments: Tournament[]): void {
     localStorage.setItem(STORAGE_KEYS.TOURNAMENTS, JSON.stringify(tournaments));
+}
+
+function getEventsFromStorage(): Event[] {
+    const data = localStorage.getItem(STORAGE_KEYS.EVENTS);
+    return data ? JSON.parse(data) : [];
+}
+
+function saveEventsToStorage(events: Event[]): void {
+    localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
 }
 
 // ================================
@@ -130,6 +143,7 @@ export async function createTournament(
 
         const tournament: Tournament = {
             id: tournamentId,
+            eventId: payload.eventId, // Link to parent event if provided
             name: payload.name,
             status: 'pool_play',
             teams: allTeams,
@@ -139,10 +153,21 @@ export async function createTournament(
             updatedAt: now,
         };
 
-        // Save to storage
+        // Save tournament to storage
         const tournaments = getTournamentsFromStorage();
         tournaments.push(tournament);
         saveTournamentsToStorage(tournaments);
+
+        // If linked to an event, add tournament to that event
+        if (payload.eventId) {
+            const events = getEventsFromStorage();
+            const eventIndex = events.findIndex(e => e.id === payload.eventId);
+            if (eventIndex !== -1) {
+                events[eventIndex].tournamentIds.push(tournamentId);
+                events[eventIndex].updatedAt = now;
+                saveEventsToStorage(events);
+            }
+        }
 
         return { success: true, data: tournament };
     } catch (error) {
@@ -184,6 +209,180 @@ export async function deleteTournament(id: string): Promise<ApiResponse<void>> {
     saveTournamentsToStorage(tournaments);
 
     return { success: true };
+}
+
+// ================================
+// Event API
+// ================================
+
+export async function getAllEvents(): Promise<ApiResponse<Event[]>> {
+    await delay();
+    const events = getEventsFromStorage();
+    return { success: true, data: events };
+}
+
+export async function getEventById(id: string): Promise<ApiResponse<Event>> {
+    await delay();
+    const events = getEventsFromStorage();
+    const event = events.find(e => e.id === id);
+
+    if (!event) {
+        return { success: false, error: 'Event not found' };
+    }
+
+    return { success: true, data: event };
+}
+
+export async function createEvent(payload: CreateEventPayload): Promise<ApiResponse<Event>> {
+    await delay();
+
+    if (!payload.name.trim()) {
+        return { success: false, error: 'Event name is required' };
+    }
+
+    const now = new Date().toISOString();
+    const newEvent: Event = {
+        id: generateId(),
+        name: payload.name.trim(),
+        description: payload.description,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        tournamentIds: [],
+        createdAt: now,
+        updatedAt: now,
+    };
+
+    const events = getEventsFromStorage();
+    events.push(newEvent);
+    saveEventsToStorage(events);
+
+    return { success: true, data: newEvent };
+}
+
+export async function updateEvent(id: string, payload: UpdateEventPayload): Promise<ApiResponse<Event>> {
+    await delay();
+
+    const events = getEventsFromStorage();
+    const eventIndex = events.findIndex(e => e.id === id);
+
+    if (eventIndex === -1) {
+        return { success: false, error: 'Event not found' };
+    }
+
+    const updatedEvent: Event = {
+        ...events[eventIndex],
+        ...(payload.name !== undefined && { name: payload.name.trim() }),
+        ...(payload.description !== undefined && { description: payload.description }),
+        ...(payload.startDate !== undefined && { startDate: payload.startDate }),
+        ...(payload.endDate !== undefined && { endDate: payload.endDate }),
+        updatedAt: new Date().toISOString(),
+    };
+
+    events[eventIndex] = updatedEvent;
+    saveEventsToStorage(events);
+
+    return { success: true, data: updatedEvent };
+}
+
+export async function deleteEvent(id: string): Promise<ApiResponse<void>> {
+    await delay();
+
+    const events = getEventsFromStorage();
+    const eventIndex = events.findIndex(e => e.id === id);
+
+    if (eventIndex === -1) {
+        return { success: false, error: 'Event not found' };
+    }
+
+    // Also remove the eventId from all linked tournaments
+    const tournaments = getTournamentsFromStorage();
+    const updatedTournaments = tournaments.map(t =>
+        t.eventId === id ? { ...t, eventId: undefined } : t
+    );
+    saveTournamentsToStorage(updatedTournaments);
+
+    events.splice(eventIndex, 1);
+    saveEventsToStorage(events);
+
+    return { success: true };
+}
+
+export async function addTournamentToEvent(eventId: string, tournamentId: string): Promise<ApiResponse<Event>> {
+    await delay();
+
+    const events = getEventsFromStorage();
+    const eventIndex = events.findIndex(e => e.id === eventId);
+
+    if (eventIndex === -1) {
+        return { success: false, error: 'Event not found' };
+    }
+
+    const tournaments = getTournamentsFromStorage();
+    const tournamentIndex = tournaments.findIndex(t => t.id === tournamentId);
+
+    if (tournamentIndex === -1) {
+        return { success: false, error: 'Tournament not found' };
+    }
+
+    // Add tournament to event
+    if (!events[eventIndex].tournamentIds.includes(tournamentId)) {
+        events[eventIndex].tournamentIds.push(tournamentId);
+        events[eventIndex].updatedAt = new Date().toISOString();
+    }
+
+    // Update tournament's eventId
+    tournaments[tournamentIndex].eventId = eventId;
+    tournaments[tournamentIndex].updatedAt = new Date().toISOString();
+
+    saveEventsToStorage(events);
+    saveTournamentsToStorage(tournaments);
+
+    return { success: true, data: events[eventIndex] };
+}
+
+export async function removeTournamentFromEvent(eventId: string, tournamentId: string): Promise<ApiResponse<Event>> {
+    await delay();
+
+    const events = getEventsFromStorage();
+    const eventIndex = events.findIndex(e => e.id === eventId);
+
+    if (eventIndex === -1) {
+        return { success: false, error: 'Event not found' };
+    }
+
+    // Remove tournament from event
+    events[eventIndex].tournamentIds = events[eventIndex].tournamentIds.filter(id => id !== tournamentId);
+    events[eventIndex].updatedAt = new Date().toISOString();
+
+    // Remove eventId from tournament
+    const tournaments = getTournamentsFromStorage();
+    const tournamentIndex = tournaments.findIndex(t => t.id === tournamentId);
+    if (tournamentIndex !== -1) {
+        tournaments[tournamentIndex].eventId = undefined;
+        tournaments[tournamentIndex].updatedAt = new Date().toISOString();
+        saveTournamentsToStorage(tournaments);
+    }
+
+    saveEventsToStorage(events);
+
+    return { success: true, data: events[eventIndex] };
+}
+
+// Helper: Get tournaments for an event
+export async function getEventTournaments(eventId: string): Promise<ApiResponse<Tournament[]>> {
+    await delay();
+
+    const events = getEventsFromStorage();
+    const event = events.find(e => e.id === eventId);
+
+    if (!event) {
+        return { success: false, error: 'Event not found' };
+    }
+
+    const tournaments = getTournamentsFromStorage();
+    const eventTournaments = tournaments.filter(t => event.tournamentIds.includes(t.id));
+
+    return { success: true, data: eventTournaments };
 }
 
 // ================================

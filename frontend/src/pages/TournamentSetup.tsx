@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createTournament } from '../api/mockApi';
-import { ChevronLeft, Plus, Trash2, Users, Trophy } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, Users } from 'lucide-react';
 import './TournamentSetup.css';
 
 export function TournamentSetup() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const eventId = searchParams.get('eventId'); // Get eventId from URL if present
+
     const [tournamentName, setTournamentName] = useState('');
 
     // Initial state: 1 pool with 2 empty slots
@@ -84,6 +87,7 @@ export function TournamentSetup() {
         try {
             const response = await createTournament({
                 name: tournamentName,
+                eventId: eventId || undefined, // Link to event if coming from event context
                 pools: pools.map(pool => ({
                     name: pool.name,
                     teamNames: pool.teams.filter(t => t.trim())
@@ -91,7 +95,12 @@ export function TournamentSetup() {
             });
 
             if (response.success) {
-                navigate('/admin');
+                // Navigate back to event if created from event, otherwise go to admin
+                if (eventId) {
+                    navigate(`/events/${eventId}`);
+                } else {
+                    navigate('/admin');
+                }
             } else {
                 setError(response.error || 'Failed to create tournament');
             }
@@ -103,10 +112,18 @@ export function TournamentSetup() {
         }
     };
 
+    const handleBack = () => {
+        if (eventId) {
+            navigate(`/events/${eventId}`);
+        } else {
+            navigate('/admin');
+        }
+    };
+
     return (
         <div className="setup-container">
             <header className="setup-header">
-                <button onClick={() => navigate('/admin')} className="back-button">
+                <button onClick={handleBack} className="back-button">
                     <ChevronLeft size={20} />
                     Back
                 </button>

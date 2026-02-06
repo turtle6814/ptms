@@ -5,8 +5,11 @@ import { LandingPage } from './pages/LandingPage';
 import { TournamentSetup } from './pages/TournamentSetup';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ViewerPage } from './pages/ViewerPage';
+import { EventViewerPage } from './pages/EventViewerPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { EventsPage } from './pages/EventsPage';
+import { EventDetailPage } from './pages/EventDetailPage';
 import './index.css';
 
 function App() {
@@ -33,8 +36,21 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* Public viewer route - no auth required */}
+          {/* Events routes */}
+          <Route path="/events" element={
+            <ProtectedRoute>
+              <EventsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/events/:eventId" element={
+            <ProtectedRoute>
+              <EventDetailPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Public viewer routes - no auth required */}
           <Route path="/view/:tournamentId" element={<ViewerPage />} />
+          <Route path="/view/event/:eventId" element={<EventViewerPage />} />
 
           {/* Fallback to landing */}
           <Route path="*" element={<LandingPage />} />
@@ -45,3 +61,4 @@ function App() {
 }
 
 export default App;
+
