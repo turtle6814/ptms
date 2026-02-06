@@ -1,12 +1,12 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogIn, User, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { LogIn, Phone, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Header } from '../components/Header';
 import './LoginPage.css';
 
 export function LoginPage() {
-    const [username, setUsername] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -18,14 +18,14 @@ export function LoginPage() {
         e.preventDefault();
         setError(null);
 
-        if (!username.trim() || !password.trim()) {
+        if (!phoneNumber.trim() || !password.trim()) {
             setError('Please fill in all fields');
             return;
         }
 
         setIsLoading(true);
         try {
-            const result = await login(username, password);
+            const result = await login(phoneNumber, password);
             if (result.success) {
                 navigate('/admin');
             } else {
@@ -60,17 +60,17 @@ export function LoginPage() {
                         )}
 
                         <div className="form-group">
-                            <label htmlFor="username">
-                                <User size={16} />
-                                Username
+                            <label htmlFor="phoneNumber">
+                                <Phone size={16} />
+                                Phone Number
                             </label>
                             <input
-                                type="text"
-                                id="username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                placeholder="Enter your username"
-                                autoComplete="username"
+                                type="tel"
+                                id="phoneNumber"
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                placeholder="Enter your phone number"
+                                autoComplete="tel"
                                 disabled={isLoading}
                             />
                         </div>

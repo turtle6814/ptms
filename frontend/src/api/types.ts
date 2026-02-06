@@ -97,18 +97,18 @@ export interface CreateTournamentPayload {
 export interface User {
   id: string;
   username: string;
-  email: string;
+  phoneNumber: string;
   createdAt: string;
 }
 
 export interface LoginPayload {
-  username: string;
+  phoneNumber: string;
   password: string;
 }
 
 export interface SignupPayload {
   username: string;
-  email: string;
+  phoneNumber: string;
   password: string;
 }
 

@@ -10,8 +10,8 @@ interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
-    signup: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    login: (phoneNumber: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    signup: (username: string, phoneNumber: string, password: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => Promise<void>;
 }
 
@@ -46,8 +46,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         initAuth();
     }, []);
 
-    const login = async (username: string, password: string) => {
-        const response = await api.login({ username, password });
+    const login = async (phoneNumber: string, password: string) => {
+        const response = await api.login({ phoneNumber, password });
         if (response.success && response.data) {
             setUser(response.data.user);
             return { success: true };
@@ -55,8 +55,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: response.error };
     };
 
-    const signup = async (username: string, email: string, password: string) => {
-        const response = await api.signup({ username, email, password });
+    const signup = async (username: string, phoneNumber: string, password: string) => {
+        const response = await api.signup({ username, phoneNumber, password });
         if (response.success && response.data) {
             setUser(response.data.user);
             return { success: true };

@@ -401,16 +401,16 @@ export async function signup(
             return { success: false, error: 'Username already exists' };
         }
 
-        // Check if email already exists
-        if (users.some(u => u.email.toLowerCase() === payload.email.toLowerCase())) {
-            return { success: false, error: 'Email already registered' };
+        // Check if phone number already exists
+        if (users.some(u => u.phoneNumber === payload.phoneNumber)) {
+            return { success: false, error: 'Phone number already registered' };
         }
 
         const now = new Date().toISOString();
         const newUser: StoredUser = {
             id: generateId(),
             username: payload.username,
-            email: payload.email,
+            phoneNumber: payload.phoneNumber,
             passwordHash: mockHashPassword(payload.password),
             createdAt: now,
         };
@@ -422,7 +422,7 @@ export async function signup(
         const user: User = {
             id: newUser.id,
             username: newUser.username,
-            email: newUser.email,
+            phoneNumber: newUser.phoneNumber,
             createdAt: newUser.createdAt,
         };
 
@@ -444,22 +444,22 @@ export async function login(
     try {
         const users = getUsersFromStorage();
         const storedUser = users.find(
-            u => u.username.toLowerCase() === payload.username.toLowerCase()
+            u => u.phoneNumber === payload.phoneNumber
         );
 
         if (!storedUser) {
-            return { success: false, error: 'Invalid username or password' };
+            return { success: false, error: 'Invalid phone number or password' };
         }
 
         if (!mockVerifyPassword(payload.password, storedUser.passwordHash)) {
-            return { success: false, error: 'Invalid username or password' };
+            return { success: false, error: 'Invalid phone number or password' };
         }
 
         // Create user object without password
         const user: User = {
             id: storedUser.id,
             username: storedUser.username,
-            email: storedUser.email,
+            phoneNumber: storedUser.phoneNumber,
             createdAt: storedUser.createdAt,
         };
 
