@@ -107,6 +107,17 @@
     background: rgba(248, 250, 252, 0.05);
 }
 
+/* Tablet styles */
+@media (max-width: 1024px) {
+    .tournament-badge {
+        display: none;
+    }
+
+    .nav-link-dashboard {
+        display: none;
+    }
+}
+
 @media (max-width: 640px) {
     .app-header {
         padding: 0.75rem 1rem;

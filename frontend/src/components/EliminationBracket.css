@@ -161,6 +161,16 @@
     border-bottom-right-radius: 12px;
 }
 
+/* Straight connector (Single unpaired match - odd one out) */
+.connector-straight .connector-elbow {
+    display: none;
+}
+
+.connector-straight::before {
+    width: 2rem;
+    /* Full width straight line */
+}
+
 /* Remove default gap and ensure alignment */
 .round-matches {
     display: flex;
