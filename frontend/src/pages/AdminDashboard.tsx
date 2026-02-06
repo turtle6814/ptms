@@ -11,11 +11,10 @@ import {
     getAllTournaments,
     updateMatchScore,
     subscribeTournament,
-    deleteTournament,
     getAllEvents,
 } from '../api/mockApi';
 import { Tournament, Event } from '../api/types';
-import { Share2, Trash2, RefreshCw, ChevronDown, Calendar } from 'lucide-react';
+import { Share2, RefreshCw, ChevronDown, Calendar } from 'lucide-react';
 import './AdminDashboard.css';
 
 export function AdminDashboard() {
@@ -87,16 +86,6 @@ export function AdminDashboard() {
             setTournaments(prev =>
                 prev.map(t => t.id === response.data!.id ? response.data! : t)
             );
-        }
-    };
-
-    const handleDeleteTournament = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this tournament?')) return;
-
-        await deleteTournament(id);
-        await loadTournaments();
-        if (selectedTournament?.id === id) {
-            setSelectedTournament(null);
         }
     };
 
@@ -212,12 +201,6 @@ export function AdminDashboard() {
                                                             <span className={`tournament-status status-${t.status}`}>
                                                                 {getStatusLabel(t.status)}
                                                             </span>
-                                                        </button>
-                                                        <button
-                                                            className="delete-btn"
-                                                            onClick={() => handleDeleteTournament(t.id)}
-                                                        >
-                                                            <Trash2 size={14} />
                                                         </button>
                                                     </li>
                                                 ))
