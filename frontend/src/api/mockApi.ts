@@ -294,11 +294,9 @@ export async function deleteEvent(id: string): Promise<ApiResponse<void>> {
         return { success: false, error: 'Event not found' };
     }
 
-    // Also remove the eventId from all linked tournaments
+    // Delete all tournaments within this event
     const tournaments = getTournamentsFromStorage();
-    const updatedTournaments = tournaments.map(t =>
-        t.eventId === id ? { ...t, eventId: undefined } : t
-    );
+    const updatedTournaments = tournaments.filter(t => t.eventId !== id);
     saveTournamentsToStorage(updatedTournaments);
 
     events.splice(eventIndex, 1);

@@ -169,17 +169,6 @@ export function AdminDashboard() {
                                             {getEventTournaments(event.id).length}
                                         </span>
                                     </button>
-                                    <button
-                                        className="event-share-btn"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShareEventId(event.id);
-                                            setShowShareModal(true);
-                                        }}
-                                        title="Share Event"
-                                    >
-                                        <Share2 size={14} />
-                                    </button>
 
                                     {expandedEvents.has(event.id) && (
                                         <ul className="tournament-dropdown">

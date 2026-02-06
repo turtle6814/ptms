@@ -4,7 +4,6 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './pages/LandingPage';
 import { TournamentSetup } from './pages/TournamentSetup';
 import { AdminDashboard } from './pages/AdminDashboard';
-import { ViewerPage } from './pages/ViewerPage';
 import { EventViewerPage } from './pages/EventViewerPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
@@ -48,8 +47,7 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* Public viewer routes - no auth required */}
-          <Route path="/view/:tournamentId" element={<ViewerPage />} />
+          {/* Public event viewer route - no auth required */}
           <Route path="/view/event/:eventId" element={<EventViewerPage />} />
 
           {/* Fallback to landing */}
