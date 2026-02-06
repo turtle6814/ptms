@@ -1,26 +1,45 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { LandingPage } from './pages/LandingPage';
 import { TournamentSetup } from './pages/TournamentSetup';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ViewerPage } from './pages/ViewerPage';
+import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
 import './index.css';
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Default redirect to admin dashboard */}
-        <Route path="/" element={<Navigate to="/admin" replace />} />
+      <AuthProvider>
+        <Routes>
+          {/* Public landing page - redirects to admin if logged in */}
+          <Route path="/" element={<LandingPage />} />
 
-        {/* Admin routes */}
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/setup" element={<TournamentSetup />} />
+          {/* Auth routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
 
-        {/* Public viewer route - no auth required */}
-        <Route path="/view/:tournamentId" element={<ViewerPage />} />
+          {/* Protected admin routes */}
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/setup" element={
+            <ProtectedRoute>
+              <TournamentSetup />
+            </ProtectedRoute>
+          } />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/admin" replace />} />
-      </Routes>
+          {/* Public viewer route - no auth required */}
+          <Route path="/view/:tournamentId" element={<ViewerPage />} />
+
+          {/* Fallback to landing */}
+          <Route path="*" element={<LandingPage />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

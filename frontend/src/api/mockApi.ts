@@ -12,6 +12,10 @@ import {
     ApiResponse,
     CreateTournamentPayload,
     ScoreUpdate,
+    User,
+    LoginPayload,
+    SignupPayload,
+    AuthResponse,
 } from './types';
 
 import {
@@ -30,6 +34,9 @@ import { updateBracketWithPoolWinners } from '../utils/bracketUpdateLogic';
 // ================================
 const STORAGE_KEYS = {
     TOURNAMENTS: 'pickleball_tournaments',
+    USERS: 'pickleball_users',
+    CURRENT_USER: 'pickleball_current_user',
+    AUTH_TOKEN: 'pickleball_auth_token',
 };
 
 // ================================
@@ -313,4 +320,196 @@ export async function pollTournament(id: string): Promise<ApiResponse<Tournament
 export function generateShareableLink(tournamentId: string): string {
     const baseUrl = window.location.origin;
     return `${baseUrl}/view/${tournamentId}`;
+}
+
+// ================================
+// Auth Data Access Layer
+// ================================
+
+interface StoredUser extends User {
+    passwordHash: string; // Simple mock hash
+}
+
+function getUsersFromStorage(): StoredUser[] {
+    const data = localStorage.getItem(STORAGE_KEYS.USERS);
+    return data ? JSON.parse(data) : [];
+}
+
+function saveUsersToStorage(users: StoredUser[]): void {
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+}
+
+function getCurrentUserFromStorage(): User | null {
+    const data = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+    return data ? JSON.parse(data) : null;
+}
+
+function saveCurrentUserToStorage(user: User | null): void {
+    if (user) {
+        localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+    } else {
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+    }
+}
+
+function getAuthTokenFromStorage(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+}
+
+function saveAuthTokenToStorage(token: string | null): void {
+    if (token) {
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+    } else {
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+    }
+}
+
+// Simple mock hash function (NOT for production use!)
+function mockHashPassword(password: string): string {
+    return btoa(password + '_hashed');
+}
+
+function mockVerifyPassword(password: string, hash: string): boolean {
+    return mockHashPassword(password) === hash;
+}
+
+// Generate a mock JWT token
+function generateMockToken(userId: string): string {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(JSON.stringify({
+        userId,
+        exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+    }));
+    const signature = btoa('mock_signature');
+    return `${header}.${payload}.${signature}`;
+}
+
+// ================================
+// Auth API
+// ================================
+
+export async function signup(
+    payload: SignupPayload
+): Promise<ApiResponse<AuthResponse>> {
+    await delay();
+
+    try {
+        const users = getUsersFromStorage();
+
+        // Check if username already exists
+        if (users.some(u => u.username.toLowerCase() === payload.username.toLowerCase())) {
+            return { success: false, error: 'Username already exists' };
+        }
+
+        // Check if email already exists
+        if (users.some(u => u.email.toLowerCase() === payload.email.toLowerCase())) {
+            return { success: false, error: 'Email already registered' };
+        }
+
+        const now = new Date().toISOString();
+        const newUser: StoredUser = {
+            id: generateId(),
+            username: payload.username,
+            email: payload.email,
+            passwordHash: mockHashPassword(payload.password),
+            createdAt: now,
+        };
+
+        users.push(newUser);
+        saveUsersToStorage(users);
+
+        // Create user object without password
+        const user: User = {
+            id: newUser.id,
+            username: newUser.username,
+            email: newUser.email,
+            createdAt: newUser.createdAt,
+        };
+
+        const token = generateMockToken(user.id);
+        saveCurrentUserToStorage(user);
+        saveAuthTokenToStorage(token);
+
+        return { success: true, data: { user, token } };
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function login(
+    payload: LoginPayload
+): Promise<ApiResponse<AuthResponse>> {
+    await delay();
+
+    try {
+        const users = getUsersFromStorage();
+        const storedUser = users.find(
+            u => u.username.toLowerCase() === payload.username.toLowerCase()
+        );
+
+        if (!storedUser) {
+            return { success: false, error: 'Invalid username or password' };
+        }
+
+        if (!mockVerifyPassword(payload.password, storedUser.passwordHash)) {
+            return { success: false, error: 'Invalid username or password' };
+        }
+
+        // Create user object without password
+        const user: User = {
+            id: storedUser.id,
+            username: storedUser.username,
+            email: storedUser.email,
+            createdAt: storedUser.createdAt,
+        };
+
+        const token = generateMockToken(user.id);
+        saveCurrentUserToStorage(user);
+        saveAuthTokenToStorage(token);
+
+        return { success: true, data: { user, token } };
+    } catch (error) {
+        return { success: false, error: String(error) };
+    }
+}
+
+export async function logout(): Promise<ApiResponse<void>> {
+    await delay(100);
+
+    saveCurrentUserToStorage(null);
+    saveAuthTokenToStorage(null);
+
+    return { success: true };
+}
+
+export async function getCurrentUser(): Promise<ApiResponse<User | null>> {
+    await delay(100);
+
+    const user = getCurrentUserFromStorage();
+    const token = getAuthTokenFromStorage();
+
+    // Verify token is still valid (mock check)
+    if (user && token) {
+        try {
+            const payloadPart = token.split('.')[1];
+            const payload = JSON.parse(atob(payloadPart));
+            if (payload.exp < Date.now()) {
+                // Token expired
+                saveCurrentUserToStorage(null);
+                saveAuthTokenToStorage(null);
+                return { success: true, data: null };
+            }
+        } catch {
+            // Invalid token format
+            saveCurrentUserToStorage(null);
+            saveAuthTokenToStorage(null);
+            return { success: true, data: null };
+        }
+    }
+
+    return { success: true, data: user };
+}
+
+export function isAuthenticated(): boolean {
+    return getCurrentUserFromStorage() !== null && getAuthTokenFromStorage() !== null;
 }

@@ -89,3 +89,30 @@ export interface CreateTournamentPayload {
     teamNames: string[];
   }[];
 }
+
+// ================================
+// Auth Types
+// ================================
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  createdAt: string;
+}
+
+export interface LoginPayload {
+  username: string;
+  password: string;
+}
+
+export interface SignupPayload {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string; // Mocked JWT token
+}
