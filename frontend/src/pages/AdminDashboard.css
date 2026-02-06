@@ -488,6 +488,18 @@
         padding: 1.5rem;
     }
 
+    /* Stack header-info and header-actions vertically on mobile */
+    .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
     .header-info h1 {
         font-size: 1.5rem;
     }

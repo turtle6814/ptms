@@ -121,6 +121,11 @@
     .logo-text {
         font-size: 1.1rem;
     }
+
+    /* Hide Dashboard link on mobile */
+    .nav-link-dashboard {
+        display: none;
+    }
 }
 
 /* User Section */

@@ -80,7 +80,7 @@ export function Header({ tournamentName, isAdmin }: HeaderProps) {
                                         <Plus size={16} />
                                         New
                                     </Link> */}
-                                    <Link to="/admin" className="nav-link">
+                                    <Link to="/admin" className="nav-link nav-link-dashboard">
                                         <Settings size={16} />
                                         Dashboard
                                     </Link>
