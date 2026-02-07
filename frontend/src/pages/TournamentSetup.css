@@ -1,43 +1,62 @@
+/* ========== TOURNAMENT SETUP - PREMIUM STYLING ========== */
+
 .setup-container {
-    max-width: 1200px;
-    margin: 0 auto;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    background-image:
+        radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 50%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
     padding: 2rem;
 }
 
+/* ========== HEADER ========== */
 .setup-header {
+    max-width: 1200px;
+    margin: 0 auto 2rem;
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    margin-bottom: 2rem;
 }
 
 .setup-header h1 {
     font-size: 2rem;
-    font-weight: 700;
+    font-weight: 800;
+    background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
 }
 
 .back-button {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.625rem 1rem;
     background: rgba(255, 255, 255, 0.05);
-    border: none;
-    border-radius: 8px;
-    color: var(--text-secondary);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: #94a3b8;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    font-weight: 500;
 }
 
 .back-button:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
+    color: #f8fafc;
+    transform: translateX(-2px);
 }
 
+/* ========== CONTENT LAYOUT ========== */
 .setup-content {
+    max-width: 1200px;
+    margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 2rem;
+    grid-template-columns: 1fr 320px;
+    gap: 2.5rem;
 }
 
 .setup-form {
@@ -46,23 +65,93 @@
     gap: 2rem;
 }
 
+/* ========== FORM SECTIONS ========== */
+.form-section {
+    background: linear-gradient(135deg, rgba(30, 30, 46, 0.7) 0%, rgba(20, 20, 35, 0.8) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 20px;
+    padding: 1.75rem;
+    transition: all 0.3s ease;
+}
+
+.form-section:hover {
+    border-color: rgba(148, 163, 184, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.form-section h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* ========== INPUT STYLING ========== */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.input-group input {
+    padding: 1rem 1.25rem;
+    background: rgba(15, 15, 26, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 12px;
+    color: #f8fafc;
+    font-size: 1.05rem;
+    transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.input-group input::placeholder {
+    color: #64748b;
+}
+
+/* ========== POOLS GRID ========== */
 .pools-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.5rem;
 }
 
-.form-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
+/* ========== POOL CARDS ========== */
+.pool-section {
+    position: relative;
+    border-top: none;
+    overflow: hidden;
 }
 
-.pool-section {
-    border-top: 4px solid var(--primary);
-    display: flex;
-    flex-direction: column;
+.pool-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #8b5cf6, #6366f1, #3b82f6);
+    border-radius: 20px 20px 0 0;
 }
 
 .pool-header {
@@ -70,6 +159,14 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
+    padding-top: 0.5rem;
+}
+
+.pool-header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #f8fafc;
 }
 
 .pool-header-actions {
@@ -78,128 +175,136 @@
     gap: 0.75rem;
 }
 
+.team-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #a78bfa;
+    background: rgba(139, 92, 246, 0.15);
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+}
+
 .remove-pool-btn {
-    padding: 0.25rem;
+    padding: 0.5rem;
     background: rgba(239, 68, 68, 0.1);
     border: none;
-    border-radius: 4px;
-    color: var(--danger);
+    border-radius: 8px;
+    color: #f87171;
     cursor: pointer;
     display: flex;
+    transition: all 0.2s ease;
 }
 
 .remove-pool-btn:hover {
     background: rgba(239, 68, 68, 0.2);
+    transform: scale(1.05);
 }
 
-.form-section h2,
-.pool-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: var(--text-primary);
-}
-
-.input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.input-group label {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
-.input-group input {
-    padding: 0.75rem;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-primary);
-    font-size: 1rem;
-}
-
-.input-group input:focus {
-    outline: none;
-    border-color: var(--primary);
-}
-
-.team-count {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.05);
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-}
-
+/* ========== TEAM INPUTS ========== */
 .teams-list {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     margin-bottom: 1.5rem;
-    flex: 1;
-    /* Pushes button down if simple flex column */
 }
 
 .team-input-row {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
+    animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .team-number {
-    font-family: monospace;
-    color: var(--text-tertiary);
-    width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #a78bfa;
+    flex-shrink: 0;
 }
 
 .team-input-row input {
     flex: 1;
-    padding: 0.75rem;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-primary);
+    padding: 0.875rem 1rem;
+    background: rgba(15, 15, 26, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 10px;
+    color: #f8fafc;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.team-input-row input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    background: rgba(15, 15, 26, 0.8);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.team-input-row input::placeholder {
+    color: #64748b;
 }
 
 .remove-team-btn {
     padding: 0.5rem;
-    background: transparent;
+    background: rgba(239, 68, 68, 0.08);
     border: none;
-    color: var(--danger);
+    border-radius: 8px;
+    color: #f87171;
     cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.2s;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    display: flex;
 }
 
 .remove-team-btn:hover {
     opacity: 1;
+    background: rgba(239, 68, 68, 0.15);
 }
 
+/* ========== ADD BUTTONS ========== */
 .add-team-btn {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.875rem;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px dashed var(--border);
-    border-radius: 8px;
-    color: var(--text-secondary);
+    background: rgba(139, 92, 246, 0.05);
+    border: 1px dashed rgba(139, 92, 246, 0.3);
+    border-radius: 10px;
+    color: #a78bfa;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .add-team-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--primary);
-    border-color: var(--primary);
+    background: rgba(139, 92, 246, 0.1);
+    border-color: rgba(139, 92, 246, 0.5);
+    color: #c4b5fd;
 }
 
 .add-pool-section {
-    min-height: 200px;
+    min-height: 240px;
     display: flex;
 }
 
@@ -210,57 +315,82 @@
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    background: rgba(255, 255, 255, 0.02);
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    color: var(--text-secondary);
+    background: rgba(139, 92, 246, 0.03);
+    border: 2px dashed rgba(139, 92, 246, 0.2);
+    border-radius: 20px;
+    color: #64748b;
     cursor: pointer;
-    transition: all 0.2s;
-    min-height: 200px;
-    /* Match typical card height */
+    transition: all 0.3s ease;
+    min-height: 240px;
 }
 
 .add-pool-btn:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--primary);
-    color: var(--primary);
+    background: rgba(139, 92, 246, 0.08);
+    border-color: rgba(139, 92, 246, 0.4);
+    color: #a78bfa;
+    transform: scale(1.01);
 }
 
+.add-pool-btn span {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* ========== ERROR MESSAGE ========== */
 .error-message {
-    padding: 1rem;
+    padding: 1rem 1.25rem;
     background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    border-radius: 8px;
-    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 12px;
+    color: #f87171;
     font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
+/* ========== FORM ACTIONS ========== */
 .form-actions {
-    margin-top: 1rem;
+    margin-top: 0.5rem;
+}
+
+.sticky-actions {
+    position: sticky;
+    bottom: 1rem;
+    z-index: 10;
 }
 
 .create-btn {
     width: 100%;
-    padding: 1rem;
-    background: var(--primary);
-    color: black;
+    padding: 1.125rem 2rem;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
     border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 1rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 1.05rem;
     cursor: pointer;
-    transition: filter 0.2s;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.35);
 }
 
 .create-btn:hover {
-    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(139, 92, 246, 0.45);
+}
+
+.create-btn:active {
+    transform: translateY(0);
 }
 
 .create-btn:disabled {
-    opacity: 0.7;
+    opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
 }
 
+/* ========== INFO SIDEBAR ========== */
 .setup-info {
     position: sticky;
     top: 2rem;
@@ -268,44 +398,107 @@
 }
 
 .info-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(30, 30, 46, 0.7) 0%, rgba(20, 20, 35, 0.8) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 20px;
+    padding: 1.75rem;
+}
+
+.info-card svg {
+    color: #8b5cf6;
 }
 
 .info-card h3 {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 1rem;
-    color: var(--text-primary);
+    margin: 0 0 1rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #f8fafc;
 }
 
 .info-card p {
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin-bottom: 1rem;
+    color: #94a3b8;
+    line-height: 1.7;
+    margin: 0 0 1.25rem;
+    font-size: 0.95rem;
 }
 
 .info-card ul {
-    list-style: disc;
-    padding-left: 1.5rem;
-    color: var(--text-secondary);
-    line-height: 1.6;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-@media (max-width: 900px) {
+.info-card li {
+    position: relative;
+    padding: 0.625rem 0 0.625rem 1.5rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.info-card li:last-child {
+    border-bottom: none;
+}
+
+.info-card li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #8b5cf6;
+    font-weight: bold;
+}
+
+.info-card li strong {
+    color: #f8fafc;
+    font-weight: 600;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
     .setup-content {
         grid-template-columns: 1fr;
     }
 
     .setup-info {
         position: static;
-        margin-top: 2rem;
+        order: -1;
+    }
+
+    .info-card {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .setup-container {
+        padding: 1rem;
+    }
+
+    .setup-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .setup-header h1 {
+        font-size: 1.5rem;
     }
 
     .pools-grid {
         grid-template-columns: 1fr;
+    }
+
+    .form-section {
+        padding: 1.25rem;
+        border-radius: 16px;
+    }
+
+    .pool-header h3 {
+        font-size: 1.15rem;
     }
 }

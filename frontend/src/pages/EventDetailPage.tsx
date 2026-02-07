@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Trophy, Plus, Trash2, ExternalLink, Edit2, X, Check } from 'lucide-react';
+import { ArrowLeft, Calendar, Trophy, Plus, Trash2, Edit2, X, Check } from 'lucide-react';
 import { Event, Tournament } from '../api/types';
 import { getEventById, updateEvent, getEventTournaments, removeTournamentFromEvent, deleteEvent } from '../api/mockApi';
 import { Header } from '../components/Header';
@@ -197,7 +197,6 @@ export function EventDetailPage() {
                             <h3>No Tournaments Yet</h3>
                             <p>Create your first tournament for this event</p>
                             <Link to={`/setup?eventId=${eventId}`} className="create-tournament-btn">
-                                <Plus size={20} />
                                 Create Tournament
                             </Link>
                         </div>
