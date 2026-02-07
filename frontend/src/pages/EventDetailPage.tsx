@@ -70,7 +70,7 @@ export function EventDetailPage() {
 
     const handleDeleteEvent = async () => {
         if (!eventId) return;
-        if (!confirm('Delete this event? Tournaments will be unlinked but not deleted.')) return;
+        if (!confirm('Delete this event?')) return;
 
         const result = await deleteEvent(eventId);
         if (result.success) {
@@ -220,14 +220,14 @@ export function EventDetailPage() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <ExternalLink size={18} className="external-icon" />
+                                        {/* <ExternalLink size={18} className="external-icon" /> */}
                                     </Link>
                                     <button
                                         className="remove-tournament-btn"
                                         onClick={() => handleRemoveTournament(tournament.id)}
                                         title="Remove from event"
                                     >
-                                        <X size={16} />
+                                        <Trash2 size={16} />
                                     </button>
                                 </div>
                             ))}

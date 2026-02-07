@@ -56,7 +56,7 @@ export function EventsPage() {
     };
 
     const handleDeleteEvent = async (eventId: string) => {
-        if (!confirm('Are you sure you want to delete this event? Tournaments will be unlinked but not deleted.')) {
+        if (!confirm('Are you sure you want to delete this event?')) {
             return;
         }
 
@@ -109,7 +109,6 @@ export function EventsPage() {
                             className="create-event-btn-large"
                             onClick={() => setShowCreateModal(true)}
                         >
-                            <Plus size={24} />
                             Create Your First Event
                         </button>
                     </div>

@@ -7,7 +7,7 @@
 import {
     Tournament,
     Team,
-    Match,
+    // Match,
     Pool,
     ApiResponse,
     CreateTournamentPayload,
@@ -28,7 +28,7 @@ import {
     isPoolComplete,
     generateEliminationBracket,
     advanceWinnerInBracket,
-    getTopTeamsFromPool,
+    // getTopTeamsFromPool,
 } from '../utils/tournamentLogic';
 import { updateBracketWithPoolWinners } from '../utils/bracketUpdateLogic';
 
