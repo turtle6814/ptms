@@ -179,18 +179,13 @@
     font-size: 1.125rem;
     font-weight: 600;
     color: #f8fafc;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .event-description {
     margin: 0.25rem 0 0;
     color: #94a3b8;
     font-size: 0.875rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.5;
 }
 
 .event-meta {

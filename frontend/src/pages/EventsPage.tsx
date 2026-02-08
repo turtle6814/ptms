@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, Plus, Trash2, Trophy } from 'lucide-react';
+import { Calendar, Plus, Trophy } from 'lucide-react';
 import { Event } from '../api/types';
-import { getAllEvents, createEvent, deleteEvent } from '../api/mockApi';
+import { getAllEvents, createEvent } from '../api/mockApi';
 import { Header } from '../components/Header';
 import './EventsPage.css';
 
@@ -55,16 +55,6 @@ export function EventsPage() {
         }
     };
 
-    const handleDeleteEvent = async (eventId: string) => {
-        if (!confirm('Are you sure you want to delete this event?')) {
-            return;
-        }
-
-        const result = await deleteEvent(eventId);
-        if (result.success) {
-            setEvents(prev => prev.filter(e => e.id !== eventId));
-        }
-    };
 
     const getTournamentCount = (event: Event) => {
         return event.tournamentIds.length;
@@ -140,15 +130,6 @@ export function EventsPage() {
                                                 </div>
                                             </div>
                                         </Link>
-                                        <button
-                                            className="delete-event-btn"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDeleteEvent(event.id);
-                                            }}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
                                     </div>
                                 ))}
                             </div>
