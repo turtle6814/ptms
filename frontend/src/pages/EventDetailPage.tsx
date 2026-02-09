@@ -204,7 +204,7 @@ export function EventDetailPage() {
                         <div className="tournaments-grid">
                             {tournaments.map(tournament => (
                                 <div key={tournament.id} className="tournament-card">
-                                    <Link to={`/admin`} className="tournament-card-content">
+                                    <Link to={`/admin?id=${tournament.id}`} className="tournament-card-content">
                                         <div className="tournament-info">
                                             <h3>{tournament.name}</h3>
                                             <div className="tournament-meta">
