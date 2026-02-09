@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Trophy, Settings, Eye, Plus, LogIn, LogOut, User, Calendar } from 'lucide-react';
+import { Trophy, Settings, Eye, LogIn, LogOut, User, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Header.css';
 
