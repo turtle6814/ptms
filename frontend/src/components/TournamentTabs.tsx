@@ -14,9 +14,9 @@ export function TournamentTabs({ hasPoolPlay, hasPlayoffs, children }: Tournamen
     const [activeTab, setActiveTab] = useState<'pool' | 'playoffs'>(hasPoolPlay ? 'pool' : 'playoffs');
 
     // If only one section exists, don't show tabs
-    // if (!hasPoolPlay && !hasPlayoffs) return null;
-    // if (hasPoolPlay && !hasPlayoffs) return <>{children.poolPlay}</>;
-    // if (!hasPoolPlay && hasPlayoffs) return <>{children.playoffs}</>;
+    if (!hasPoolPlay && !hasPlayoffs) return null;
+    if (hasPoolPlay && !hasPlayoffs) return <>{children.poolPlay}</>;
+    if (!hasPoolPlay && hasPlayoffs) return <>{children.playoffs}</>;
 
     return (
         <div className="tournament-tabs">
