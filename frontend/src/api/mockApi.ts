@@ -463,6 +463,50 @@ export async function updateMatchScore(
             }
         }
 
+        // Check third-place match (dynamically created matches start with 'third-place-match')
+        if (!matchFound && tournament.eliminationBracket && update.matchId.startsWith('third-place-match')) {
+            // Find semifinals round and get losers
+            const finalsIndex = tournament.eliminationBracket.rounds.findIndex(r => r.name === 'Finals');
+            let team1Id = '';
+            let team2Id = '';
+
+            if (finalsIndex > 0) {
+                const semisRound = tournament.eliminationBracket.rounds[finalsIndex - 1];
+                const completedSemis = semisRound.matches.filter(m => m.status === 'completed' && m.winnerId);
+                const losers = completedSemis.map(m =>
+                    m.team1Id === m.winnerId ? m.team2Id : m.team1Id
+                ).filter(Boolean);
+                team1Id = losers[0] || '';
+                team2Id = losers[1] || '';
+            }
+
+            // Create or update the third-place match in the bracket
+            const existingMatch = tournament.eliminationBracket.thirdPlaceMatch;
+            const thirdPlaceMatch = {
+                id: existingMatch?.id || update.matchId,
+                tournamentId: tournament.id,
+                bracketRound: finalsIndex + 1,
+                bracketPosition: 0,
+                team1Id: existingMatch?.team1Id || team1Id,
+                team2Id: existingMatch?.team2Id || team2Id,
+                team1Score: update.team1Score,
+                team2Score: update.team2Score,
+                status: 'completed' as const,
+                winnerId: '',
+                createdAt: existingMatch?.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+
+            // Determine winner based on scores
+            const t1Id = thirdPlaceMatch.team1Id;
+            const t2Id = thirdPlaceMatch.team2Id;
+            thirdPlaceMatch.winnerId = update.team1Score > update.team2Score ? t1Id :
+                update.team2Score > update.team1Score ? t2Id : '';
+
+            tournament.eliminationBracket.thirdPlaceMatch = thirdPlaceMatch;
+            matchFound = true;
+        }
+
         if (!matchFound) {
             return { success: false, error: 'Match not found' };
         }

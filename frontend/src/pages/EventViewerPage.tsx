@@ -68,7 +68,7 @@ export function EventViewerPage() {
         }
     }, [selectedTournament?.id]);
 
-    // Poll for updates
+    // Poll for updates (reduced to 2s for faster sync)
     useEffect(() => {
         if (!selectedTournament) return;
 
@@ -79,9 +79,29 @@ export function EventViewerPage() {
                 setTournaments(prev => prev.map(t => t.id === response.data!.id ? response.data! : t));
                 setLastUpdated(new Date());
             }
-        }, 5000);
+        }, 2000);
 
         return () => clearInterval(interval);
+    }, [selectedTournament?.id]);
+
+    // Listen for cross-tab localStorage changes
+    useEffect(() => {
+        if (!selectedTournament) return;
+
+        const handleStorageChange = async (e: StorageEvent) => {
+            // React to changes in tournaments storage
+            if (e.key === 'pickleball_tournaments' && e.newValue) {
+                const response = await pollTournament(selectedTournament.id);
+                if (response.success && response.data) {
+                    setSelectedTournament(response.data);
+                    setTournaments(prev => prev.map(t => t.id === response.data!.id ? response.data! : t));
+                    setLastUpdated(new Date());
+                }
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
     }, [selectedTournament?.id]);
 
     const handleSelectTournament = (tournament: Tournament) => {
@@ -238,7 +258,6 @@ export function EventViewerPage() {
                                         bracket={selectedTournament.eliminationBracket}
                                         teams={selectedTournament.teams}
                                         isAdmin={false}
-                                        showPlaceholders={selectedTournament.status === 'pool_play'}
                                     />
                                 </section>
                             )

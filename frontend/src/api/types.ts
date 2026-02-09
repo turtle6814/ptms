@@ -48,6 +48,8 @@ export interface EliminationBracket {
   tournamentId: string;
   rounds: BracketRound[];
   champion: string | null;
+  thirdPlaceMatch?: Match | null;  // Third-place match between semifinal losers
+  thirdPlaceTeamId?: string | null;  // Auto-3rd place when only 1 semifinal loser exists
 }
 
 export interface BracketRound {

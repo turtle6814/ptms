@@ -28,6 +28,7 @@ export function AdminDashboard() {
     const [shareEventId, setShareEventId] = useState<string | null>(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [hasThirdPlaceMatch, setHasThirdPlaceMatch] = useState(false);
 
     const loadTournaments = useCallback(async () => {
         const [tournamentsRes, eventsRes] = await Promise.all([
@@ -287,6 +288,8 @@ export function AdminDashboard() {
                                                     bracket={selectedTournament.eliminationBracket}
                                                     teams={selectedTournament.teams}
                                                     isAdmin={true}
+                                                    hasThirdPlaceMatch={hasThirdPlaceMatch}
+                                                    onThirdPlaceToggle={setHasThirdPlaceMatch}
                                                     onScoreUpdate={handleScoreUpdate}
                                                 />
                                             ) : (

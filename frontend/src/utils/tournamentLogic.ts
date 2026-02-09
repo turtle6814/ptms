@@ -387,6 +387,82 @@ export function advanceWinnerInBracket(
 }
 
 /**
+ * Advance loser from semifinal to third-place match
+ * Handles auto-3rd place when only 1 semifinal loser exists
+ */
+export function advanceLoserToThirdPlace(
+    bracket: EliminationBracket,
+    completedMatch: Match,
+    hasThirdPlaceMatch: boolean = false
+): EliminationBracket {
+    if (!hasThirdPlaceMatch || !completedMatch.winnerId || completedMatch.bracketRound === undefined) {
+        return bracket;
+    }
+
+    // Find the semifinals round (the round before finals)
+    const finalsRoundIndex = bracket.rounds.findIndex(r => r.name === 'Finals');
+    if (finalsRoundIndex === -1 || finalsRoundIndex === 0) {
+        return bracket; // No semifinals if finals is first or not found
+    }
+
+    const semifinalsRound = bracket.rounds[finalsRoundIndex - 1];
+
+    // Only process if this match is in the semifinals
+    if (completedMatch.bracketRound !== semifinalsRound.roundNumber) {
+        return bracket;
+    }
+
+    // Get the loser
+    const loserId = completedMatch.team1Id === completedMatch.winnerId
+        ? completedMatch.team2Id
+        : completedMatch.team1Id;
+
+    if (!loserId) {
+        return bracket;
+    }
+
+    const updatedBracket = { ...bracket };
+    const semifinalMatches = semifinalsRound.matches;
+    const totalSemifinalsCount = semifinalMatches.length;
+
+    // If only 1 semifinal match exists, the loser auto-qualifies as 3rd place
+    if (totalSemifinalsCount === 1) {
+        updatedBracket.thirdPlaceTeamId = loserId;
+        updatedBracket.thirdPlaceMatch = null;
+        return updatedBracket;
+    }
+
+    // Initialize third-place match if it doesn't exist
+    if (!updatedBracket.thirdPlaceMatch) {
+        updatedBracket.thirdPlaceMatch = {
+            id: generateId(),
+            tournamentId: bracket.tournamentId,
+            bracketRound: finalsRoundIndex + 1, // Same round as finals conceptually
+            bracketPosition: 0, // Special position for 3rd place match
+            team1Id: '',
+            team2Id: '',
+            team1Score: null,
+            team2Score: null,
+            winnerId: null,
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+    }
+
+    // Assign loser to third-place match slot
+    const thirdPlaceMatch = { ...updatedBracket.thirdPlaceMatch };
+    if (!thirdPlaceMatch.team1Id) {
+        thirdPlaceMatch.team1Id = loserId;
+    } else if (!thirdPlaceMatch.team2Id && thirdPlaceMatch.team1Id !== loserId) {
+        thirdPlaceMatch.team2Id = loserId;
+    }
+    updatedBracket.thirdPlaceMatch = thirdPlaceMatch;
+
+    return updatedBracket;
+}
+
+/**
  * Check if all elimination matches are complete
  */
 export function isBracketComplete(bracket: EliminationBracket): boolean {

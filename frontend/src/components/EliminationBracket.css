@@ -9,10 +9,44 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin: 0 0 1.5rem;
+    margin: 0;
     color: #fbbf24;
     font-size: 1.5rem;
     font-weight: 700;
+}
+
+.bracket-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.third-place-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #94a3b8;
+    padding: 0.5rem 1rem;
+    background: rgba(148, 163, 184, 0.1);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.third-place-toggle:hover {
+    background: rgba(148, 163, 184, 0.15);
+    color: #cbd5e1;
+}
+
+.third-place-toggle input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #a855f7;
+    cursor: pointer;
 }
 
 .champion-banner {
@@ -73,6 +107,43 @@
 
 .champion-name {
     font-size: 1.75rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+/* ========== RUNNER-UP (2ND PLACE) BANNER ========== */
+.runner-up-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(169, 169, 169, 0.1));
+    border: 1px solid rgba(192, 192, 192, 0.3);
+    border-radius: 12px;
+}
+
+.runner-up-medal {
+    font-size: 2rem;
+}
+
+.runner-up-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.runner-up-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #c0c0c0;
+}
+
+.runner-up-name {
+    font-size: 1.25rem;
     font-weight: 700;
     color: #f8fafc;
 }
@@ -155,6 +226,61 @@
 
 .bracket-match-wrapper {
     position: relative;
+}
+
+/* ========== THIRD-PLACE MATCH ========== */
+.third-place-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(139, 92, 246, 0.1));
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 12px;
+}
+
+.third-place-medal {
+    font-size: 2rem;
+}
+
+.third-place-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.third-place-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #a855f7;
+}
+
+.third-place-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.third-place-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed rgba(168, 85, 247, 0.3);
+}
+
+.third-place-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #a855f7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 /* ========== RESPONSIVE ========== */
