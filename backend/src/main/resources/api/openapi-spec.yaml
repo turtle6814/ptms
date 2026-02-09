@@ -1,0 +1,1109 @@
+openapi: 3.0.3
+info:
+  title: Pickleball Tournament Management System API
+  description: |
+    RESTful API for managing pickleball tournaments, events, matches, and user authentication.
+    This specification is derived from the frontend client requirements.
+  version: 1.0.0
+  contact:
+    name: PTMS Development Team
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User registration, login, and session management
+  - name: Events
+    description: Event management (container for tournaments)
+  - name: Tournaments
+    description: Tournament CRUD and management
+  - name: Matches
+    description: Match score updates and management
+
+# ============================================================
+# SCHEMAS
+# ============================================================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login/signup
+
+  schemas:
+    # ----------------------------------------------------------
+    # User & Auth Schemas
+    # ----------------------------------------------------------
+    User:
+      type: object
+      required:
+        - id
+        - username
+        - phoneNumber
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        username:
+          type: string
+          example: "john_doe"
+        phoneNumber:
+          type: string
+          example: "+1234567890"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-02-09T10:00:00Z"
+
+    LoginRequest:
+      type: object
+      required:
+        - phoneNumber
+        - password
+      properties:
+        phoneNumber:
+          type: string
+          example: "+1234567890"
+        password:
+          type: string
+          format: password
+          minLength: 6
+          example: "password123"
+
+    SignupRequest:
+      type: object
+      required:
+        - username
+        - phoneNumber
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 2
+          example: "john_doe"
+        phoneNumber:
+          type: string
+          example: "+1234567890"
+        password:
+          type: string
+          format: password
+          minLength: 6
+          example: "password123"
+
+    AuthResponse:
+      type: object
+      required:
+        - user
+        - token
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        token:
+          type: string
+          description: JWT authentication token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    # ----------------------------------------------------------
+    # Event Schemas
+    # ----------------------------------------------------------
+    Event:
+      type: object
+      required:
+        - id
+        - name
+        - tournamentIds
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Summer Pickleball Championship 2026"
+        description:
+          type: string
+          nullable: true
+          example: "Annual summer tournament series"
+        startDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2026-06-01"
+        endDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2026-06-15"
+        tournamentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateEventRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: "Summer Pickleball Championship 2026"
+        description:
+          type: string
+          nullable: true
+        startDate:
+          type: string
+          format: date
+          nullable: true
+        endDate:
+          type: string
+          format: date
+          nullable: true
+
+    UpdateEventRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          nullable: true
+        startDate:
+          type: string
+          format: date
+          nullable: true
+        endDate:
+          type: string
+          format: date
+          nullable: true
+
+    # ----------------------------------------------------------
+    # Tournament Schemas
+    # ----------------------------------------------------------
+    Team:
+      type: object
+      required:
+        - id
+        - name
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Team Alpha"
+        createdAt:
+          type: string
+          format: date-time
+
+    Match:
+      type: object
+      required:
+        - id
+        - tournamentId
+        - team1Id
+        - team2Id
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tournamentId:
+          type: string
+          format: uuid
+        poolId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Present for pool matches
+        bracketRound:
+          type: integer
+          nullable: true
+          description: Round number for elimination matches
+        bracketPosition:
+          type: integer
+          nullable: true
+          description: Position within the bracket round
+        team1Id:
+          type: string
+          format: uuid
+        team2Id:
+          type: string
+          format: uuid
+        team1Score:
+          type: integer
+          nullable: true
+        team2Score:
+          type: integer
+          nullable: true
+        winnerId:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+          default: pending
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PoolStanding:
+      type: object
+      required:
+        - teamId
+        - teamName
+        - wins
+        - losses
+        - pointsFor
+        - pointsAgainst
+        - pointDifferential
+      properties:
+        teamId:
+          type: string
+          format: uuid
+        teamName:
+          type: string
+        wins:
+          type: integer
+          minimum: 0
+        losses:
+          type: integer
+          minimum: 0
+        pointsFor:
+          type: integer
+          minimum: 0
+        pointsAgainst:
+          type: integer
+          minimum: 0
+        pointDifferential:
+          type: integer
+
+    Pool:
+      type: object
+      required:
+        - id
+        - tournamentId
+        - name
+        - teamIds
+        - matches
+        - standings
+        - isComplete
+      properties:
+        id:
+          type: string
+          format: uuid
+        tournamentId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Pool A"
+        teamIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        matches:
+          type: array
+          items:
+            $ref: '#/components/schemas/Match'
+        standings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoolStanding'
+        isComplete:
+          type: boolean
+          default: false
+
+    BracketRound:
+      type: object
+      required:
+        - roundNumber
+        - name
+        - matches
+      properties:
+        roundNumber:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          example: "Semifinals"
+        matches:
+          type: array
+          items:
+            $ref: '#/components/schemas/Match'
+
+    EliminationBracket:
+      type: object
+      required:
+        - tournamentId
+        - rounds
+      properties:
+        tournamentId:
+          type: string
+          format: uuid
+        rounds:
+          type: array
+          items:
+            $ref: '#/components/schemas/BracketRound'
+        champion:
+          type: string
+          format: uuid
+          nullable: true
+          description: Team ID of the tournament champion
+        thirdPlaceMatch:
+          $ref: '#/components/schemas/Match'
+          nullable: true
+          description: Third-place match between semifinal losers
+        thirdPlaceTeamId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Auto-3rd place when only 1 semifinal loser exists
+
+    Tournament:
+      type: object
+      required:
+        - id
+        - name
+        - status
+        - teams
+        - pools
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Optional link to parent event
+        name:
+          type: string
+          example: "Men's Singles"
+        status:
+          type: string
+          enum: [setup, pool_play, elimination, completed]
+          default: pool_play
+        teams:
+          type: array
+          items:
+            $ref: '#/components/schemas/Team'
+        pools:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pool'
+        eliminationBracket:
+          $ref: '#/components/schemas/EliminationBracket'
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PoolConfig:
+      type: object
+      required:
+        - name
+        - teamNames
+      properties:
+        name:
+          type: string
+          example: "Pool A"
+        teamNames:
+          type: array
+          items:
+            type: string
+          minItems: 2
+          example: ["Team Alpha", "Team Beta", "Team Gamma"]
+
+    CreateTournamentRequest:
+      type: object
+      required:
+        - name
+        - pools
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: "Men's Singles"
+        eventId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Optional parent event ID
+        pools:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoolConfig'
+          minItems: 1
+
+    ScoreUpdateRequest:
+      type: object
+      required:
+        - matchId
+        - team1Score
+        - team2Score
+      properties:
+        matchId:
+          type: string
+          format: uuid
+        team1Score:
+          type: integer
+          minimum: 0
+        team2Score:
+          type: integer
+          minimum: 0
+
+    # ----------------------------------------------------------
+    # Response Wrappers
+    # ----------------------------------------------------------
+    ApiResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+        error:
+          type: string
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          type: string
+          example: "Resource not found"
+
+# ============================================================
+# PATHS
+# ============================================================
+paths:
+  # ----------------------------------------------------------
+  # Authentication Endpoints
+  # ----------------------------------------------------------
+  /auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Username or phone number already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate user and get token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout current user
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current authenticated user
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ----------------------------------------------------------
+  # Event Endpoints
+  # ----------------------------------------------------------
+  /events:
+    get:
+      tags:
+        - Events
+      summary: Get all events
+      operationId: getAllEvents
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of events
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Event'
+
+    post:
+      tags:
+        - Events
+      summary: Create a new event
+      operationId: createEvent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Event'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /events/{eventId}:
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags:
+        - Events
+      summary: Get event by ID
+      operationId: getEventById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Event'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Events
+      summary: Update an event
+      operationId: updateEvent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEventRequest'
+      responses:
+        '200':
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Event'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Events
+      summary: Delete an event (and all tournaments within)
+      operationId: deleteEvent
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Event deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /events/{eventId}/tournaments:
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags:
+        - Events
+      summary: Get all tournaments for an event
+      operationId: getEventTournaments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of tournaments in the event
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Tournament'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /events/{eventId}/tournaments/{tournamentId}:
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: tournamentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    post:
+      tags:
+        - Events
+      summary: Add a tournament to an event
+      operationId: addTournamentToEvent
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tournament added to event
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Event'
+        '404':
+          description: Event or tournament not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Events
+      summary: Remove a tournament from an event
+      operationId: removeTournamentFromEvent
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tournament removed from event
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Event'
+        '404':
+          description: Event or tournament not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ----------------------------------------------------------
+  # Tournament Endpoints
+  # ----------------------------------------------------------
+  /tournaments:
+    get:
+      tags:
+        - Tournaments
+      summary: Get all tournaments
+      operationId: getAllTournaments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of tournaments
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Tournament'
+
+    post:
+      tags:
+        - Tournaments
+      summary: Create a new tournament
+      description: |
+        Creates a new tournament with pools and teams. The system will:
+        1. Create all teams from the pool configuration
+        2. Generate round-robin matches for each pool
+        3. Create an elimination bracket structure (with placeholder matches)
+        4. Set initial standings for each pool
+      operationId: createTournament
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTournamentRequest'
+            example:
+              name: "Men's Singles"
+              eventId: "e47ac10b-58cc-4372-a567-0e02b2c3d479"
+              pools:
+                - name: "Pool A"
+                  teamNames: ["Team Alpha", "Team Beta", "Team Gamma"]
+                - name: "Pool B"
+                  teamNames: ["Team Delta", "Team Epsilon", "Team Zeta"]
+      responses:
+        '201':
+          description: Tournament created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Tournament'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tournaments/{tournamentId}:
+    parameters:
+      - name: tournamentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags:
+        - Tournaments
+      summary: Get tournament by ID
+      operationId: getTournament
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tournament details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Tournament'
+        '404':
+          description: Tournament not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Tournaments
+      summary: Delete a tournament
+      operationId: deleteTournament
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tournament deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '404':
+          description: Tournament not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ----------------------------------------------------------
+  # Match Endpoints
+  # ----------------------------------------------------------
+  /tournaments/{tournamentId}/matches/{matchId}/score:
+    parameters:
+      - name: tournamentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: matchId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    put:
+      tags:
+        - Matches
+      summary: Update match score
+      description: |
+        Updates the score for a match. The system will automatically:
+        1. Determine the winner based on scores
+        2. Update match status to 'completed'
+        3. Recalculate pool standings (for pool matches)
+        4. Advance winner to next bracket round (for elimination matches)
+        5. Update tournament status if all pools are complete
+        6. Set tournament champion if finals are complete
+      operationId: updateMatchScore
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - team1Score
+                - team2Score
+              properties:
+                team1Score:
+                  type: integer
+                  minimum: 0
+                team2Score:
+                  type: integer
+                  minimum: 0
+      responses:
+        '200':
+          description: Score updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Tournament'
+        '404':
+          description: Tournament or match not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ----------------------------------------------------------
+  # Utility Endpoints
+  # ----------------------------------------------------------
+  /events/{eventId}/share:
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags:
+        - Events
+      summary: Generate shareable link for event (includes all tournaments)
+      operationId: generateShareableLink
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Shareable link for viewing the event
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          url:
+                            type: string
+                            format: uri
+                            example: "https://example.com/view/event/f47ac10b-58cc-4372-a567-0e02b2c3d479"
