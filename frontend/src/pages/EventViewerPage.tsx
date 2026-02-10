@@ -5,7 +5,7 @@ import { PoolStandings } from '../components/PoolStandings';
 import { MatchCard } from '../components/MatchCard';
 import { EliminationBracket } from '../components/EliminationBracket';
 import { TournamentTabs } from '../components/TournamentTabs';
-import { getEventById, getEventTournaments, subscribeTournament, pollTournament } from '../api/mockApi';
+import { getEventById, getEventTournaments, subscribeTournament, pollTournament } from '../api';
 import { Tournament, Event } from '../api/types';
 import { RefreshCw, Wifi, ChevronDown, Trophy } from 'lucide-react';
 import './EventViewerPage.css';

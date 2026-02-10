@@ -22,7 +22,7 @@ export function QRCodeShare({ url, tournamentName }: QRCodeShareProps) {
     };
 
     const handleShare = async () => {
-        if (navigator.share) {
+        if (typeof navigator.share === 'function') {
             try {
                 await navigator.share({
                     title: `${tournamentName} - Live Scores`,
@@ -70,7 +70,7 @@ export function QRCodeShare({ url, tournamentName }: QRCodeShareProps) {
                     {copied ? 'Copied!' : 'Copy Link'}
                 </button>
 
-                {navigator.share && (
+                {typeof navigator.share === 'function' && (
                     <button className="native-share-btn" onClick={handleShare}>
                         <Share2 size={16} />
                         Share

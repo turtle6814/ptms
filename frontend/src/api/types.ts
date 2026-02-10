@@ -1,31 +1,89 @@
 // ================================
 // Tournament Manager - Type Definitions
+// Strictly matching OpenAPI Config
 // ================================
 
-export interface Team {
-  id: string;
+// ----------------------------------------------------------
+// User & Auth Schemas
+// ----------------------------------------------------------
+export interface User {
+  id: string; // uuid
+  username: string;
+  phoneNumber: string;
+  createdAt: string; // date-time
+}
+
+export interface LoginRequest {
+  phoneNumber: string;
+  password: string;
+}
+
+export interface SignupRequest {
+  username: string;
+  phoneNumber: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+// ----------------------------------------------------------
+// Event Schemas
+// ----------------------------------------------------------
+export interface Event {
+  id: string; // uuid
   name: string;
-  createdAt: string;
+  description?: string | null;
+  startDate?: string | null; // date
+  endDate?: string | null; // date
+  tournamentIds: string[]; // array of uuid
+  createdAt: string; // date-time
+  updatedAt: string; // date-time
+}
+
+export interface CreateEventRequest {
+  name: string;
+  description?: string | null;
+  startDate?: string | null; // date
+  endDate?: string | null; // date
+}
+
+export interface UpdateEventRequest {
+  name?: string;
+  description?: string | null;
+  startDate?: string | null; // date
+  endDate?: string | null; // date
+}
+
+// ----------------------------------------------------------
+// Tournament Schemas
+// ----------------------------------------------------------
+export interface Team {
+  id: string; // uuid
+  name: string;
+  createdAt: string; // date-time
 }
 
 export interface Match {
-  id: string;
-  tournamentId: string;
-  poolId?: string;          // Present for pool matches
-  bracketRound?: number;    // Present for elimination matches
-  bracketPosition?: number; // Position in the bracket round
-  team1Id: string;
-  team2Id: string;
-  team1Score: number | null;
-  team2Score: number | null;
-  winnerId: string | null;
+  id: string; // uuid
+  tournamentId: string; // uuid
+  poolId?: string | null; // uuid
+  bracketRound?: number | null;
+  bracketPosition?: number | null;
+  team1Id: string; // uuid
+  team2Id: string; // uuid
+  team1Score?: number | null;
+  team2Score?: number | null;
+  winnerId?: string | null; // uuid
   status: 'pending' | 'in_progress' | 'completed';
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string; // date-time
+  updatedAt: string; // date-time
 }
 
 export interface PoolStanding {
-  teamId: string;
+  teamId: string; // uuid
   teamName: string;
   wins: number;
   losses: number;
@@ -35,118 +93,68 @@ export interface PoolStanding {
 }
 
 export interface Pool {
-  id: string;
-  tournamentId: string;
+  id: string; // uuid
+  tournamentId: string; // uuid
   name: string;
-  teamIds: string[];
+  teamIds: string[]; // uuid[]
   matches: Match[];
   standings: PoolStanding[];
   isComplete: boolean;
 }
 
-export interface EliminationBracket {
-  tournamentId: string;
-  rounds: BracketRound[];
-  champion: string | null;
-  thirdPlaceMatch?: Match | null;  // Third-place match between semifinal losers
-  thirdPlaceTeamId?: string | null;  // Auto-3rd place when only 1 semifinal loser exists
-}
-
 export interface BracketRound {
   roundNumber: number;
-  name: string;  // "Semifinals", "Finals", etc.
+  name: string;
   matches: Match[];
 }
 
-// ================================
-// Event (contains multiple tournaments)
-// ================================
-export interface Event {
-  id: string;
-  name: string;
-  description?: string;
-  startDate?: string;
-  endDate?: string;
-  tournamentIds: string[];
-  createdAt: string;
-  updatedAt: string;
+export interface EliminationBracket {
+  tournamentId: string; // uuid
+  rounds: BracketRound[];
+  champion?: string | null; // uuid
+  thirdPlaceMatch?: Match | null;
+  thirdPlaceTeamId?: string | null; // uuid
 }
 
 export interface Tournament {
-  id: string;
-  eventId?: string;  // Optional link to parent event
+  id: string; // uuid
+  eventId?: string | null; // uuid
   name: string;
   status: 'setup' | 'pool_play' | 'elimination' | 'completed';
   teams: Team[];
   pools: Pool[];
-  eliminationBracket: EliminationBracket | null;
-  createdAt: string;
-  updatedAt: string;
+  eliminationBracket?: EliminationBracket | null;
+  createdAt: string; // date-time
+  updatedAt: string; // date-time
 }
 
-// API Response types
+export interface PoolConfig {
+  name: string;
+  teamNames: string[];
+}
+
+export interface CreateTournamentRequest {
+  name: string;
+  eventId?: string | null; // uuid
+  pools: PoolConfig[];
+}
+
+export interface ScoreUpdateRequest {
+  matchId: string; // uuid
+  team1Score: number;
+  team2Score: number;
+}
+
+// ----------------------------------------------------------
+// Response Wrappers
+// ----------------------------------------------------------
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
 }
 
-// Score update payload
-export interface ScoreUpdate {
-  matchId: string;
-  team1Score: number;
-  team2Score: number;
-}
-
-// Create tournament payload
-export interface CreateTournamentPayload {
-  name: string;
-  eventId?: string;  // Optional: link to parent event
-  pools: {
-    name: string;
-    teamNames: string[];
-  }[];
-}
-
-// Create event payload
-export interface CreateEventPayload {
-  name: string;
-  description?: string;
-  startDate?: string;
-  endDate?: string;
-}
-
-// Update event payload
-export interface UpdateEventPayload {
-  name?: string;
-  description?: string;
-  startDate?: string;
-  endDate?: string;
-}
-
-// ================================
-// Auth Types
-// ================================
-
-export interface User {
-  id: string;
-  username: string;
-  phoneNumber: string;
-  createdAt: string;
-}
-
-export interface LoginPayload {
-  phoneNumber: string;
-  password: string;
-}
-
-export interface SignupPayload {
-  username: string;
-  phoneNumber: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string; // Mocked JWT token
+export interface ErrorResponse {
+  success: boolean;
+  error: string;
 }

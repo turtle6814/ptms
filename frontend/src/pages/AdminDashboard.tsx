@@ -12,7 +12,7 @@ import {
     updateMatchScore,
     subscribeTournament,
     getAllEvents,
-} from '../api/mockApi';
+} from '../api';
 import { Tournament, Event } from '../api/types';
 import { Share2, RefreshCw, ChevronDown, Calendar } from 'lucide-react';
 import './AdminDashboard.css';

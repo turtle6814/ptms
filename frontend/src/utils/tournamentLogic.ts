@@ -106,21 +106,24 @@ export function calculatePoolStandings(
 
     // Process completed matches
     pool.matches.forEach(match => {
-        if (match.status === 'completed' && match.team1Score !== null && match.team2Score !== null) {
+        if (match.status === 'completed' && match.team1Score != null && match.team2Score != null) {
             const team1Standing = standings.get(match.team1Id)!;
             const team2Standing = standings.get(match.team2Id)!;
 
+            const score1 = match.team1Score || 0;
+            const score2 = match.team2Score || 0;
+
             // Update points
-            team1Standing.pointsFor += match.team1Score;
-            team1Standing.pointsAgainst += match.team2Score;
-            team2Standing.pointsFor += match.team2Score;
-            team2Standing.pointsAgainst += match.team1Score;
+            team1Standing.pointsFor += score1;
+            team1Standing.pointsAgainst += score2;
+            team2Standing.pointsFor += score2;
+            team2Standing.pointsAgainst += score1;
 
             // Update wins/losses
-            if (match.team1Score > match.team2Score) {
+            if (score1 > score2) {
                 team1Standing.wins++;
                 team2Standing.losses++;
-            } else if (match.team2Score > match.team1Score) {
+            } else if (score2 > score1) {
                 team2Standing.wins++;
                 team1Standing.losses++;
             }

@@ -27,7 +27,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventDTO> getAllEvents() {
         return eventRepository.findAll().stream()
-                .map(event -> modelMapper.map(event, EventDTO.class))
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -35,7 +35,7 @@ public class EventServiceImpl implements EventService {
     public EventDTO getEventById(UUID id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
-        return modelMapper.map(event, EventDTO.class);
+        return convertToDTO(event);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class EventServiceImpl implements EventService {
         Event event = modelMapper.map(request, Event.class);
         // CreatedAt/UpdatedAt handled by JPA annotations
         Event savedEvent = eventRepository.save(event);
-        return modelMapper.map(savedEvent, EventDTO.class);
+        return convertToDTO(savedEvent);
     }
 
     @Override
@@ -51,7 +51,6 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Manual update or map non-null fields
         if (request.getName() != null)
             event.setName(request.getName());
         if (request.getDescription() != null)
@@ -62,7 +61,7 @@ public class EventServiceImpl implements EventService {
             event.setEndDate(request.getEndDate());
 
         Event updatedEvent = eventRepository.save(event);
-        return modelMapper.map(updatedEvent, EventDTO.class);
+        return convertToDTO(updatedEvent);
     }
 
     @Override
@@ -111,5 +110,15 @@ public class EventServiceImpl implements EventService {
         }
 
         return getEventById(eventId);
+    }
+
+    private EventDTO convertToDTO(Event event) {
+        EventDTO dto = modelMapper.map(event, EventDTO.class);
+        if (event.getTournaments() != null) {
+            dto.setTournamentIds(event.getTournaments().stream()
+                    .map(Tournament::getId)
+                    .collect(Collectors.toList()));
+        }
+        return dto;
     }
 }

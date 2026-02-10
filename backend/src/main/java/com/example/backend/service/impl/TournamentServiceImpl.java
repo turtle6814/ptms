@@ -102,22 +102,49 @@ public class TournamentServiceImpl implements TournamentService {
     }
 
     private void generateRoundRobinMatches(Pool pool, Tournament tournament, List<Match> allMatches) {
-        List<Team> teams = pool.getTeams();
-        for (int i = 0; i < teams.size(); i++) {
-            for (int j = i + 1; j < teams.size(); j++) {
-                Match match = new Match();
-                match.setTournament(tournament);
-                match.setPool(pool);
-                match.setTeam1(teams.get(i));
-                match.setTeam2(teams.get(j));
-                match.setStatus(Match.Status.pending);
-                matchRepository.save(match); // Save immediately or add to list?
-                // Better to save via repository if relying on IDs, but list + Cascade update
-                // works too.
-                // Since we passed allMatches list, let's add to it.
-                // BUT, teams already have IDs? Yes, from first save.
-                allMatches.add(match);
+        List<Team> teams = new ArrayList<>(pool.getTeams());
+        int n = teams.size();
+
+        if (n < 2)
+            return;
+
+        // Berger Table (Circle Method)
+        // If odd number of teams, add a dummy team
+        if (n % 2 != 0) {
+            teams.add(null); // Dummy team
+            n++;
+        }
+
+        int rounds = n - 1;
+        int matchesPerRound = n / 2;
+
+        for (int round = 0; round < rounds; round++) {
+            for (int matchIndex = 0; matchIndex < matchesPerRound; matchIndex++) {
+                Team home = teams.get(matchIndex);
+                Team away = teams.get(n - 1 - matchIndex);
+
+                // If neither team is dummy, schedule match
+                if (home != null && away != null) {
+                    Match match = new Match();
+                    match.setTournament(tournament);
+                    match.setPool(pool);
+                    match.setTeam1(home);
+                    match.setTeam2(away);
+                    match.setStatus(Match.Status.pending);
+                    // Store round info if needed for display?
+                    // We don't have explicit pool round field, but order of creation often
+                    // suffices.
+                    // Could add metadata if requirements strictly demand "Round 1" label in UI.
+
+                    matchRepository.save(match);
+                    allMatches.add(match);
+                }
             }
+
+            // Rotate teams: Keep index 0 fixed, rotate the rest clockwise
+            // [0, 1, 2, 3] -> [0, 3, 1, 2]
+            Team last = teams.remove(teams.size() - 1);
+            teams.add(1, last);
         }
     }
 
@@ -173,17 +200,72 @@ public class TournamentServiceImpl implements TournamentService {
     private TournamentDTO convertToDTO(Tournament tournament) {
         TournamentDTO dto = modelMapper.map(tournament, TournamentDTO.class);
 
-        // Manual mapping for bracket if needed, but ModelMapper might handle simple
-        // fields.
-        // We need to construct the EliminationBracketDTO from matches.
-        // For now, let ModelMapper do its best, and we can refine complex mappings.
-        // Actually, EliminationBracketDTO needs to be built from the matches list.
-        EliminationBracketDTO bracketDTO = new EliminationBracketDTO();
-        bracketDTO.setTournamentId(tournament.getId());
-        // Logic to group matches by round...
-        // Leaving detailed bracket mapping for later or assuming frontend handles flat
-        // list of matches too?
-        // The DTO has 'eliminationBracket' field. I should populate it.
+        // Populate Elimination Bracket DTO
+        // Filter matches that are part of the bracket (have bracketRound)
+        List<Match> bracketMatches = tournament.getMatches().stream()
+                .filter(m -> m.getBracketRound() != null)
+                .collect(Collectors.toList());
+
+        if (!bracketMatches.isEmpty()) {
+            EliminationBracketDTO bracketDTO = new EliminationBracketDTO();
+            bracketDTO.setTournamentId(tournament.getId());
+
+            // Champion logic
+            // If the final match (Round 2, Pos 1) is completed, set champion
+            Match finalMatch = bracketMatches.stream()
+                    .filter(m -> m.getBracketRound() == 2 && m.getBracketPosition() == 1)
+                    .findFirst().orElse(null);
+
+            if (finalMatch != null && finalMatch.getWinner() != null) {
+                bracketDTO.setChampion(finalMatch.getWinner().getId());
+            }
+
+            // Third place match
+            Match thirdPlaceMatch = bracketMatches.stream()
+                    .filter(m -> m.getBracketRound() == 2 && m.getBracketPosition() == 2)
+                    .findFirst().orElse(null);
+            if (thirdPlaceMatch != null) {
+                bracketDTO.setThirdPlaceMatch(modelMapper.map(thirdPlaceMatch, MatchDTO.class));
+                if (thirdPlaceMatch.getWinner() != null) {
+                    bracketDTO.setThirdPlaceTeamId(thirdPlaceMatch.getWinner().getId());
+                }
+            }
+
+            // Group matches into rounds
+            // Round 1: Semis
+            // Round 2: Finals (Position 1 only for main bracket view, usually)
+
+            List<BracketRoundDTO> roundDTOs = new ArrayList<>();
+
+            // Round 1
+            List<Match> round1Matches = bracketMatches.stream()
+                    .filter(m -> m.getBracketRound() == 1)
+                    .collect(Collectors.toList());
+            if (!round1Matches.isEmpty()) {
+                BracketRoundDTO r1 = new BracketRoundDTO();
+                r1.setRoundNumber(1);
+                r1.setName("Semifinals");
+                r1.setMatches(round1Matches.stream()
+                        .map(m -> modelMapper.map(m, MatchDTO.class))
+                        .collect(Collectors.toList()));
+                roundDTOs.add(r1);
+            }
+
+            // Round 2 (Finals) - Exclude 3rd place match from standard 'rounds' list if UI
+            // handles it separately
+            // But usually UI expects it. Let's include Finals match here.
+            if (finalMatch != null) {
+                BracketRoundDTO r2 = new BracketRoundDTO();
+                r2.setRoundNumber(2);
+                r2.setName("Finals");
+                // Only add the main final match to the list
+                r2.setMatches(List.of(modelMapper.map(finalMatch, MatchDTO.class)));
+                roundDTOs.add(r2);
+            }
+
+            bracketDTO.setRounds(roundDTOs);
+            dto.setEliminationBracket(bracketDTO);
+        }
 
         return dto;
     }

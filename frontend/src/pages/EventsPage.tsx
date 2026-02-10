@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Plus, Trophy } from 'lucide-react';
 import { Event } from '../api/types';
-import { getAllEvents, createEvent } from '../api/mockApi';
+import { getAllEvents, createEvent } from '../api';
 import { Header } from '../components/Header';
 import './EventsPage.css';
 
@@ -57,7 +57,7 @@ export function EventsPage() {
 
 
     const getTournamentCount = (event: Event) => {
-        return event.tournamentIds.length;
+        return event.tournamentIds?.length || 0;
     };
 
 

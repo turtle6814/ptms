@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Trophy, Plus, Trash2, Edit2, X, Check } from 'lucide-react';
 import { Event, Tournament } from '../api/types';
-import { getEventById, updateEvent, getEventTournaments, removeTournamentFromEvent, deleteEvent } from '../api/mockApi';
+import { getEventById, updateEvent, getEventTournaments, removeTournamentFromEvent, deleteEvent } from '../api';
 import { Header } from '../components/Header';
 import './EventDetailPage.css';
 

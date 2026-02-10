@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Trophy, Users, BarChart3, Share2, ArrowRight, Zap, Shield, Globe } from 'lucide-react';
 import { Header } from '../components/Header';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { Navigate } from 'react-router-dom';
 import './LandingPage.css';
 

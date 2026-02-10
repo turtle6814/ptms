@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Trophy, Settings, Eye, LogIn, LogOut, User, Calendar } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import './Header.css';
 
 interface HeaderProps {

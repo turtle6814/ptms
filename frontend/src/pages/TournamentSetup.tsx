@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { createTournament } from '../api/mockApi';
+import { createTournament } from '../api';
 import { ChevronLeft, Plus, Trash2, Users } from 'lucide-react';
 import './TournamentSetup.css';
 
