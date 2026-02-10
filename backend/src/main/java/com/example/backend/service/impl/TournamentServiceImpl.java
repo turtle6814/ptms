@@ -131,7 +131,7 @@ public class TournamentServiceImpl implements TournamentService {
                     match.setTeam1(home);
                     match.setTeam2(away);
                     match.setStatus(Match.Status.pending);
-                    // Store round info if needed for display?
+                    match.setBracketRound(round + 1); // Store round number (1-based)
                     // We don't have explicit pool round field, but order of creation often
                     // suffices.
                     // Could add metadata if requirements strictly demand "Round 1" label in UI.
@@ -163,28 +163,60 @@ public class TournamentServiceImpl implements TournamentService {
     }
 
     private void generateEliminationBracket(Tournament tournament, List<Match> allMatches) {
-        // Simple 4-team bracket: 2 Semis, 1 Final, 1 3rd Place
-        // Semis (Round 1)
-        createPlaceholderMatch(tournament, 1, 1, allMatches);
-        createPlaceholderMatch(tournament, 1, 2, allMatches);
-        // Finals (Round 2)
-        createPlaceholderMatch(tournament, 2, 1, allMatches); // Winner of Semis
-        // 3rd Place (Round 2, position 2?) or just separate flag?
-        // Spec has 'thirdPlaceMatch' field in DTO.
-        // Let's use Round 100 for 3rd place to distinguish? Or Round 2 Position 2.
-        Match thirdPlace = new Match();
-        thirdPlace.setTournament(tournament);
-        thirdPlace.setBracketRound(2);
-        thirdPlace.setBracketPosition(2); // Convention: Pos 1 = Final, Pos 2 = 3rd Place
-        thirdPlace.setStatus(Match.Status.pending);
-        allMatches.add(thirdPlace);
+        // Calculate number of teams advancing to playoffs (Top 2 from each pool)
+        int numPools = tournament.getPools().size();
+        int numAdvancing = numPools * 2;
+
+        if (numAdvancing < 2)
+            return; // No playoffs if fewer than 2 teams
+
+        // Determine bracket size (next power of 2)
+        int bracketSize = 1;
+        while (bracketSize < numAdvancing) {
+            bracketSize *= 2;
+        }
+
+        int matchesInRound = bracketSize / 2;
+        int roundNumber = 1;
+
+        // Generate rounds until we have a single final match
+        while (matchesInRound >= 1) {
+            for (int i = 0; i < matchesInRound; i++) {
+                createPlaceholderMatch(tournament, roundNumber, i + 1, allMatches);
+            }
+            matchesInRound /= 2;
+            roundNumber++;
+        }
+
+        // Add 3rd Place Match if we have at least Semifinals (Bracket Size >= 4)
+        // The main loop generates rounds 1 to log2(bracketSize).
+        // Total rounds = log2(bracketSize).
+        // If total rounds >= 2, we have semis.
+        // The last round generated (roundNumber - 1) is Finals.
+        int totalRounds = roundNumber - 1;
+        if (totalRounds >= 2) {
+            Match thirdPlace = new Match();
+            thirdPlace.setTournament(tournament);
+            thirdPlace.setBracketRound(totalRounds); // Same round number as Finals? Or distinct?
+            // Convention: Finals is usually the last round. 3rd place often considered same
+            // "stage" just different match.
+            // Using same round number as Finals for simplicity in grouping, but distinct
+            // position or flag.
+            // Our DTO mapping checks for (Round == Max && Pos == 2).
+            // In the loop, Finals is (Round = totalRounds, Pos = 1).
+            // So we can set 3rd place to (Round = totalRounds, Pos = 2).
+            thirdPlace.setBracketRound(totalRounds);
+            thirdPlace.setBracketPosition(2);
+            thirdPlace.setStatus(Match.Status.pending);
+            allMatches.add(thirdPlace);
+        }
     }
 
     private void createPlaceholderMatch(Tournament tournament, int round, int position, List<Match> allMatches) {
         Match match = new Match();
         match.setTournament(tournament);
         match.setBracketRound(round);
-        match.setBracketPosition(position);
+        match.setBracketPosition(position); // 1-based index in the round
         match.setStatus(Match.Status.pending);
         allMatches.add(match);
     }
@@ -200,29 +232,59 @@ public class TournamentServiceImpl implements TournamentService {
     private TournamentDTO convertToDTO(Tournament tournament) {
         TournamentDTO dto = modelMapper.map(tournament, TournamentDTO.class);
 
+        // Manual mapping for Pool Team IDs and Sort Matches
+        if (tournament.getPools() != null && dto.getPools() != null) {
+            for (int i = 0; i < tournament.getPools().size(); i++) {
+                Pool pool = tournament.getPools().get(i);
+                // Find matching PoolDTO
+                for (PoolDTO poolDTO : dto.getPools()) {
+                    if (poolDTO.getId().equals(pool.getId())) {
+                        // Map Team IDs
+                        if (pool.getTeams() != null) {
+                            poolDTO.setTeamIds(pool.getTeams().stream()
+                                    .map(Team::getId)
+                                    .collect(Collectors.toList()));
+                        }
+
+                        // Sort Matches: Round (asc), then CreatedAt (asc)
+                        if (poolDTO.getMatches() != null) {
+                            poolDTO.getMatches().sort(java.util.Comparator.comparing(MatchDTO::getBracketRound,
+                                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                                    .thenComparing(MatchDTO::getCreatedAt,
+                                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())));
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
         // Populate Elimination Bracket DTO
-        // Filter matches that are part of the bracket (have bracketRound)
         List<Match> bracketMatches = tournament.getMatches().stream()
-                .filter(m -> m.getBracketRound() != null)
+                .filter(m -> m.getPool() == null && m.getBracketRound() != null)
                 .collect(Collectors.toList());
 
         if (!bracketMatches.isEmpty()) {
             EliminationBracketDTO bracketDTO = new EliminationBracketDTO();
             bracketDTO.setTournamentId(tournament.getId());
 
-            // Champion logic
-            // If the final match (Round 2, Pos 1) is completed, set champion
+            // Find max round number to identify Finals
+            int maxRound = bracketMatches.stream()
+                    .mapToInt(Match::getBracketRound)
+                    .max().orElse(0);
+
+            // Champion logic (Finals is maxRound, Pos 1)
             Match finalMatch = bracketMatches.stream()
-                    .filter(m -> m.getBracketRound() == 2 && m.getBracketPosition() == 1)
+                    .filter(m -> m.getBracketRound() == maxRound && m.getBracketPosition() == 1)
                     .findFirst().orElse(null);
 
             if (finalMatch != null && finalMatch.getWinner() != null) {
                 bracketDTO.setChampion(finalMatch.getWinner().getId());
             }
 
-            // Third place match
+            // Third place match (maxRound, Pos 2)
             Match thirdPlaceMatch = bracketMatches.stream()
-                    .filter(m -> m.getBracketRound() == 2 && m.getBracketPosition() == 2)
+                    .filter(m -> m.getBracketRound() == maxRound && m.getBracketPosition() == 2)
                     .findFirst().orElse(null);
             if (thirdPlaceMatch != null) {
                 bracketDTO.setThirdPlaceMatch(modelMapper.map(thirdPlaceMatch, MatchDTO.class));
@@ -232,35 +294,31 @@ public class TournamentServiceImpl implements TournamentService {
             }
 
             // Group matches into rounds
-            // Round 1: Semis
-            // Round 2: Finals (Position 1 only for main bracket view, usually)
-
             List<BracketRoundDTO> roundDTOs = new ArrayList<>();
 
-            // Round 1
-            List<Match> round1Matches = bracketMatches.stream()
-                    .filter(m -> m.getBracketRound() == 1)
-                    .collect(Collectors.toList());
-            if (!round1Matches.isEmpty()) {
-                BracketRoundDTO r1 = new BracketRoundDTO();
-                r1.setRoundNumber(1);
-                r1.setName("Semifinals");
-                r1.setMatches(round1Matches.stream()
-                        .map(m -> modelMapper.map(m, MatchDTO.class))
-                        .collect(Collectors.toList()));
-                roundDTOs.add(r1);
-            }
+            for (int r = 1; r <= maxRound; r++) {
+                int currentRound = r;
+                List<Match> roundMatches = bracketMatches.stream()
+                        .filter(m -> m.getBracketRound() == currentRound)
+                        .sorted(java.util.Comparator.comparing(Match::getBracketPosition)) // Ensure stable order (Pos
+                                                                                           // 1, 2...)
+                        .collect(Collectors.toList());
 
-            // Round 2 (Finals) - Exclude 3rd place match from standard 'rounds' list if UI
-            // handles it separately
-            // But usually UI expects it. Let's include Finals match here.
-            if (finalMatch != null) {
-                BracketRoundDTO r2 = new BracketRoundDTO();
-                r2.setRoundNumber(2);
-                r2.setName("Finals");
-                // Only add the main final match to the list
-                r2.setMatches(List.of(modelMapper.map(finalMatch, MatchDTO.class)));
-                roundDTOs.add(r2);
+                // For the final round, exclude the 3rd place match from the main list if
+                // desired (usually handled separately)
+                if (currentRound == maxRound && thirdPlaceMatch != null) {
+                    roundMatches.removeIf(m -> m.getBracketPosition() == 2);
+                }
+
+                if (!roundMatches.isEmpty()) {
+                    BracketRoundDTO roundDTO = new BracketRoundDTO();
+                    roundDTO.setRoundNumber(currentRound);
+                    roundDTO.setName(getRoundName(currentRound, maxRound));
+                    roundDTO.setMatches(roundMatches.stream()
+                            .map(m -> modelMapper.map(m, MatchDTO.class))
+                            .collect(Collectors.toList()));
+                    roundDTOs.add(roundDTO);
+                }
             }
 
             bracketDTO.setRounds(roundDTOs);
@@ -268,5 +326,15 @@ public class TournamentServiceImpl implements TournamentService {
         }
 
         return dto;
+    }
+
+    private String getRoundName(int roundNumber, int totalRounds) {
+        if (roundNumber == totalRounds)
+            return "Finals";
+        if (roundNumber == totalRounds - 1)
+            return "Semifinals";
+        if (roundNumber == totalRounds - 2)
+            return "Quarterfinals";
+        return "Round " + roundNumber;
     }
 }
