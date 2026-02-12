@@ -157,62 +157,77 @@ public class TournamentServiceImpl implements TournamentService {
     }
 
     private void generateEliminationBracket(Tournament tournament, List<Match> allMatches) {
-        // Calculate number of teams advancing to playoffs (Top 2 from each pool)
         int numPools = tournament.getPools().size();
-        int numAdvancing = numPools * 2;
+        if (numPools < 1)
+            return;
 
-        if (numAdvancing < 2)
-            return; // No playoffs if fewer than 2 teams
-
-        // Determine bracket size (next power of 2)
-        int bracketSize = 1;
-        while (bracketSize < numAdvancing) {
-            bracketSize *= 2;
-        }
-
-        int matchesInRound = bracketSize / 2;
+        // 1. Generate Initial Round (Round 1)
+        List<Match> currentRoundMatches = new ArrayList<>();
         int roundNumber = 1;
 
-        // Generate rounds until we have a single final match
-        while (matchesInRound >= 1) {
-            for (int i = 0; i < matchesInRound; i++) {
-                createPlaceholderMatch(tournament, roundNumber, i + 1, allMatches);
+        if (numPools == 1) {
+            // Case 1 Pool: Finals directly
+            createPlaceholderMatch(tournament, 1, 1, allMatches, currentRoundMatches);
+        } else {
+            // Case N Pools: N matches in Round 1 (Crossover)
+            for (int i = 0; i < numPools; i++) {
+                createPlaceholderMatch(tournament, 1, i + 1, allMatches, currentRoundMatches);
             }
-            matchesInRound /= 2;
-            roundNumber++;
         }
 
-        // Add 3rd Place Match if we have at least Semifinals (Bracket Size >= 4)
-        // The main loop generates rounds 1 to log2(bracketSize).
-        // Total rounds = log2(bracketSize).
-        // If total rounds >= 2, we have semis.
-        // The last round generated (roundNumber - 1) is Finals.
-        int totalRounds = roundNumber - 1;
-        if (totalRounds >= 2) {
+        // 2. Generate Subsequent Rounds
+        // Loop until we have a single match or none left
+        int matchCount = currentRoundMatches.size();
+
+        while (matchCount > 1) {
+            roundNumber++;
+            int nextRoundMatchCount = (int) Math.ceil((double) matchCount / 2);
+
+            List<Match> nextRoundMatches = new ArrayList<>();
+            for (int i = 0; i < nextRoundMatchCount; i++) {
+                createPlaceholderMatch(tournament, roundNumber, i + 1, allMatches, nextRoundMatches);
+            }
+
+            matchCount = nextRoundMatchCount;
+            currentRoundMatches = nextRoundMatches; // update for tracking if needed
+        }
+
+        // 3. Add 3rd Place Match
+        // Logic: If there are at least 2 rounds total (meaning Semis exist), add 3rd
+        // place.
+        // Round 1 (3 matches) -> Round 2 (2 matches) -> Round 3 (1 match). Total 3
+        // rounds.
+        // If Total Rounds >= 2?
+        // Logic in frontend: If semifinals exist (matchCount=2 in prev round), add 3rd
+        // place?
+        // Let's stick to: If we generated a "Finals" (last round) and there was a round
+        // before it with > 1 match.
+
+        // Simplified: If roundNumber >= 2, we likely have a structure supporting 3rd
+        // place.
+        // (e.g. 2 pools -> R1 (2) -> R2 (1). R1 is Semis. R2 is Finals.)
+        if (roundNumber >= 2) {
             Match thirdPlace = new Match();
             thirdPlace.setTournament(tournament);
-            thirdPlace.setBracketRound(totalRounds); // Same round number as Finals? Or distinct?
-            // Convention: Finals is usually the last round. 3rd place often considered same
-            // "stage" just different match.
-            // Using same round number as Finals for simplicity in grouping, but distinct
-            // position or flag.
-            // Our DTO mapping checks for (Round == Max && Pos == 2).
-            // In the loop, Finals is (Round = totalRounds, Pos = 1).
-            // So we can set 3rd place to (Round = totalRounds, Pos = 2).
-            thirdPlace.setBracketRound(totalRounds);
-            thirdPlace.setBracketPosition(2);
+            thirdPlace.setBracketRound(roundNumber); // Same round as finals
+            thirdPlace.setBracketPosition(2); // Pos 2
             thirdPlace.setStatus(Match.Status.pending);
             allMatches.add(thirdPlace);
         }
     }
 
-    private void createPlaceholderMatch(Tournament tournament, int round, int position, List<Match> allMatches) {
+    private void createPlaceholderMatch(Tournament tournament, int round, int position, List<Match> allMatches,
+            List<Match> currentRoundList) {
         Match match = new Match();
         match.setTournament(tournament);
         match.setBracketRound(round);
-        match.setBracketPosition(position); // 1-based index in the round
+        match.setBracketPosition(position);
         match.setStatus(Match.Status.pending);
+
         allMatches.add(match);
+        if (currentRoundList != null) {
+            currentRoundList.add(match);
+        }
     }
 
     @Override

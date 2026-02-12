@@ -147,14 +147,34 @@ public class MatchServiceImpl implements MatchService {
 
         // 3. Determine placement in Elimination Bracket
         Tournament tournament = pool.getTournament();
-        List<Pool> allPools = tournament.getPools();
+
+        // Fetch all pools freshly and sort by name to ensure consistent index
+        List<Pool> allPools = poolRepository.findByTournamentId(tournament.getId());
         allPools.sort(java.util.Comparator.comparing(Pool::getName));
 
-        int poolIndex = allPools.indexOf(pool);
+        int poolIndex = -1;
+        for (int i = 0; i < allPools.size(); i++) {
+            if (allPools.get(i).getId().equals(pool.getId())) {
+                poolIndex = i;
+                break;
+            }
+        }
+
+        if (poolIndex == -1) {
+            System.err.println("Could not find pool index for pool: " + pool.getName());
+            return;
+        }
+
         int totalPools = allPools.size();
 
         // 4. Update the target matches
-        List<Match> bracketMatches = matchRepository.findByTournamentId(tournament.getId());
+        // IMPORTANT: Filter for matches that belong to the elimination bracket (pool is
+        // null)
+        // to avoid accidentally picking up pool matches which also have bracketRound
+        // numbers.
+        List<Match> bracketMatches = matchRepository.findByTournamentId(tournament.getId()).stream()
+                .filter(m -> m.getPool() == null)
+                .toList();
 
         if (totalPools == 1) {
             // Case 1 Pool: Finals (Round 1, Pos 1)
@@ -166,6 +186,8 @@ public class MatchServiceImpl implements MatchService {
                 finalMatch.setTeam1(seed1);
                 if (seed2 != null)
                     finalMatch.setTeam2(seed2);
+
+                finalMatch.setStatus(Match.Status.pending); // Ensure pending
                 matchRepository.save(finalMatch);
             }
         } else {
@@ -198,18 +220,19 @@ public class MatchServiceImpl implements MatchService {
     }
 
     private void advanceInBracket(Match match) {
-        if (match.getWinner() == null)
+        if (match.getWinner() == null || match.getBracketRound() == null)
             return;
 
-        Integer currentRound = match.getBracketRound();
-        Integer currentPos = match.getBracketPosition();
+        int currentRound = match.getBracketRound();
+        int currentPos = match.getBracketPosition();
 
+        // 1. Calculate Next Match Position
         int nextRound = currentRound + 1;
         int nextPos = (currentPos + 1) / 2;
 
-        List<Match> potentialMatches = matchRepository.findByTournamentId(match.getTournament().getId());
+        List<Match> allMatches = matchRepository.findByTournamentId(match.getTournament().getId());
 
-        Match nextMatch = potentialMatches.stream()
+        Match nextMatch = allMatches.stream()
                 .filter(m -> m.getBracketRound() != null &&
                         m.getBracketRound() == nextRound &&
                         m.getBracketPosition() == nextPos)
@@ -217,12 +240,48 @@ public class MatchServiceImpl implements MatchService {
                 .orElse(null);
 
         if (nextMatch != null) {
-            if (currentPos % 2 != 0) {
+            // 2. Advance Team
+            if (currentPos % 2 != 0) { // Odd position (1, 3, 5...) -> Team 1
                 nextMatch.setTeam1(match.getWinner());
-            } else {
+
+                // 3. Check for BYE scenario (Frontend Logic)
+                // If current round has ODD matches, and this is the LAST match,
+                // and we just filled Team 1... verify if Team 2 feeder exists.
+                // Teams feeding nextPos are [nextPos*2 - 1] and [nextPos*2].
+                // We just filled [nextPos*2 - 1] (which is currentPos).
+                // Does [nextPos*2] exist in current round?
+                // currentPos + 1.
+
+                long currentRoundMatchCount = allMatches.stream()
+                        .filter(m -> m.getBracketRound() != null && m.getBracketRound() == currentRound)
+                        .count();
+
+                // If there is no opponent match (currentPos == count), then it's a bye
+                if (currentPos == currentRoundMatchCount) {
+                    // Bye detected!
+                    // nextMatch.setTeam2(null); // Already null probably
+                    nextMatch.setTeam2Score(0);
+                    nextMatch.setTeam1Score(0); // or null? Frontend sets 0
+                    nextMatch.setWinner(match.getWinner()); // Auto-win
+                    nextMatch.setStatus(Match.Status.completed);
+
+                    matchRepository.save(nextMatch);
+
+                    // Recursively advance
+                    advanceInBracket(nextMatch);
+                    return;
+                }
+
+            } else { // Even position (2, 4, 6...) -> Team 2
                 nextMatch.setTeam2(match.getWinner());
             }
             matchRepository.save(nextMatch);
+
+            // Note: If nextMatch now has both teams, we don't auto-play. Wait for score
+            // update.
+            // But if we wanted to auto-advance if it were a bye from specific "Bye" team
+            // entity, check here.
+            // Currently, only structural byes are handled above.
         }
     }
 }
