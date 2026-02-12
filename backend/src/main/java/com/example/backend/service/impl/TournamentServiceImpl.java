@@ -53,10 +53,6 @@ public class TournamentServiceImpl implements TournamentService {
             tournament.setEvent(event);
         }
 
-        // We need to save tournament first to get ID for cascading (or rely on
-        // CascadeType.ALL)
-        // Linking everything carefully.
-
         List<Pool> pools = new ArrayList<>();
         List<Team> allTeams = new ArrayList<>();
         List<Match> allMatches = new ArrayList<>();
@@ -82,8 +78,6 @@ public class TournamentServiceImpl implements TournamentService {
         tournament.setPools(pools);
         tournament.setTeams(allTeams);
 
-        // Save now to generate IDs for Teams and Pools, which are needed for Matches
-        // and Standings
         Tournament savedTournament = tournamentRepository.save(tournament);
 
         // Now generate matches and standings
@@ -252,6 +246,17 @@ public class TournamentServiceImpl implements TournamentService {
                                     java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
                                     .thenComparing(MatchDTO::getCreatedAt,
                                             java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())));
+                        }
+
+                        // Sort Standings: Wins (desc), PointDiff (desc), PointsFor (desc)
+                        if (poolDTO.getStandings() != null) {
+                            poolDTO.getStandings().sort((s1, s2) -> {
+                                if (s2.getWins() != s1.getWins())
+                                    return s2.getWins() - s1.getWins();
+                                if (s2.getPointDifferential() != s1.getPointDifferential())
+                                    return s2.getPointDifferential() - s1.getPointDifferential();
+                                return s2.getPointsFor() - s1.getPointsFor();
+                            });
                         }
                         break;
                     }
