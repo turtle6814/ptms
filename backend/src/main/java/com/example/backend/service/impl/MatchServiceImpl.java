@@ -42,13 +42,19 @@ public class MatchServiceImpl implements MatchService {
             // For now, leave winner null if draw, but set status completed.
         }
 
-        matchRepository.save(match);
+        matchRepository.saveAndFlush(match);
 
-        if (match.getPool() != null) {
-            updatePoolStandings(match);
-            checkAndAdvancePoolWinners(match.getPool());
-        } else if (match.getBracketRound() != null) {
-            advanceInBracket(match);
+        try {
+            if (match.getPool() != null) {
+                updatePoolStandings(match);
+                checkAndAdvancePoolWinners(match.getPool());
+            } else if (match.getBracketRound() != null) {
+                advanceInBracket(match);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the score update
+            System.err.println("Error advancing tournament state: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return modelMapper.map(match, MatchDTO.class);

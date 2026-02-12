@@ -233,19 +233,22 @@ public class TournamentServiceImpl implements TournamentService {
                 // Find matching PoolDTO
                 for (PoolDTO poolDTO : dto.getPools()) {
                     if (poolDTO.getId().equals(pool.getId())) {
-                        // Map Team IDs
+                        // Sort Teams by CreatedAt to respect input order
                         if (pool.getTeams() != null) {
                             poolDTO.setTeamIds(pool.getTeams().stream()
+                                    .sorted(java.util.Comparator.comparing(Team::getCreatedAt,
+                                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
                                     .map(Team::getId)
                                     .collect(Collectors.toList()));
                         }
 
-                        // Sort Matches: Round (asc), then CreatedAt (asc)
+                        // Sort Matches: Round (asc), then CreatedAt (asc), then ID (asc) for stability
                         if (poolDTO.getMatches() != null) {
                             poolDTO.getMatches().sort(java.util.Comparator.comparing(MatchDTO::getBracketRound,
                                     java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
                                     .thenComparing(MatchDTO::getCreatedAt,
-                                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())));
+                                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                                    .thenComparing(MatchDTO::getId));
                         }
 
                         // Sort Standings: Wins (desc), PointDiff (desc), PointsFor (desc)
