@@ -220,7 +220,7 @@ public class MatchServiceImpl implements MatchService {
     }
 
     private void advanceInBracket(Match match) {
-        if (match.getWinner() == null || match.getBracketRound() == null)
+        if (match.getWinner() == null || match.getBracketRound() == null || match.getBracketPosition() == null)
             return;
 
         int currentRound = match.getBracketRound();
@@ -230,11 +230,17 @@ public class MatchServiceImpl implements MatchService {
         int nextRound = currentRound + 1;
         int nextPos = (currentPos + 1) / 2;
 
-        List<Match> allMatches = matchRepository.findByTournamentId(match.getTournament().getId());
+        // Fetch only elimination matches (where pool is null) to avoid mixing with pool
+        // matches
+        List<Match> allEliminationMatches = matchRepository.findByTournamentId(match.getTournament().getId())
+                .stream()
+                .filter(m -> m.getPool() == null)
+                .toList();
 
-        Match nextMatch = allMatches.stream()
+        Match nextMatch = allEliminationMatches.stream()
                 .filter(m -> m.getBracketRound() != null &&
                         m.getBracketRound() == nextRound &&
+                        m.getBracketPosition() != null &&
                         m.getBracketPosition() == nextPos)
                 .findFirst()
                 .orElse(null);
@@ -247,21 +253,16 @@ public class MatchServiceImpl implements MatchService {
                 // 3. Check for BYE scenario (Frontend Logic)
                 // If current round has ODD matches, and this is the LAST match,
                 // and we just filled Team 1... verify if Team 2 feeder exists.
-                // Teams feeding nextPos are [nextPos*2 - 1] and [nextPos*2].
-                // We just filled [nextPos*2 - 1] (which is currentPos).
-                // Does [nextPos*2] exist in current round?
-                // currentPos + 1.
 
-                long currentRoundMatchCount = allMatches.stream()
+                long currentRoundMatchCount = allEliminationMatches.stream()
                         .filter(m -> m.getBracketRound() != null && m.getBracketRound() == currentRound)
                         .count();
 
                 // If there is no opponent match (currentPos == count), then it's a bye
                 if (currentPos == currentRoundMatchCount) {
                     // Bye detected!
-                    // nextMatch.setTeam2(null); // Already null probably
                     nextMatch.setTeam2Score(0);
-                    nextMatch.setTeam1Score(0); // or null? Frontend sets 0
+                    nextMatch.setTeam1Score(0);
                     nextMatch.setWinner(match.getWinner()); // Auto-win
                     nextMatch.setStatus(Match.Status.completed);
 
@@ -276,12 +277,6 @@ public class MatchServiceImpl implements MatchService {
                 nextMatch.setTeam2(match.getWinner());
             }
             matchRepository.save(nextMatch);
-
-            // Note: If nextMatch now has both teams, we don't auto-play. Wait for score
-            // update.
-            // But if we wanted to auto-advance if it were a bye from specific "Bye" team
-            // entity, check here.
-            // Currently, only structural byes are handled above.
         }
     }
 }
