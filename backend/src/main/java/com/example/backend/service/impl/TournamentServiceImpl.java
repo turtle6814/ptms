@@ -243,6 +243,9 @@ public class TournamentServiceImpl implements TournamentService {
 
         // Manual mapping for Pool Team IDs and Sort Matches
         if (tournament.getPools() != null && dto.getPools() != null) {
+            // Sort pools by name to ensure stable ordering (Pool A, Pool B, Pool C...)
+            dto.getPools().sort(java.util.Comparator.comparing(PoolDTO::getName));
+
             for (int i = 0; i < tournament.getPools().size(); i++) {
                 Pool pool = tournament.getPools().get(i);
                 // Find matching PoolDTO

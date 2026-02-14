@@ -20,6 +20,7 @@ public class MatchServiceImpl implements MatchService {
     private final MatchRepository matchRepository;
     private final PoolStandingRepository poolStandingRepository;
     private final PoolRepository poolRepository;
+    private final TournamentRepository tournamentRepository; // Added
     private final ModelMapper modelMapper;
 
     @Override
@@ -51,6 +52,11 @@ public class MatchServiceImpl implements MatchService {
             } else if (match.getBracketRound() != null) {
                 advanceInBracket(match);
             }
+
+            // Check and update tournament lifecycle status
+            updateTournamentStatus(match.getTournament());
+            tournamentRepository.save(match.getTournament());
+
         } catch (Exception e) {
             // Log error but don't fail the score update
             System.err.println("Error advancing tournament state: " + e.getMessage());
@@ -125,6 +131,10 @@ public class MatchServiceImpl implements MatchService {
 
         if (!allComplete)
             return;
+
+        // Mark the pool as complete and persist it
+        pool.setComplete(true);
+        poolRepository.save(pool);
 
         // 2. Calculate Standings (Freshly fetched)
         List<PoolStanding> standings = poolStandingRepository.findByPoolId(pool.getId());
@@ -277,6 +287,93 @@ public class MatchServiceImpl implements MatchService {
                 nextMatch.setTeam2(match.getWinner());
             }
             matchRepository.save(nextMatch);
+        }
+
+        // 4. Populate 3rd place match with the loser from this match
+        // The 3rd place match is in the same round as the Finals (maxRound), position
+        // 2.
+        // We add the loser if this match feeds into the Finals (i.e., nextRound is the
+        // finals round).
+        populateThirdPlaceMatch(match, allEliminationMatches);
+    }
+
+    private void populateThirdPlaceMatch(Match match, List<Match> allEliminationMatches) {
+        if (match.getWinner() == null)
+            return;
+
+        int currentRound = match.getBracketRound();
+
+        // Find the max round number (Finals round)
+        int maxRound = allEliminationMatches.stream()
+                .filter(m -> m.getBracketRound() != null)
+                .mapToInt(Match::getBracketRound)
+                .max().orElse(0);
+
+        // This match must be in the round just before the Finals (i.e., Semifinals)
+        if (currentRound != maxRound - 1)
+            return;
+
+        // Find the 3rd place match: same round as Finals (maxRound), position 2
+        Match thirdPlaceMatch = allEliminationMatches.stream()
+                .filter(m -> m.getBracketRound() != null &&
+                        m.getBracketRound() == maxRound &&
+                        m.getBracketPosition() != null &&
+                        m.getBracketPosition() == 2)
+                .findFirst().orElse(null);
+
+        if (thirdPlaceMatch == null)
+            return;
+
+        // Determine the loser
+        Team loser = match.getTeam1().getId().equals(match.getWinner().getId())
+                ? match.getTeam2()
+                : match.getTeam1();
+
+        if (loser == null)
+            return;
+
+        // Place the loser in the 3rd place match
+        if (thirdPlaceMatch.getTeam1() == null) {
+            thirdPlaceMatch.setTeam1(loser);
+        } else if (thirdPlaceMatch.getTeam2() == null) {
+            thirdPlaceMatch.setTeam2(loser);
+        }
+        matchRepository.save(thirdPlaceMatch);
+    }
+
+    private void updateTournamentStatus(Tournament tournament) {
+        // 1. Check for transition from POOL_PLAY to ELIMINATION
+        if (tournament.getStatus() == Tournament.Status.pool_play) {
+            boolean allPoolsComplete = poolRepository.findByTournamentId(tournament.getId()).stream()
+                    .allMatch(Pool::isComplete);
+
+            if (allPoolsComplete) {
+                tournament.setStatus(Tournament.Status.elimination);
+            }
+        }
+
+        // 2. Check for transition to COMPLETED
+        if (tournament.getStatus() == Tournament.Status.elimination) {
+            List<Match> eliminationMatches = matchRepository.findByTournamentId(tournament.getId()).stream()
+                    .filter(m -> m.getPool() == null)
+                    .toList();
+
+            // Find the max round (Finals round)
+            int maxRound = eliminationMatches.stream()
+                    .filter(m -> m.getBracketRound() != null)
+                    .mapToInt(Match::getBracketRound)
+                    .max().orElse(0);
+
+            // Exclude the 3rd place match (maxRound, position 2) from the completion check
+            // The 3rd place match is optional and should not block tournament completion
+            boolean allComplete = eliminationMatches.stream()
+                    .filter(m -> !(m.getBracketRound() != null && m.getBracketRound() == maxRound
+                            && m.getBracketPosition() != null && m.getBracketPosition() == 2))
+                    .allMatch(m -> m.getStatus() == Match.Status.completed);
+
+            if (allComplete && !eliminationMatches.isEmpty()) {
+                tournament.setStatus(Tournament.Status.completed);
+            }
         }
     }
 }
