@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, User, Phone, Lock, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { UserPlus, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { Header } from '../components/Header';
 import './SignupPage.css';
@@ -85,7 +85,6 @@ export function SignupPage() {
 
                         <div className="form-group">
                             <label htmlFor="username">
-                                <User size={16} />
                                 Username
                             </label>
                             <input
@@ -101,7 +100,6 @@ export function SignupPage() {
 
                         <div className="form-group">
                             <label htmlFor="phoneNumber">
-                                <Phone size={16} />
                                 Phone Number
                             </label>
                             <input
@@ -117,7 +115,6 @@ export function SignupPage() {
 
                         <div className="form-group">
                             <label htmlFor="password">
-                                <Lock size={16} />
                                 Password
                             </label>
                             <input
@@ -133,7 +130,6 @@ export function SignupPage() {
 
                         <div className="form-group">
                             <label htmlFor="confirmPassword">
-                                <Lock size={16} />
                                 Confirm Password
                                 {isPasswordMatch && (
                                     <CheckCircle size={14} className="password-match-icon" />

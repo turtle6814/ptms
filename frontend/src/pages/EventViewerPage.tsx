@@ -43,9 +43,17 @@ export function EventViewerPage() {
 
         if (tournamentsRes.success && tournamentsRes.data) {
             setTournaments(tournamentsRes.data);
-            // Auto-select first tournament
+            // Auto-select first tournament and fetch full data
             if (tournamentsRes.data.length > 0) {
-                setSelectedTournament(tournamentsRes.data[0]);
+                const firstTournament = tournamentsRes.data[0];
+                setSelectedTournament(firstTournament);
+
+                // Immediately fetch full tournament data (pools, bracket, etc.)
+                const fullData = await pollTournament(firstTournament.id);
+                if (fullData.success && fullData.data) {
+                    setSelectedTournament(fullData.data);
+                    setTournaments(prev => prev.map(t => t.id === fullData.data!.id ? fullData.data! : t));
+                }
             }
             setLastUpdated(new Date());
         }

@@ -61,7 +61,6 @@ export function LoginPage() {
 
                         <div className="form-group">
                             <label htmlFor="phoneNumber">
-                                <Phone size={16} />
                                 Phone Number
                             </label>
                             <input
@@ -77,7 +76,6 @@ export function LoginPage() {
 
                         <div className="form-group">
                             <label htmlFor="password">
-                                <Lock size={16} />
                                 Password
                             </label>
                             <input
