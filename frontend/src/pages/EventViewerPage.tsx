@@ -68,45 +68,19 @@ export function EventViewerPage() {
         }
     }, [selectedTournament?.id]);
 
-    // Poll for updates (reduced to 2s for faster sync)
-    useEffect(() => {
-        if (!selectedTournament) return;
+    // Poll removed — using WebSocket (subscribeTournament) for real-time updates
 
-        const interval = setInterval(async () => {
-            const response = await pollTournament(selectedTournament.id);
-            if (response.success && response.data) {
-                setSelectedTournament(response.data);
-                setTournaments(prev => prev.map(t => t.id === response.data!.id ? response.data! : t));
-                setLastUpdated(new Date());
-            }
-        }, 2000);
-
-        return () => clearInterval(interval);
-    }, [selectedTournament?.id]);
-
-    // Listen for cross-tab localStorage changes
-    useEffect(() => {
-        if (!selectedTournament) return;
-
-        const handleStorageChange = async (e: StorageEvent) => {
-            // React to changes in tournaments storage
-            if (e.key === 'pickleball_tournaments' && e.newValue) {
-                const response = await pollTournament(selectedTournament.id);
-                if (response.success && response.data) {
-                    setSelectedTournament(response.data);
-                    setTournaments(prev => prev.map(t => t.id === response.data!.id ? response.data! : t));
-                    setLastUpdated(new Date());
-                }
-            }
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, [selectedTournament?.id]);
-
-    const handleSelectTournament = (tournament: Tournament) => {
-        setSelectedTournament(tournament);
+    const handleSelectTournament = async (tournament: Tournament) => {
+        setSelectedTournament(tournament); // Show immediately with whatever data we have
         setDropdownOpen(false);
+
+        // Immediately fetch full tournament data (don't wait for next poll)
+        const response = await pollTournament(tournament.id);
+        if (response.success && response.data) {
+            setSelectedTournament(response.data);
+            setTournaments(prev => prev.map(t => t.id === response.data!.id ? response.data! : t));
+            setLastUpdated(new Date());
+        }
     };
 
     const getStatusLabel = (status: Tournament['status']) => {

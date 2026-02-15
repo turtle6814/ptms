@@ -7,6 +7,7 @@
 .tournament-selector {
     position: relative;
     margin-top: 0.75rem;
+    display: inline-block;
 }
 
 .selector-btn {
@@ -23,6 +24,8 @@
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 300px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .selector-btn:hover {
@@ -61,6 +64,7 @@
     top: 100%;
     left: 0;
     right: 0;
+    min-width: 100%;
     background: rgba(30, 30, 46, 0.98);
     border: 1px solid rgba(139, 92, 246, 0.4);
     border-top: none;
@@ -74,6 +78,7 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     max-height: 300px;
     overflow-y: auto;
+    box-sizing: border-box;
 }
 
 .dropdown-item {
