@@ -1,6 +1,6 @@
 .event-detail-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    background: var(--bg-primary);
 }
 
 .event-detail-content {
@@ -22,7 +22,7 @@
 
 .error-state h2 {
     margin: 0 0 1rem;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .back-link {
@@ -47,7 +47,7 @@
 }
 
 .back-nav:hover {
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 /* Event Header Card */
@@ -55,7 +55,7 @@
     display: flex;
     gap: 1.5rem;
     padding: 2rem;
-    background: rgba(30, 30, 46, 0.6);
+    background: rgba(241, 245, 249, 0.8);
     border: 1px solid rgba(148, 163, 184, 0.1);
     border-radius: 20px;
     margin-bottom: 2rem;
@@ -82,7 +82,7 @@
     margin: 0;
     font-size: 1.75rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .event-header-content .event-description {
@@ -128,7 +128,7 @@
 
 .btn-icon:hover {
     background: rgba(148, 163, 184, 0.15);
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .btn-icon.btn-danger {
@@ -166,20 +166,20 @@
 
 .edit-name-input {
     padding: 0.75rem 1rem;
-    background: rgba(15, 15, 26, 0.6);
+    background: rgba(241, 245, 249, 0.8);
     border: 1px solid rgba(148, 163, 184, 0.2);
     border-radius: 10px;
-    color: #f8fafc;
+    color: var(--text-primary);
     font-size: 1.25rem;
     font-weight: 600;
 }
 
 .edit-description-input {
     padding: 0.75rem 1rem;
-    background: rgba(15, 15, 26, 0.6);
+    background: rgba(241, 245, 249, 0.8);
     border: 1px solid rgba(148, 163, 184, 0.2);
     border-radius: 10px;
-    color: #f8fafc;
+    color: var(--text-primary);
     font-size: 1rem;
     resize: vertical;
 }
@@ -197,7 +197,7 @@
 
 /* Tournaments Section */
 .tournaments-section {
-    background: rgba(30, 30, 46, 0.4);
+    background: rgba(241, 245, 249, 0.6);
     border: 1px solid rgba(148, 163, 184, 0.08);
     border-radius: 20px;
     padding: 1.5rem;
@@ -217,7 +217,7 @@
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .add-tournament-btn {
@@ -256,7 +256,7 @@
 
 .empty-tournaments h3 {
     margin: 0 0 0.5rem;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .empty-tournaments p {
@@ -290,7 +290,7 @@
 
 .tournament-card {
     position: relative;
-    background: rgba(15, 15, 26, 0.4);
+    background: rgba(241, 245, 249, 0.6);
     border: 1px solid rgba(148, 163, 184, 0.08);
     border-radius: 12px;
     overflow: hidden;
@@ -298,7 +298,7 @@
 }
 
 .tournament-card:hover {
-    background: rgba(15, 15, 26, 0.6);
+    background: rgba(226, 232, 240, 0.6);
     border-color: rgba(148, 163, 184, 0.15);
 }
 
@@ -315,7 +315,7 @@
     margin: 0 0 0.5rem;
     font-size: 1rem;
     font-weight: 600;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .tournament-meta {
@@ -339,7 +339,7 @@
 
 .status-pool {
     background: rgba(59, 130, 246, 0.2);
-    color: #60a5fa;
+    color: var(--info);
 }
 
 .status-elimination {

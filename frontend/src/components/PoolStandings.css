@@ -1,15 +1,15 @@
 .pool-standings {
-  background: linear-gradient(145deg, #1e1e2e, #252538);
+  background: var(--bg-card);
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .pool-title {
   margin: 0 0 1rem;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #a78bfa;
+  color: var(--accent-purple-dark);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -40,7 +40,7 @@
 }
 
 .standings-table td {
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.95rem;
 }
 
@@ -72,7 +72,7 @@
 
 .record-col {
   font-weight: 600;
-  color: #f8fafc !important;
+  color: var(--text-primary) !important;
 }
 
 .pts-col {

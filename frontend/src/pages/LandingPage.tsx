@@ -105,7 +105,7 @@ export function LandingPage() {
             <section className="cta-section">
                 <div className="cta-content">
                     <h2>Ready to Run Your Tournament?</h2>
-                    <p>Join tournament organizers who trust PickleballPro.</p>
+                    <p>Join tournament organizers who trust HaPiPickleball.</p>
                     <Link to="/signup" className="btn-primary btn-large">
                         Create Your Free Account
                         <ArrowRight size={20} />
@@ -118,9 +118,9 @@ export function LandingPage() {
                 <div className="footer-content">
                     <div className="footer-brand">
                         <Trophy size={24} />
-                        <span>Pickleball<span className="accent">Pro</span></span>
+                        <span>HaPi<span className="accent">Pickleball</span></span>
                     </div>
-                    <p>© 2026 PickleballPro. Made for tournament organizers.</p>
+                    <p>© 2026 HaPiPickleball. Made for tournament organizers.</p>
                 </div>
             </footer>
         </div>

@@ -2,7 +2,7 @@
 
 .setup-container {
     min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    background: var(--bg-primary);
     background-image:
         radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
         radial-gradient(at 100% 50%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
@@ -22,7 +22,7 @@
 .setup-header h1 {
     font-size: 2rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -34,19 +34,19 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.04);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.15);
     border-radius: 10px;
-    color: #94a3b8;
+    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 500;
 }
 
 .back-button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #f8fafc;
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text-primary);
     transform: translateX(-2px);
 }
 
@@ -67,7 +67,7 @@
 
 /* ========== FORM SECTIONS ========== */
 .form-section {
-    background: linear-gradient(135deg, rgba(30, 30, 46, 0.7) 0%, rgba(20, 20, 35, 0.8) 100%);
+    background: var(--bg-card);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(148, 163, 184, 0.1);
     border-radius: 20px;
@@ -84,7 +84,7 @@
     margin: 0;
     font-size: 1.25rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .section-header {
@@ -111,10 +111,10 @@
 
 .input-group input {
     padding: 1rem 1.25rem;
-    background: rgba(15, 15, 26, 0.6);
+    background: var(--bg-elevated);
     border: 1px solid rgba(148, 163, 184, 0.15);
     border-radius: 12px;
-    color: #f8fafc;
+    color: var(--text-primary);
     font-size: 1.05rem;
     transition: all 0.2s ease;
 }
@@ -166,7 +166,7 @@
     margin: 0;
     font-size: 1.35rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .pool-header-actions {
@@ -244,10 +244,10 @@
 .team-input-row input {
     flex: 1;
     padding: 0.875rem 1rem;
-    background: rgba(15, 15, 26, 0.5);
+    background: var(--bg-elevated);
     border: 1px solid rgba(148, 163, 184, 0.12);
     border-radius: 10px;
-    color: #f8fafc;
+    color: var(--text-primary);
     font-size: 0.95rem;
     transition: all 0.2s ease;
 }
@@ -255,7 +255,7 @@
 .team-input-row input:focus {
     outline: none;
     border-color: #8b5cf6;
-    background: rgba(15, 15, 26, 0.8);
+    background: rgba(241, 245, 249, 0.8);
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
@@ -300,7 +300,7 @@
 .add-team-btn:hover {
     background: rgba(139, 92, 246, 0.1);
     border-color: rgba(139, 92, 246, 0.5);
-    color: #c4b5fd;
+    color: var(--accent-purple);
 }
 
 .add-pool-section {
@@ -398,7 +398,7 @@
 }
 
 .info-card {
-    background: linear-gradient(135deg, rgba(30, 30, 46, 0.7) 0%, rgba(20, 20, 35, 0.8) 100%);
+    background: var(--bg-card);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(148, 163, 184, 0.1);
     border-radius: 20px;
@@ -416,7 +416,7 @@
     margin: 0 0 1rem;
     font-size: 1.15rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .info-card p {
@@ -454,7 +454,7 @@
 }
 
 .info-card li strong {
-    color: #f8fafc;
+    color: var(--text-primary);
     font-weight: 600;
 }
 

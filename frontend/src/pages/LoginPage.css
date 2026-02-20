@@ -19,8 +19,8 @@
 .login-card {
     width: 100%;
     max-width: 420px;
-    background: linear-gradient(145deg, rgba(30, 30, 46, 0.95), rgba(26, 26, 46, 0.9));
-    border: 1px solid rgba(167, 139, 250, 0.2);
+    background: var(--bg-card);
+    border: 1px solid rgba(148, 163, 184, 0.1);
     border-radius: var(--radius-xl);
     padding: 2.5rem;
     box-shadow:
@@ -138,16 +138,26 @@
 
 .form-group input {
     padding: 0.875rem 1rem;
-    background: rgba(15, 15, 26, 0.6);
+    background: #ffffff !important;
     border: 1px solid rgba(148, 163, 184, 0.2);
     border-radius: var(--radius-md);
-    color: var(--text-primary);
+    color: #000000 !important;
     font-size: 1rem;
     transition: all 0.2s ease;
 }
 
+/* Fix for browser autofill styles */
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus,
+.form-group input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+    -webkit-text-fill-color: #000000 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
 .form-group input::placeholder {
-    color: var(--text-subtle);
+    color: #cbd5e1;
 }
 
 .form-group input:hover {

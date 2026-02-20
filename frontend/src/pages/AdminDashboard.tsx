@@ -124,7 +124,7 @@ export function AdminDashboard() {
     if (loading) {
         return (
             <div className="admin-page">
-                <Header isAdmin />
+                <Header />
                 <main className="admin-content">
                     <div className="loading-state">Loading tournaments...</div>
                 </main>
@@ -134,10 +134,7 @@ export function AdminDashboard() {
 
     return (
         <div className="admin-page">
-            <Header
-                isAdmin
-                tournamentName={selectedTournament?.name}
-            />
+            <Header />
 
             <main className="admin-content">
                 <aside className="tournaments-sidebar">

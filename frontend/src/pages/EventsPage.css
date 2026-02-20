@@ -1,6 +1,6 @@
 .events-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    background: var(--bg-primary);
 }
 
 .events-content {
@@ -20,7 +20,7 @@
     margin: 0;
     font-size: 2rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .header-text p {
@@ -76,7 +76,7 @@
 .empty-state h2 {
     margin: 0 0 0.5rem;
     font-size: 1.5rem;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .empty-state p {
@@ -117,7 +117,7 @@
     margin: 0 0 1rem;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .section-subtitle {
@@ -135,7 +135,7 @@
 
 .event-card {
     position: relative;
-    background: rgba(30, 30, 46, 0.6);
+    background: rgba(241, 245, 249, 0.8);
     border: 1px solid rgba(148, 163, 184, 0.1);
     border-radius: 16px;
     overflow: hidden;
@@ -178,7 +178,7 @@
     margin: 0;
     font-size: 1.125rem;
     font-weight: 600;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .event-description {
@@ -243,21 +243,21 @@
     align-items: center;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
-    background: rgba(30, 30, 46, 0.4);
+    background: rgba(241, 245, 249, 0.6);
     border: 1px solid rgba(148, 163, 184, 0.08);
     border-radius: 12px;
     text-decoration: none;
-    color: #f8fafc;
+    color: var(--text-primary);
     transition: all 0.2s ease;
 }
 
 .standalone-tournament:hover {
-    background: rgba(30, 30, 46, 0.6);
+    background: rgba(226, 232, 240, 0.6);
     border-color: rgba(148, 163, 184, 0.15);
 }
 
 .standalone-tournament svg {
-    color: #fbbf24;
+    color: var(--accent-gold-dark);
 }
 
 .standalone-tournament span:first-of-type {
@@ -276,7 +276,7 @@
 
 .status-badge.status-pool_play {
     background: rgba(59, 130, 246, 0.2);
-    color: #60a5fa;
+    color: var(--info);
 }
 
 .status-badge.status-elimination {
@@ -307,7 +307,7 @@
 .modal-content {
     width: 100%;
     max-width: 480px;
-    background: #1e1e2e;
+    background: var(--bg-card);
     border: 1px solid rgba(148, 163, 184, 0.1);
     border-radius: 20px;
     padding: 2rem;
@@ -330,7 +330,7 @@
     margin: 0 0 1.5rem;
     font-size: 1.5rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .form-group {
@@ -348,10 +348,10 @@
 .form-group textarea {
     width: 100%;
     padding: 0.875rem 1rem;
-    background: rgba(15, 15, 26, 0.6);
+    background: rgba(241, 245, 249, 0.8);
     border: 1px solid rgba(148, 163, 184, 0.15);
     border-radius: 12px;
-    color: #f8fafc;
+    color: var(--text-primary);
     font-size: 1rem;
     transition: all 0.2s ease;
 }

@@ -1,8 +1,8 @@
 .elimination-bracket {
-    background: linear-gradient(145deg, #1a1a2e, #1e1e2e);
+    background: var(--bg-card);
     border-radius: 20px;
     padding: 2rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .bracket-title {
@@ -10,7 +10,7 @@
     align-items: center;
     gap: 0.75rem;
     margin: 0;
-    color: #fbbf24;
+    color: var(--accent-gold-dark);
     font-size: 1.5rem;
     font-weight: 700;
 }
@@ -39,7 +39,7 @@
 
 .third-place-toggle:hover {
     background: rgba(148, 163, 184, 0.15);
-    color: #cbd5e1;
+    color: var(--text-muted);
 }
 
 .third-place-toggle input[type="checkbox"] {
@@ -102,13 +102,13 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #fbbf24;
+    color: var(--accent-gold-dark);
 }
 
 .champion-name {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 /* ========== RUNNER-UP (2ND PLACE) BANNER ========== */
@@ -139,13 +139,13 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #c0c0c0;
+    color: #6b7280;
 }
 
 .runner-up-name {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 /* ========== BRACKET LAYOUT ========== */
@@ -162,7 +162,7 @@
     min-width: 280px;
     display: flex;
     flex-direction: column;
-    background: rgba(30, 30, 46, 0.4);
+    background: rgba(241, 245, 249, 0.6);
     border-radius: 16px;
     padding: 1rem;
     border: 1px solid rgba(148, 163, 184, 0.08);
@@ -170,7 +170,7 @@
 }
 
 .bracket-round:hover {
-    background: rgba(30, 30, 46, 0.6);
+    background: rgba(226, 232, 240, 0.6);
     border-color: rgba(148, 163, 184, 0.12);
 }
 
@@ -212,7 +212,7 @@
 
 /* Finals title styling */
 .bracket-round:last-child .round-title {
-    color: #fbbf24;
+    color: var(--accent-gold-dark);
     border-bottom-color: rgba(251, 191, 36, 0.3);
 }
 
@@ -262,7 +262,7 @@
 .third-place-name {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .third-place-section {

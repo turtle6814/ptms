@@ -13,8 +13,8 @@
     gap: 4rem;
     padding: 4rem 6rem 6rem;
     background:
-        radial-gradient(ellipse at top left, rgba(167, 139, 250, 0.15) 0%, transparent 50%),
-        radial-gradient(ellipse at bottom right, rgba(251, 191, 36, 0.08) 0%, transparent 50%);
+        radial-gradient(ellipse at top left, rgba(167, 139, 250, 0.5) 0%, transparent 60%),
+        radial-gradient(ellipse at bottom right, rgba(251, 191, 36, 0.4) 0%, transparent 60%);
 }
 
 .hero-content {
@@ -95,7 +95,7 @@
     padding: 0.875rem 1.5rem;
     background: rgba(248, 250, 252, 0.05);
     border: 1px solid rgba(148, 163, 184, 0.2);
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-size: 1rem;
     font-weight: 500;
     border-radius: var(--radius-md);
@@ -104,9 +104,9 @@
 }
 
 .btn-secondary:hover {
-    background: rgba(248, 250, 252, 0.1);
+    background: rgba(167, 139, 250, 0.15);
     border-color: rgba(167, 139, 250, 0.4);
-    color: var(--text-primary);
+    color: var(--accent-purple-dark);
 }
 
 .btn-large {
@@ -147,8 +147,8 @@
     align-items: center;
     gap: 1rem;
     padding: 3rem;
-    background: linear-gradient(145deg, rgba(30, 30, 46, 0.9), rgba(26, 26, 46, 0.8));
-    border: 1px solid rgba(167, 139, 250, 0.3);
+    background: var(--bg-card);
+    border: 1px solid rgba(148, 163, 184, 0.1);
     border-radius: var(--radius-xl);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
@@ -187,7 +187,7 @@
 .feature-card {
     padding: 2rem;
     background: var(--bg-card);
-    border: 1px solid rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(47, 51, 55, 0.2);
     border-radius: var(--radius-lg);
     transition: all 0.2s ease;
 }

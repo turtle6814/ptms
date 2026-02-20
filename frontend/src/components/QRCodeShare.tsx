@@ -51,7 +51,7 @@ export function QRCodeShare({ url, tournamentName }: QRCodeShareProps) {
                     size={180}
                     level="H"
                     bgColor="transparent"
-                    fgColor="#e2e8f0"
+                    fgColor="#1e293b"
                     includeMargin={false}
                 />
             </div>

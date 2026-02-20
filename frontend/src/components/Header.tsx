@@ -3,12 +3,12 @@ import { Trophy, Settings, Eye, LogIn, LogOut, User, Calendar } from 'lucide-rea
 import { useAuth } from '../context/useAuth';
 import './Header.css';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface HeaderProps {
-    tournamentName?: string;
-    isAdmin?: boolean;
+    // Props removed: tournamentName, isAdmin (badges removed)
 }
 
-export function Header({ tournamentName, isAdmin }: HeaderProps) {
+export function Header(_props?: HeaderProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, isAuthenticated, logout } = useAuth();
@@ -26,19 +26,13 @@ export function Header({ tournamentName, isAdmin }: HeaderProps) {
                 {isViewerPage ? (
                     <div className="logo">
                         <Trophy size={28} />
-                        <span className="logo-text">Pickleball<span className="logo-accent">Pro</span></span>
+                        <span className="logo-text">HaPi<span className="logo-accent">Pickleball</span></span>
                     </div>
                 ) : (
                     <Link to="/" className="logo">
                         <Trophy size={28} />
-                        <span className="logo-text">Pickleball<span className="logo-accent">Pro</span></span>
+                        <span className="logo-text">HaPi<span className="logo-accent">Pickleball</span></span>
                     </Link>
-                )}
-
-                {tournamentName && (
-                    <div className="tournament-badge">
-                        {tournamentName}
-                    </div>
                 )}
             </div>
 
@@ -47,13 +41,6 @@ export function Header({ tournamentName, isAdmin }: HeaderProps) {
                     <div className="viewer-badge">
                         <Eye size={14} />
                         Viewer Mode
-                    </div>
-                )}
-
-                {isAdmin && (
-                    <div className="admin-badge">
-                        <Settings size={14} />
-                        Admin
                     </div>
                 )}
 

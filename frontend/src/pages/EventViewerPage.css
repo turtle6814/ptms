@@ -1,6 +1,6 @@
 .event-viewer-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    background: var(--bg-primary);
 }
 
 /* Tournament Selector Dropdown */
@@ -15,10 +15,10 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    background: rgba(30, 30, 46, 0.8);
+    background: var(--bg-card);
     border: 1px solid rgba(148, 163, 184, 0.15);
     border-radius: 12px;
-    color: #f8fafc;
+    color: var(--text-primary);
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
@@ -29,19 +29,19 @@
 }
 
 .selector-btn:hover {
-    background: rgba(30, 30, 46, 1);
+    background: rgba(241, 245, 249, 0.9);
     border-color: rgba(139, 92, 246, 0.3);
 }
 
 .selector-btn.open {
-    background: rgba(30, 30, 46, 1);
+    background: rgba(241, 245, 249, 0.9);
     border-color: rgba(139, 92, 246, 0.4);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
 
 .selector-btn svg:first-child {
-    color: #fbbf24;
+    color: var(--accent-gold-dark);
 }
 
 .selector-btn span:first-of-type {
@@ -65,7 +65,7 @@
     left: 0;
     right: 0;
     min-width: 100%;
-    background: rgba(30, 30, 46, 0.98);
+    background: var(--bg-card);
     border: 1px solid rgba(139, 92, 246, 0.4);
     border-top: none;
     border-bottom-left-radius: 12px;
@@ -75,7 +75,7 @@
     padding: 0.5rem;
     z-index: 100;
     backdrop-filter: blur(8px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     max-height: 300px;
     overflow-y: auto;
     box-sizing: border-box;
@@ -90,7 +90,7 @@
     background: transparent;
     border: none;
     border-radius: 8px;
-    color: #e2e8f0;
+    color: var(--text-primary);
     font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -127,7 +127,7 @@
 
 .status-badge.status-pool_play {
     background: rgba(59, 130, 246, 0.2);
-    color: #60a5fa;
+    color: var(--info);
 }
 
 .status-badge.status-elimination {
@@ -163,7 +163,7 @@
 
 .no-tournaments h2 {
     margin: 0 0 0.5rem;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .no-tournaments p {
@@ -175,7 +175,7 @@
     margin: 0;
     font-size: 1.75rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 /* Responsive adjustments */
@@ -245,7 +245,7 @@
 }
 
 .error-state h2 {
-    color: #f8fafc;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
@@ -292,7 +292,7 @@
 
 /* Pool View Layout */
 .pool-view-container {
-    background: rgba(30, 30, 46, 0.6);
+    background: var(--bg-card);
     border-radius: 16px;
     border: 1px solid rgba(148, 163, 184, 0.1);
     padding: 1.5rem;
@@ -316,7 +316,7 @@
 /* Pool Matches View */
 .pool-matches-view h4 {
     margin: 0 0 1rem;
-    color: #f8fafc;
+    color: var(--text-primary);
     font-size: 1rem;
     font-weight: 600;
 }
