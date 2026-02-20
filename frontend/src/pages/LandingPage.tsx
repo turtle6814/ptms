@@ -120,7 +120,7 @@ export function LandingPage() {
                         <Trophy size={24} />
                         <span>HaPi<span className="accent">Pickleball</span></span>
                     </div>
-                    <p>© 2026 HaPiPickleball. Made for tournament organizers.</p>
+                    <p>© 2026 HaPiPickleball · Built with ❤️ by sdtb.tm14</p>
                 </div>
             </footer>
         </div>
