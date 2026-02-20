@@ -257,7 +257,7 @@ import { Client } from '@stomp/stompjs';
 
 export function subscribeTournament(tournamentId: string, callback: (data: Tournament) => void): () => void {
     const client = new Client({
-        brokerURL: 'ws://localhost:8080/ws', // Backend WebSocket endpoint
+        brokerURL: import.meta.env.VITE_WS_URL || `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`,
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
