@@ -124,7 +124,6 @@ export interface Tournament {
   teams: Team[];
   pools: Pool[];
   eliminationBracket?: EliminationBracket | null;
-  hasThirdPlaceMatch: boolean;
   createdAt: string; // date-time
   updatedAt: string; // date-time
 }

@@ -38,12 +38,4 @@ public class TournamentController {
         tournamentService.deleteTournament(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
-
-    @PatchMapping("/{id}/third-place-match")
-    public ResponseEntity<ApiResponse<TournamentDTO>> toggleThirdPlaceMatch(
-            @PathVariable UUID id,
-            @RequestParam boolean enabled) {
-        return ResponseEntity.ok(ApiResponse.success(
-                tournamentService.toggleThirdPlaceMatch(id, enabled)));
-    }
 }

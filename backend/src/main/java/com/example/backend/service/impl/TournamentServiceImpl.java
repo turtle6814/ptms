@@ -238,16 +238,6 @@ public class TournamentServiceImpl implements TournamentService {
         tournamentRepository.deleteById(id);
     }
 
-    @Override
-    @Transactional
-    public TournamentDTO toggleThirdPlaceMatch(UUID id, boolean enabled) {
-        Tournament tournament = tournamentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tournament not found"));
-        tournament.setHasThirdPlaceMatch(enabled);
-        tournamentRepository.save(tournament);
-        return convertToDTO(tournament);
-    }
-
     private TournamentDTO convertToDTO(Tournament tournament) {
         TournamentDTO dto = modelMapper.map(tournament, TournamentDTO.class);
 

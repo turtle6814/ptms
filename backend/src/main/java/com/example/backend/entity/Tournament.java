@@ -42,9 +42,6 @@ public class Tournament {
     @OneToMany(mappedBy = "tournament", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Match> matches = new ArrayList<>();
 
-    @Column(nullable = false)
-    private boolean hasThirdPlaceMatch = false;
-
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

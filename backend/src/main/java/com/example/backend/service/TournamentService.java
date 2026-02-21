@@ -14,6 +14,4 @@ public interface TournamentService {
     TournamentDTO createTournament(CreateTournamentRequest request);
 
     void deleteTournament(UUID id);
-
-    TournamentDTO toggleThirdPlaceMatch(UUID id, boolean enabled);
 }

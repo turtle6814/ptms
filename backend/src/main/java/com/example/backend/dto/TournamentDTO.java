@@ -14,7 +14,6 @@ public class TournamentDTO {
     private List<TeamDTO> teams;
     private List<PoolDTO> pools;
     private EliminationBracketDTO eliminationBracket;
-    private boolean hasThirdPlaceMatch;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
