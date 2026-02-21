@@ -59,8 +59,10 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/ws/**").permitAll() // WebSocket STOMP endpoint
                         // Public read-only API access for viewers (no login required)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/events/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/tournaments/**").permitAll()
+                        // Only specific event/tournament GETs are public, NOT the list endpoint
+                        .requestMatchers(HttpMethod.GET, "/api/v1/events/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/events/{id}/tournaments").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/tournaments/{id}").permitAll()
                         // Static resources & SPA routes (for single-container deployment)
                         .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
                         .requestMatchers("/assets/**", "/*.js", "/*.css", "/*.png", "/*.svg", "/*.ico").permitAll()
