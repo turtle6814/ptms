@@ -17,7 +17,7 @@ public class JwtUtils {
     @Value("${app.jwt-secret}")
     private String jwtSecret;
 
-    @Value("${app-jqt-expiration-milliseconds}")
+    @Value("${app.jwt-expiration-milliseconds}")
     private int jwtExpirationMs;
 
     private SecretKey key() {
