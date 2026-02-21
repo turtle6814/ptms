@@ -211,6 +211,23 @@ export async function deleteTournament(id: string): Promise<ApiResponse<void>> {
     }
 }
 
+export async function toggleThirdPlaceMatch(
+    tournamentId: string,
+    enabled: boolean
+): Promise<ApiResponse<Tournament>> {
+    try {
+        const response = await client.patch<ApiResponse<Tournament>>(
+            `/tournaments/${tournamentId}/third-place-match?enabled=${enabled}`
+        );
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            error: error.response?.data?.error || error.message || 'Failed to toggle third place match',
+        };
+    }
+}
+
 // ================================
 // Match API
 // ================================

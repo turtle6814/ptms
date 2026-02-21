@@ -12,6 +12,7 @@ import {
     updateMatchScore,
     subscribeTournament,
     getAllEvents,
+    toggleThirdPlaceMatch,
 } from '../api';
 import { Tournament, Event } from '../api/types';
 import { Share2, RefreshCw, ChevronDown, Calendar } from 'lucide-react';
@@ -28,7 +29,7 @@ export function AdminDashboard() {
     const [shareEventId, setShareEventId] = useState<string | null>(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [hasThirdPlaceMatch, setHasThirdPlaceMatch] = useState(false);
+
 
     const loadTournaments = useCallback(async () => {
         const [tournamentsRes, eventsRes] = await Promise.all([
@@ -285,8 +286,13 @@ export function AdminDashboard() {
                                                     bracket={selectedTournament.eliminationBracket}
                                                     teams={selectedTournament.teams}
                                                     isAdmin={true}
-                                                    hasThirdPlaceMatch={hasThirdPlaceMatch}
-                                                    onThirdPlaceToggle={setHasThirdPlaceMatch}
+                                                    hasThirdPlaceMatch={selectedTournament.hasThirdPlaceMatch}
+                                                    onThirdPlaceToggle={async (enabled) => {
+                                                        const res = await toggleThirdPlaceMatch(selectedTournament.id, enabled);
+                                                        if (res.success && res.data) {
+                                                            setSelectedTournament(res.data);
+                                                        }
+                                                    }}
                                                     onScoreUpdate={handleScoreUpdate}
                                                 />
                                             ) : (

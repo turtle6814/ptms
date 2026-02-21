@@ -240,7 +240,7 @@ export function EventViewerPage() {
                                         bracket={selectedTournament.eliminationBracket}
                                         teams={selectedTournament.teams}
                                         isAdmin={false}
-                                        hasThirdPlaceMatch={!!selectedTournament.eliminationBracket.thirdPlaceMatch}
+                                        hasThirdPlaceMatch={selectedTournament.hasThirdPlaceMatch}
                                     />
                                 </section>
                             )
