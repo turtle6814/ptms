@@ -25,9 +25,11 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: jdbc:postgresql://db:5432/pickleball_tms
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: 140903
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: pickleball_tms
+      DB_USER: postgres
+      DB_PASSWORD: 140903
       JWT_SECRET: daf66e01593f61a15b857cf433aae03a005812b31234e149036bcc8dee755dbb
     ports:
       - "3000:8080"

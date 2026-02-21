@@ -1,0 +1,34 @@
+databases:
+  - name: ptms-db
+    plan: free
+    databaseName: pickleball_tms
+
+services:
+  - type: web
+    name: ptms-app
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: ptms-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ptms-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ptms-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: ptms-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ptms-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
