@@ -9,6 +9,7 @@ import com.example.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,12 +30,27 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse signup(SignupRequest request) {
+        // Backend validation
+        if (request.getUsername() == null || request.getUsername().trim().length() < 3) {
+            throw new RuntimeException("Username must be at least 3 characters");
+        }
+
+        String digitsOnly = request.getPhoneNumber() == null ? ""
+                : request.getPhoneNumber().replaceAll("\\D", "");
+        if (digitsOnly.length() < 10) {
+            throw new RuntimeException("Phone number must have at least 10 digits");
+        }
+
+        if (request.getPassword() == null || request.getPassword().length() < 6) {
+            throw new RuntimeException("Password must be at least 6 characters");
+        }
+
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Error: Username is already taken!");
+            throw new RuntimeException("Username is already taken");
         }
 
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            throw new RuntimeException("Error: Phone number is already in use!");
+            throw new RuntimeException("Phone number is already in use");
         }
 
         User user = new User();
@@ -55,25 +71,28 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        // Need to find username by phone number first because AuthenticationManager
-        // uses username
+        // Find user by phone number first because AuthenticationManager uses username
         User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
-                .orElseThrow(() -> new RuntimeException("User not found via phone number"));
+                .orElseThrow(() -> new BadCredentialsException("Invalid phone number or password"));
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getUsername(), request.getPassword()));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), request.getPassword()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtils.generateJwtToken(authentication);
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
 
-        AuthResponse response = new AuthResponse();
-        response.setToken(jwt);
-        response.setUser(userDTO);
+            AuthResponse response = new AuthResponse();
+            response.setToken(jwt);
+            response.setUser(userDTO);
 
-        return response;
+            return response;
+        } catch (BadCredentialsException ex) {
+            throw new BadCredentialsException("Invalid phone number or password");
+        }
     }
 
     @Override
