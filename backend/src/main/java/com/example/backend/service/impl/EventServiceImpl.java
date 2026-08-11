@@ -1,18 +1,17 @@
 package com.example.backend.service.impl;
 
 import com.example.backend.dto.*;
-import com.example.backend.entity.Event;
-import com.example.backend.entity.Tournament;
-import com.example.backend.entity.User;
-import com.example.backend.repository.EventRepository;
-import com.example.backend.repository.TournamentRepository;
-import com.example.backend.repository.UserRepository;
+import com.example.backend.entity.*;
+import com.example.backend.enums.EventStatus;
+import com.example.backend.enums.MatchStatus;
+import com.example.backend.repository.*;
 import com.example.backend.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,13 +23,18 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final TournamentRepository tournamentRepository;
     private final UserRepository userRepository;
+    private final PoolRepository poolRepository;
+    private final TeamRepository teamRepository;
+    private final MatchRepository matchRepository;
+    private final PoolStandingRepository poolStandingRepository;
     private final ModelMapper modelMapper;
 
     @Override
     public List<EventDTO> getAllEvents(String username) {
         User owner = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return eventRepository.findByOwner(owner).stream()
+        return tournamentRepository.findByOwner(owner).stream()
+                .flatMap(tournament -> tournament.getEvents().stream())
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -43,96 +47,307 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventDTO createEvent(CreateEventRequest request, String username) {
-        User owner = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Event event = modelMapper.map(request, Event.class);
-        event.setOwner(owner);
+        Tournament tournament = tournamentRepository.findById(request.getTournamentId())
+                .orElseThrow(() -> new RuntimeException("Tournament not found"));
+        verifyOwnership(tournament, username);
+
+        Event event = new Event();
+        event.setName(request.getName());
+        event.setStatus(EventStatus.pool_play);
+        event.setTournament(tournament);
+
+        List<Pool> pools = new ArrayList<>();
+        List<Team> allTeams = new ArrayList<>();
+        List<Match> allMatches = new ArrayList<>();
+
+        for (PoolConfigDTO poolConfig : request.getPools()) {
+            Pool pool = new Pool();
+            pool.setName(poolConfig.getName());
+            pool.setEvent(event);
+
+            List<Team> poolTeams = new ArrayList<>();
+            for (String teamName : poolConfig.getTeamNames()) {
+                Team team = new Team();
+                team.setName(teamName);
+                team.setEvent(event);
+                team.setPool(pool);
+                poolTeams.add(team);
+                allTeams.add(team);
+            }
+            pool.setTeams(poolTeams);
+            pools.add(pool);
+        }
+
+        event.setPools(pools);
+        event.setTeams(allTeams);
+
         Event savedEvent = eventRepository.save(event);
+
+        // Now generate matches and standings
+        for (Pool pool : savedEvent.getPools()) {
+            generateRoundRobinMatches(pool, savedEvent, allMatches);
+            initializeStandings(pool);
+        }
+
+        // Generate placeholder elimination bracket (Semis and Finals)
+        generateEliminationBracket(savedEvent, allMatches);
+
+        savedEvent.setMatches(allMatches);
+        eventRepository.save(savedEvent);
+
         return convertToDTO(savedEvent);
     }
 
-    @Override
-    public EventDTO updateEvent(UUID id, UpdateEventRequest request, String username) {
-        Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
-        verifyOwnership(event, username);
+    private void generateRoundRobinMatches(Pool pool, Event event, List<Match> allMatches) {
+        List<Team> teams = new ArrayList<>(pool.getTeams());
+        int n = teams.size();
 
-        if (request.getName() != null)
-            event.setName(request.getName());
-        if (request.getDescription() != null)
-            event.setDescription(request.getDescription());
-        if (request.getStartDate() != null)
-            event.setStartDate(request.getStartDate());
-        if (request.getEndDate() != null)
-            event.setEndDate(request.getEndDate());
+        if (n < 2)
+            return;
 
-        Event updatedEvent = eventRepository.save(event);
-        return convertToDTO(updatedEvent);
+        // Berger Table (Circle Method)
+        // If odd number of teams, add a dummy team
+        if (n % 2 != 0) {
+            teams.add(null); // Dummy team
+            n++;
+        }
+
+        int rounds = n - 1;
+        int matchesPerRound = n / 2;
+
+        for (int round = 0; round < rounds; round++) {
+            for (int matchIndex = 0; matchIndex < matchesPerRound; matchIndex++) {
+                Team home = teams.get(matchIndex);
+                Team away = teams.get(n - 1 - matchIndex);
+
+                // If neither team is dummy, schedule match
+                if (home != null && away != null) {
+                    Match match = new Match();
+                    match.setEvent(event);
+                    match.setPool(pool);
+                    match.setTeam1(home);
+                    match.setTeam2(away);
+                    match.setStatus(MatchStatus.pending);
+                    match.setBracketRound(round + 1); // Store round number (1-based)
+
+                    matchRepository.save(match);
+                    allMatches.add(match);
+                }
+            }
+
+            // Rotate teams: Keep index 0 fixed, rotate the rest clockwise
+            Team last = teams.remove(teams.size() - 1);
+            teams.add(1, last);
+        }
+    }
+
+    private void initializeStandings(Pool pool) {
+        for (Team team : pool.getTeams()) {
+            PoolStanding standing = new PoolStanding();
+            standing.setPool(pool);
+            standing.setTeam(team);
+            standing.setWins(0);
+            standing.setLosses(0);
+            standing.setPointsFor(0);
+            standing.setPointsAgainst(0);
+            standing.setPointDifferential(0);
+            poolStandingRepository.save(standing);
+        }
+    }
+
+    private void generateEliminationBracket(Event event, List<Match> allMatches) {
+        int numPools = event.getPools().size();
+        if (numPools < 1)
+            return;
+
+        List<Match> currentRoundMatches = new ArrayList<>();
+        int roundNumber = 1;
+
+        if (numPools == 1) {
+            createPlaceholderMatch(event, 1, 1, allMatches, currentRoundMatches);
+        } else {
+            for (int i = 0; i < numPools; i++) {
+                createPlaceholderMatch(event, 1, i + 1, allMatches, currentRoundMatches);
+            }
+        }
+
+        int matchCount = currentRoundMatches.size();
+
+        while (matchCount > 1) {
+            roundNumber++;
+            int nextRoundMatchCount = (int) Math.ceil((double) matchCount / 2);
+
+            List<Match> nextRoundMatches = new ArrayList<>();
+            for (int i = 0; i < nextRoundMatchCount; i++) {
+                createPlaceholderMatch(event, roundNumber, i + 1, allMatches, nextRoundMatches);
+            }
+
+            matchCount = nextRoundMatchCount;
+            currentRoundMatches = nextRoundMatches;
+        }
+
+        // Add 3rd Place Match if there's at least a semifinal round
+        if (roundNumber >= 2) {
+            Match thirdPlace = new Match();
+            thirdPlace.setEvent(event);
+            thirdPlace.setBracketRound(roundNumber); // Same round as finals
+            thirdPlace.setBracketPosition(2);
+            thirdPlace.setStatus(MatchStatus.pending);
+            allMatches.add(thirdPlace);
+        }
+    }
+
+    private void createPlaceholderMatch(Event event, int round, int position, List<Match> allMatches,
+            List<Match> currentRoundList) {
+        Match match = new Match();
+        match.setEvent(event);
+        match.setBracketRound(round);
+        match.setBracketPosition(position);
+        match.setStatus(MatchStatus.pending);
+
+        allMatches.add(match);
+        if (currentRoundList != null) {
+            currentRoundList.add(match);
+        }
     }
 
     @Override
     public void deleteEvent(UUID id, String username) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
-        verifyOwnership(event, username);
+        verifyOwnership(event.getTournament(), username);
         eventRepository.deleteById(id);
     }
 
-    @Override
-    public List<TournamentDTO> getTournaments(UUID eventId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
-        return event.getTournaments().stream()
-                .map(t -> modelMapper.map(t, TournamentDTO.class))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional
-    public EventDTO addTournamentToEvent(UUID eventId, UUID tournamentId, String username) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
-        verifyOwnership(event, username);
-        Tournament tournament = tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new RuntimeException("Tournament not found"));
-
-        tournament.setEvent(event);
-        tournamentRepository.save(tournament);
-
-        return getEventById(eventId);
-    }
-
-    @Override
-    @Transactional
-    public EventDTO removeTournamentFromEvent(UUID eventId, UUID tournamentId, String username) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
-        verifyOwnership(event, username);
-        Tournament tournament = tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new RuntimeException("Tournament not found"));
-
-        if (tournament.getEvent() != null && tournament.getEvent().getId().equals(eventId)) {
-            tournament.setEvent(null);
-            tournamentRepository.save(tournament);
-        }
-
-        return getEventById(eventId);
-    }
-
-    private void verifyOwnership(Event event, String username) {
-        if (event.getOwner() == null || !event.getOwner().getUsername().equals(username)) {
-            throw new RuntimeException("You do not have permission to modify this event");
+    private void verifyOwnership(Tournament tournament, String username) {
+        if (tournament.getOwner() == null || !tournament.getOwner().getUsername().equals(username)) {
+            throw new RuntimeException("You do not have permission to modify this tournament's events");
         }
     }
 
     private EventDTO convertToDTO(Event event) {
         EventDTO dto = modelMapper.map(event, EventDTO.class);
-        if (event.getTournaments() != null) {
-            dto.setTournamentIds(event.getTournaments().stream()
-                    .map(Tournament::getId)
-                    .collect(Collectors.toList()));
+
+        // Manual mapping for Pool Team IDs and Sort Matches
+        if (event.getPools() != null && dto.getPools() != null) {
+            // Sort pools by name to ensure stable ordering (Pool A, Pool B, Pool C...)
+            dto.getPools().sort(java.util.Comparator.comparing(PoolDTO::getName));
+
+            for (int i = 0; i < event.getPools().size(); i++) {
+                Pool pool = event.getPools().get(i);
+                // Find matching PoolDTO
+                for (PoolDTO poolDTO : dto.getPools()) {
+                    if (poolDTO.getId().equals(pool.getId())) {
+                        // Sort Teams by CreatedAt to respect input order
+                        if (pool.getTeams() != null) {
+                            poolDTO.setTeamIds(pool.getTeams().stream()
+                                    .sorted(java.util.Comparator.comparing(Team::getCreatedAt,
+                                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
+                                    .map(Team::getId)
+                                    .collect(Collectors.toList()));
+                        }
+
+                        // Sort Matches: Round (asc), then CreatedAt (asc), then ID (asc) for stability
+                        if (poolDTO.getMatches() != null) {
+                            poolDTO.getMatches().sort(java.util.Comparator.comparing(MatchDTO::getBracketRound,
+                                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                                    .thenComparing(MatchDTO::getCreatedAt,
+                                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                                    .thenComparing(MatchDTO::getId));
+                        }
+
+                        // Sort Standings: Wins (desc), PointDiff (desc), PointsFor (desc)
+                        if (poolDTO.getStandings() != null) {
+                            poolDTO.getStandings().sort((s1, s2) -> {
+                                if (s2.getWins() != s1.getWins())
+                                    return s2.getWins() - s1.getWins();
+                                if (s2.getPointDifferential() != s1.getPointDifferential())
+                                    return s2.getPointDifferential() - s1.getPointDifferential();
+                                return s2.getPointsFor() - s1.getPointsFor();
+                            });
+                        }
+                        break;
+                    }
+                }
+            }
         }
+
+        // Populate Elimination Bracket DTO
+        List<Match> bracketMatches = event.getMatches().stream()
+                .filter(m -> m.getPool() == null && m.getBracketRound() != null)
+                .collect(Collectors.toList());
+
+        if (!bracketMatches.isEmpty()) {
+            EliminationBracketDTO bracketDTO = new EliminationBracketDTO();
+            bracketDTO.setEventId(event.getId());
+
+            // Find max round number to identify Finals
+            int maxRound = bracketMatches.stream()
+                    .mapToInt(Match::getBracketRound)
+                    .max().orElse(0);
+
+            // Champion logic (Finals is maxRound, Pos 1)
+            Match finalMatch = bracketMatches.stream()
+                    .filter(m -> m.getBracketRound() == maxRound && m.getBracketPosition() == 1)
+                    .findFirst().orElse(null);
+
+            if (finalMatch != null && finalMatch.getWinner() != null) {
+                bracketDTO.setChampion(finalMatch.getWinner().getId());
+            }
+
+            // Third place match (maxRound, Pos 2)
+            Match thirdPlaceMatch = bracketMatches.stream()
+                    .filter(m -> m.getBracketRound() == maxRound && m.getBracketPosition() == 2)
+                    .findFirst().orElse(null);
+            if (thirdPlaceMatch != null) {
+                bracketDTO.setThirdPlaceMatch(modelMapper.map(thirdPlaceMatch, MatchDTO.class));
+                if (thirdPlaceMatch.getWinner() != null) {
+                    bracketDTO.setThirdPlaceTeamId(thirdPlaceMatch.getWinner().getId());
+                }
+            }
+
+            // Group matches into rounds
+            List<BracketRoundDTO> roundDTOs = new ArrayList<>();
+
+            for (int r = 1; r <= maxRound; r++) {
+                int currentRound = r;
+                List<Match> roundMatches = bracketMatches.stream()
+                        .filter(m -> m.getBracketRound() == currentRound)
+                        .sorted(java.util.Comparator.comparing(Match::getBracketPosition))
+                        .collect(Collectors.toList());
+
+                // For the final round, exclude the 3rd place match from the main list
+                if (currentRound == maxRound && thirdPlaceMatch != null) {
+                    roundMatches.removeIf(m -> m.getBracketPosition() == 2);
+                }
+
+                if (!roundMatches.isEmpty()) {
+                    BracketRoundDTO roundDTO = new BracketRoundDTO();
+                    roundDTO.setRoundNumber(currentRound);
+                    roundDTO.setName(getRoundName(currentRound, maxRound));
+                    roundDTO.setMatches(roundMatches.stream()
+                            .map(m -> modelMapper.map(m, MatchDTO.class))
+                            .collect(Collectors.toList()));
+                    roundDTOs.add(roundDTO);
+                }
+            }
+
+            bracketDTO.setRounds(roundDTOs);
+            dto.setEliminationBracket(bracketDTO);
+        }
+
         return dto;
+    }
+
+    private String getRoundName(int roundNumber, int totalRounds) {
+        if (roundNumber == totalRounds)
+            return "Finals";
+        if (roundNumber == totalRounds - 1)
+            return "Semifinals";
+        if (roundNumber == totalRounds - 2)
+            return "Quarterfinals";
+        return "Round " + roundNumber;
     }
 }
