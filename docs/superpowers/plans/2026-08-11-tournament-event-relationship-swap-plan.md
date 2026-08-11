@@ -1864,6 +1864,8 @@ git commit -m "fix: update SecurityConfig permit-list to the renamed Tournament/
 **Interfaces:**
 - Consumes: `CreateTournamentRequest`, `CreateEventRequest`, `PoolConfigDTO` (Task 4), `/api/v1/tournaments`, `/api/v1/events` (Task 8).
 
+Note: today's file imports `AutoConfigureMockMvc` from the Spring Boot 3-era package `org.springframework.boot.test.autoconfigure.web.servlet`, which doesn't exist in this project's Spring Boot 4.0.2 — a pre-existing baseline compile break, confirmed by inspecting `spring-boot-webmvc-test-4.0.2.jar`, unrelated to the Tournament/Event swap. The rewrite below uses the correct Boot 4 package, `org.springframework.boot.webmvc.test.autoconfigure`.
+
 - [ ] **Step 1: Rewrite the test file**
 
 ```java
@@ -1880,7 +1882,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
