@@ -1,5 +1,6 @@
 package com.example.backend.entity;
 
+import com.example.backend.enums.MatchStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,8 +22,8 @@ public class Match {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tournament_id", nullable = false)
-    private Tournament tournament;
+    @JoinColumn(name = "event_id", nullable = false)
+    private Event event;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pool_id")
@@ -51,7 +52,7 @@ public class Match {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.pending;
+    private MatchStatus status = MatchStatus.pending;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -59,8 +60,4 @@ public class Match {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    public enum Status {
-        pending, in_progress, completed
-    }
 }

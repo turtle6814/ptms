@@ -23,8 +23,8 @@ public class Pool {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tournament_id", nullable = false)
-    private Tournament tournament;
+    @JoinColumn(name = "event_id", nullable = false)
+    private Event event;
 
     @OneToMany(mappedBy = "pool", cascade = CascadeType.ALL)
     private List<Team> teams = new ArrayList<>();
