@@ -4,7 +4,6 @@ import com.example.backend.dto.*;
 import com.example.backend.entity.Event;
 import com.example.backend.entity.Tournament;
 import com.example.backend.entity.User;
-import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TournamentRepository;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.service.TournamentService;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
 public class TournamentServiceImpl implements TournamentService {
 
     private final TournamentRepository tournamentRepository;
-    private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 

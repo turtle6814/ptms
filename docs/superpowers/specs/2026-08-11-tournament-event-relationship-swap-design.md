@@ -167,3 +167,5 @@ This spec exists because fixing those findings hit a wall on the nullable FK —
 ## Migration
 
 Schema reset is acceptable — no existing data to preserve (confirmed with user). `ddl-auto=update` (or a manual drop/recreate if it doesn't cleanly handle the FK direction/nullability flip) rebuilds the schema fresh; no migration script needed.
+
+**Confirmed during Task 10/11 execution:** `ddl-auto=update` did NOT cleanly handle the FK direction/nullability flip (it can't flip a foreign-key direction or drop now-unmapped `NOT NULL` columns, e.g. old `tournaments.status`, old `pools/teams/matches.tournament_id`). A manual drop/recreate (`DROP SCHEMA public CASCADE; CREATE SCHEMA public;`) against the local dev Postgres was required to get a working schema. This step was not scripted or committed anywhere — any other environment running this branch against a pre-swap database (a fresh clone's local Postgres, or the Render-managed Postgres) needs the same manual reset before first run. See `CLAUDE.md`'s backend Commands section for the documented instruction.
