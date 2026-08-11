@@ -5,11 +5,11 @@ import {
     SignupRequest,
     AuthResponse,
     User,
-    Event,
-    CreateEventRequest,
-    UpdateEventRequest,
     Tournament,
     CreateTournamentRequest,
+    UpdateTournamentRequest,
+    Event,
+    CreateEventRequest,
     ScoreUpdateRequest,
 } from './types';
 
@@ -55,12 +55,87 @@ export async function getCurrentUser(): Promise<ApiResponse<User>> {
 
 export async function logout(): Promise<ApiResponse<void>> {
     // Client-side logout only since JWT is stateless (unless we had a blacklist)
-    // We can just clear the token in the context/storage
     return { success: true };
 }
 
 // ================================
-// Event API
+// Tournament API (top-level container)
+// ================================
+
+export async function getAllTournaments(): Promise<ApiResponse<Tournament[]>> {
+    try {
+        const response = await client.get<ApiResponse<Tournament[]>>('/tournaments');
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            error: error.response?.data?.error || error.message || 'Failed to fetch tournaments',
+        };
+    }
+}
+
+export async function getTournamentById(id: string): Promise<ApiResponse<Tournament>> {
+    try {
+        const response = await client.get<ApiResponse<Tournament>>(`/tournaments/${id}`);
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            error: error.response?.data?.error || error.message || 'Tournament not found',
+        };
+    }
+}
+
+export async function createTournament(payload: CreateTournamentRequest): Promise<ApiResponse<Tournament>> {
+    try {
+        const response = await client.post<ApiResponse<Tournament>>('/tournaments', payload);
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            error: error.response?.data?.error || error.message || 'Failed to create tournament',
+        };
+    }
+}
+
+export async function updateTournament(id: string, payload: UpdateTournamentRequest): Promise<ApiResponse<Tournament>> {
+    try {
+        const response = await client.put<ApiResponse<Tournament>>(`/tournaments/${id}`, payload);
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            error: error.response?.data?.error || error.message || 'Failed to update tournament',
+        };
+    }
+}
+
+export async function deleteTournament(id: string): Promise<ApiResponse<void>> {
+    try {
+        const response = await client.delete<ApiResponse<void>>(`/tournaments/${id}`);
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            error: error.response?.data?.error || error.message || 'Failed to delete tournament',
+        };
+    }
+}
+
+export async function getTournamentEvents(tournamentId: string): Promise<ApiResponse<Event[]>> {
+    try {
+        const response = await client.get<ApiResponse<Event[]>>(`/tournaments/${tournamentId}/events`);
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            error: error.response?.data?.error || error.message || 'Failed to get tournament events',
+        };
+    }
+}
+
+// ================================
+// Event API (competition unit)
 // ================================
 
 export async function getAllEvents(): Promise<ApiResponse<Event[]>> {
@@ -99,18 +174,6 @@ export async function createEvent(payload: CreateEventRequest): Promise<ApiRespo
     }
 }
 
-export async function updateEvent(id: string, payload: UpdateEventRequest): Promise<ApiResponse<Event>> {
-    try {
-        const response = await client.put<ApiResponse<Event>>(`/events/${id}`, payload);
-        return response.data;
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data?.error || error.message || 'Failed to update event',
-        };
-    }
-}
-
 export async function deleteEvent(id: string): Promise<ApiResponse<void>> {
     try {
         const response = await client.delete<ApiResponse<void>>(`/events/${id}`);
@@ -123,115 +186,23 @@ export async function deleteEvent(id: string): Promise<ApiResponse<void>> {
     }
 }
 
-export async function addTournamentToEvent(eventId: string, tournamentId: string): Promise<ApiResponse<Event>> {
-    try {
-        const response = await client.post<ApiResponse<Event>>(`/events/${eventId}/tournaments/${tournamentId}`);
-        return response.data;
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data?.error || error.message || 'Failed to add tournament to event',
-        };
-    }
-}
-
-export async function removeTournamentFromEvent(eventId: string, tournamentId: string): Promise<ApiResponse<Event>> {
-    try {
-        const response = await client.delete<ApiResponse<Event>>(`/events/${eventId}/tournaments/${tournamentId}`);
-        return response.data;
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data?.error || error.message || 'Failed to remove tournament from event',
-        };
-    }
-}
-
-export async function getEventTournaments(eventId: string): Promise<ApiResponse<Tournament[]>> {
-    try {
-        const response = await client.get<ApiResponse<Tournament[]>>(`/events/${eventId}/tournaments`);
-        return response.data;
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data?.error || error.message || 'Failed to get event tournaments',
-        };
-    }
-}
-
-// ================================
-// Tournament API
-// ================================
-
-export async function getAllTournaments(): Promise<ApiResponse<Tournament[]>> {
-    try {
-        const response = await client.get<ApiResponse<Tournament[]>>('/tournaments');
-        return response.data;
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data?.error || error.message || 'Failed to fetch tournaments',
-        };
-    }
-}
-
-export async function getTournament(id: string): Promise<ApiResponse<Tournament>> {
-    try {
-        const response = await client.get<ApiResponse<Tournament>>(`/tournaments/${id}`);
-        return response.data;
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data?.error || error.message || 'Tournament not found',
-        };
-    }
-}
-
-export async function createTournament(payload: CreateTournamentRequest): Promise<ApiResponse<Tournament>> {
-    try {
-        const response = await client.post<ApiResponse<Tournament>>('/tournaments', payload);
-        return response.data;
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data?.error || error.message || 'Failed to create tournament',
-        };
-    }
-}
-
-export async function deleteTournament(id: string): Promise<ApiResponse<void>> {
-    try {
-        const response = await client.delete<ApiResponse<void>>(`/tournaments/${id}`);
-        return response.data;
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data?.error || error.message || 'Failed to delete tournament',
-        };
-    }
-}
-
 // ================================
 // Match API
 // ================================
 
 export async function updateMatchScore(
-    tournamentId: string, // Kept for interface compatibility but might be unused if backend uses matchId directly
+    eventId: string,
     update: ScoreUpdateRequest
-): Promise<ApiResponse<any>> { // Returns MatchDTO usually, but frontend might expect Tournament Update?
-    // Backend API: PUT /api/v1/tournaments/{tournamentId}/matches/{matchId}/score
+): Promise<ApiResponse<any>> {
+    // Backend API: PUT /api/v1/events/{eventId}/matches/{matchId}/score
     try {
-        // Backend returns MatchDTO, but our simulated logic returned the whole Tournament.
-        // We might need to refetch the tournament or return the match and have the frontend handle it.
-        // For now, let's call the score update, then re-fetch the tournament to be safe and consistent with previous "refresh" behavior.
-
         await client.put<ApiResponse<any>>(
-            `/tournaments/${tournamentId}/matches/${update.matchId}/score`,
+            `/events/${eventId}/matches/${update.matchId}/score`,
             update
         );
 
-        // Re-fetch the tournament to get the full updated state (standings, bracket advancement, etc.)
-        return await getTournament(tournamentId);
+        // Re-fetch the event to get the full updated state (standings, bracket advancement, etc.)
+        return await getEventById(eventId);
 
     } catch (error: any) {
         return {
@@ -246,7 +217,7 @@ export async function updateMatchScore(
 // ================================
 export function generateShareableLink(tournamentId: string): string {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/view/event/${tournamentId}`; // Assuming viewer route
+    return `${baseUrl}/view/tournament/${tournamentId}`;
 }
 
 
@@ -255,7 +226,7 @@ export function generateShareableLink(tournamentId: string): string {
 // ================================
 import { Client } from '@stomp/stompjs';
 
-export function subscribeTournament(tournamentId: string, callback: (data: Tournament) => void): () => void {
+export function subscribeEvent(eventId: string, callback: (data: Event) => void): () => void {
     const client = new Client({
         brokerURL: import.meta.env.VITE_WS_URL || `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`,
         reconnectDelay: 5000,
@@ -264,11 +235,10 @@ export function subscribeTournament(tournamentId: string, callback: (data: Tourn
     });
 
     client.onConnect = () => {
-        // console.log('Connected: ' + frame);
-        client.subscribe(`/topic/tournament/${tournamentId}`, (message) => {
+        client.subscribe(`/topic/event/${eventId}`, (message) => {
             if (message.body) {
-                const tournament: Tournament = JSON.parse(message.body);
-                callback(tournament);
+                const event: Event = JSON.parse(message.body);
+                callback(event);
             }
         });
     };
@@ -287,6 +257,6 @@ export function subscribeTournament(tournamentId: string, callback: (data: Tourn
 }
 
 // Deprecated: No longer needed with real WebSockets, but kept for compatibility if needed
-export async function pollTournament(id: string): Promise<ApiResponse<Tournament>> {
-    return getTournament(id);
+export async function pollEvent(id: string): Promise<ApiResponse<Event>> {
+    return getEventById(id);
 }

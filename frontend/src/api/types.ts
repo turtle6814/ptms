@@ -30,27 +30,27 @@ export interface AuthResponse {
 }
 
 // ----------------------------------------------------------
-// Event Schemas
+// Tournament Schemas (top-level owned container)
 // ----------------------------------------------------------
-export interface Event {
+export interface Tournament {
   id: string; // uuid
   name: string;
   description?: string | null;
   startDate?: string | null; // date
   endDate?: string | null; // date
-  tournamentIds: string[]; // array of uuid
+  eventIds: string[]; // array of uuid
   createdAt: string; // date-time
   updatedAt: string; // date-time
 }
 
-export interface CreateEventRequest {
+export interface CreateTournamentRequest {
   name: string;
   description?: string | null;
   startDate?: string | null; // date
   endDate?: string | null; // date
 }
 
-export interface UpdateEventRequest {
+export interface UpdateTournamentRequest {
   name?: string;
   description?: string | null;
   startDate?: string | null; // date
@@ -58,7 +58,7 @@ export interface UpdateEventRequest {
 }
 
 // ----------------------------------------------------------
-// Tournament Schemas
+// Event Schemas (competition unit)
 // ----------------------------------------------------------
 export interface Team {
   id: string; // uuid
@@ -68,7 +68,7 @@ export interface Team {
 
 export interface Match {
   id: string; // uuid
-  tournamentId: string; // uuid
+  eventId: string; // uuid
   poolId?: string | null; // uuid
   bracketRound?: number | null;
   bracketPosition?: number | null;
@@ -94,7 +94,7 @@ export interface PoolStanding {
 
 export interface Pool {
   id: string; // uuid
-  tournamentId: string; // uuid
+  eventId: string; // uuid
   name: string;
   teamIds: string[]; // uuid[]
   matches: Match[];
@@ -109,16 +109,16 @@ export interface BracketRound {
 }
 
 export interface EliminationBracket {
-  tournamentId: string; // uuid
+  eventId: string; // uuid
   rounds: BracketRound[];
   champion?: string | null; // uuid
   thirdPlaceMatch?: Match | null;
   thirdPlaceTeamId?: string | null; // uuid
 }
 
-export interface Tournament {
+export interface Event {
   id: string; // uuid
-  eventId?: string | null; // uuid
+  tournamentId: string; // uuid — required
   name: string;
   status: 'setup' | 'pool_play' | 'elimination' | 'completed';
   teams: Team[];
@@ -133,9 +133,9 @@ export interface PoolConfig {
   teamNames: string[];
 }
 
-export interface CreateTournamentRequest {
+export interface CreateEventRequest {
   name: string;
-  eventId?: string | null; // uuid
+  tournamentId: string; // required
   pools: PoolConfig[];
 }
 
