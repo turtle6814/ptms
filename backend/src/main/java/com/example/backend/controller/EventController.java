@@ -2,7 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.*;
 import com.example.backend.service.EventService;
-import lombok.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -35,35 +35,9 @@ public class EventController {
         return ResponseEntity.ok(ApiResponse.success(eventService.getEventById(id)));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<EventDTO>> updateEvent(@PathVariable UUID id,
-            @RequestBody UpdateEventRequest request, Authentication authentication) {
-        return ResponseEntity.ok(ApiResponse.success(eventService.updateEvent(id, request, authentication.getName())));
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteEvent(@PathVariable UUID id, Authentication authentication) {
         eventService.deleteEvent(id, authentication.getName());
         return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @GetMapping("/{id}/tournaments")
-    public ResponseEntity<ApiResponse<List<TournamentDTO>>> getTournaments(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success(eventService.getTournaments(id)));
-    }
-
-    @PostMapping("/{eventId}/tournaments/{tournamentId}")
-    public ResponseEntity<ApiResponse<EventDTO>> addTournament(@PathVariable UUID eventId,
-            @PathVariable UUID tournamentId, Authentication authentication) {
-        return ResponseEntity.ok(
-                ApiResponse
-                        .success(eventService.addTournamentToEvent(eventId, tournamentId, authentication.getName())));
-    }
-
-    @DeleteMapping("/{eventId}/tournaments/{tournamentId}")
-    public ResponseEntity<ApiResponse<EventDTO>> removeTournament(@PathVariable UUID eventId,
-            @PathVariable UUID tournamentId, Authentication authentication) {
-        return ResponseEntity.ok(ApiResponse
-                .success(eventService.removeTournamentFromEvent(eventId, tournamentId, authentication.getName())));
     }
 }
