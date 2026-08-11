@@ -6,5 +6,5 @@ import com.example.backend.dto.ScoreUpdateRequest;
 import java.util.UUID;
 
 public interface MatchService {
-    MatchDTO updateScore(UUID matchId, ScoreUpdateRequest request);
+    MatchDTO updateScore(UUID matchId, ScoreUpdateRequest request, String username);
 }
