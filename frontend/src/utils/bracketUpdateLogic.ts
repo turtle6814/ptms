@@ -1,6 +1,6 @@
 
 import { EliminationBracket, Pool, Team } from '../api/types';
-import { isPoolComplete, getTopTeamsFromPool } from './tournamentLogic';
+import { isPoolComplete, getTopTeamsFromPool } from './eventLogic';
 
 /**
  * Update the existing elimination bracket with winners from eligible pools.

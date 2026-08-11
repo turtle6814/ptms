@@ -1,9 +1,9 @@
 // ================================
-// Tournament Logic Utilities
+// Event Logic Utilities
 // ================================
 // Handles round-robin scheduling, score calculation, and bracket progression
 
-import { Match, Pool, PoolStanding, Team, Tournament, EliminationBracket, BracketRound } from '../api/types';
+import { Match, Pool, PoolStanding, Team, Event, EliminationBracket, BracketRound } from '../api/types';
 
 // Generate unique ID
 export function generateId(): string {
@@ -19,8 +19,7 @@ export function generateId(): string {
  * Handles odd numbers of teams and creates orderly rounds
  */
 export function generatePoolMatches(
-    tournamentId: string,
-    // poolId: string,
+    eventId: string,
     teamIds: string[]
 ): Match[] {
     const matches: Match[] = [];
@@ -53,7 +52,7 @@ export function generatePoolMatches(
             if (team1 !== 'GHOST' && team2 !== 'GHOST') {
                 matches.push({
                     id: generateId(),
-                    tournamentId,
+                    eventId,
                     bracketRound: round + 1, // Logical round number for sorting
                     bracketPosition: matches.length + 1,
                     team1Id: team1,
@@ -170,7 +169,7 @@ export function getTopTeamsFromPool(pool: Pool, teams: Team[], count: number = 2
  * Assumes 4 teams (2 pools x 2 teams each) for semifinals -> finals
  */
 export function generateEliminationBracket(
-    tournamentId: string,
+    eventId: string,
     pools: Pool[],
     teams: Team[],
     usePlaceholders: boolean = false
@@ -191,7 +190,6 @@ export function generateEliminationBracket(
     });
 
     // 2. Pair teams (Standard: Pool A #1 vs Pool B #2, etc.)
-    // 2. Pair teams (Standard: Pool A #1 vs Pool B #2, etc.)
     // We will pair Pool(i) #1  vs Pool(i+1) #2
     // If only 1 pool, it's 1 vs 2 (Finals).
 
@@ -211,7 +209,7 @@ export function generateEliminationBracket(
 
         initialMatches.push({
             id: generateId(),
-            tournamentId,
+            eventId,
             bracketRound: 1,
             bracketPosition: 1,
             team1Id,
@@ -243,7 +241,7 @@ export function generateEliminationBracket(
 
             initialMatches.push({
                 id: generateId(),
-                tournamentId,
+                eventId,
                 bracketRound: 1,
                 bracketPosition: i + 1,
                 team1Id,
@@ -288,7 +286,7 @@ export function generateEliminationBracket(
         for (let i = 0; i < matchCount; i++) {
             nextRoundMatches.push({
                 id: generateId(),
-                tournamentId,
+                eventId,
                 bracketRound: roundNumber,
                 bracketPosition: i + 1,
                 team1Id: '', // TBD
@@ -310,7 +308,7 @@ export function generateEliminationBracket(
     }
 
     return {
-        tournamentId,
+        eventId,
         rounds,
         champion: null,
     };
@@ -359,15 +357,10 @@ export function advanceWinnerInBracket(
         }
 
         // Check if this is a "bye match" - only one feeder expected
-        // This happens when the current round has an odd number of matches
-        // and this is the last match in the next round
         const currentRoundMatchCount = currentRound.matches.length;
         const isLastMatchInNextRound = nextMatchIndex === nextRound.matches.length - 1;
         const currentRoundIsOdd = currentRoundMatchCount % 2 === 1;
 
-        // If current round has odd matches and this is the last match in next round,
-        // only one team will ever fill this match (the winner of the last match in current round)
-        // So we should auto-advance this team
         if (currentRoundIsOdd && isLastMatchInNextRound && completedMatch.bracketPosition === currentRoundMatchCount) {
             // This is a bye match - the team from the odd match auto-advances
             nextMatch.team2Id = ''; // No opponent
@@ -439,7 +432,7 @@ export function advanceLoserToThirdPlace(
     if (!updatedBracket.thirdPlaceMatch) {
         updatedBracket.thirdPlaceMatch = {
             id: generateId(),
-            tournamentId: bracket.tournamentId,
+            eventId: bracket.eventId,
             bracketRound: finalsRoundIndex + 1, // Same round as finals conceptually
             bracketPosition: 0, // Special position for 3rd place match
             team1Id: '',
@@ -475,21 +468,21 @@ export function isBracketComplete(bracket: EliminationBracket): boolean {
 }
 
 // ================================
-// Tournament State Transitions
+// Event State Transitions
 // ================================
 
 /**
- * Determine if tournament should advance from pool play to elimination
+ * Determine if event should advance from pool play to elimination
  */
-export function shouldAdvanceToElimination(tournament: Tournament): boolean {
-    if (tournament.status !== 'pool_play') return false;
-    return tournament.pools.every(pool => isPoolComplete(pool));
+export function shouldAdvanceToElimination(event: Event): boolean {
+    if (event.status !== 'pool_play') return false;
+    return event.pools.every(pool => isPoolComplete(pool));
 }
 
 /**
- * Determine if tournament is complete
+ * Determine if event is complete
  */
-export function isTournamentComplete(tournament: Tournament): boolean {
-    if (!tournament.eliminationBracket) return false;
-    return tournament.eliminationBracket.champion !== null;
+export function isEventComplete(event: Event): boolean {
+    if (!event.eliminationBracket) return false;
+    return event.eliminationBracket.champion !== null;
 }
