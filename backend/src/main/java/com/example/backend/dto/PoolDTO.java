@@ -7,7 +7,7 @@ import java.util.UUID;
 @Data
 public class PoolDTO {
     private UUID id;
-    private UUID tournamentId;
+    private UUID eventId;
     private String name;
     private List<UUID> teamIds;
     private List<MatchDTO> matches;

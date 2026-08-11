@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Data
 public class EliminationBracketDTO {
-    private UUID tournamentId;
+    private UUID eventId;
     private List<BracketRoundDTO> rounds;
     private UUID champion;
     private MatchDTO thirdPlaceMatch;

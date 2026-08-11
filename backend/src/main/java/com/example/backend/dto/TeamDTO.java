@@ -7,6 +7,6 @@ import java.util.UUID;
 public class TeamDTO {
     private UUID id;
     private String name;
-    private UUID tournamentId;
+    private UUID eventId;
     private UUID poolId;
 }
