@@ -5,13 +5,13 @@ import com.example.backend.dto.AuthDtos.SignupRequest;
 import com.example.backend.dto.CreateEventRequest;
 import com.example.backend.dto.CreateTournamentRequest;
 import com.example.backend.dto.PoolConfigDTO;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,8 +37,8 @@ class BackendIntegrationTest {
     private ObjectMapper objectMapper;
 
     private static String token;
-    private static UUID eventId;
     private static UUID tournamentId;
+    private static UUID eventId;
 
     @Test
     @Order(1)
@@ -71,37 +71,37 @@ class BackendIntegrationTest {
 
     @Test
     @Order(2)
-    void testCreateEvent() throws Exception {
-        CreateEventRequest eventRequest = new CreateEventRequest();
-        eventRequest.setName("Test Event");
-        eventRequest.setStartDate(LocalDate.now());
-        eventRequest.setEndDate(LocalDate.now().plusDays(2));
+    void testCreateTournament() throws Exception {
+        CreateTournamentRequest tournamentRequest = new CreateTournamentRequest();
+        tournamentRequest.setName("Test Tournament");
+        tournamentRequest.setStartDate(LocalDate.now());
+        tournamentRequest.setEndDate(LocalDate.now().plusDays(2));
 
-        MvcResult result = mockMvc.perform(post("/api/v1/events")
+        MvcResult result = mockMvc.perform(post("/api/v1/tournaments")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(eventRequest)))
+                .content(objectMapper.writeValueAsString(tournamentRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").exists())
                 .andReturn();
 
         String response = result.getResponse().getContentAsString();
-        eventId = UUID.fromString(objectMapper.readTree(response).path("data").path("id").asText());
+        tournamentId = UUID.fromString(objectMapper.readTree(response).path("data").path("id").asText());
     }
 
     @Test
     @Order(3)
-    void testCreateTournament() throws Exception {
+    void testCreateEvent() throws Exception {
         PoolConfigDTO poolA = new PoolConfigDTO();
         poolA.setName("Pool A");
         poolA.setTeamNames(List.of("Team 1", "Team 2", "Team 3"));
 
-        CreateTournamentRequest request = new CreateTournamentRequest();
-        request.setName("Test Tournament");
-        request.setEventId(eventId);
+        CreateEventRequest request = new CreateEventRequest();
+        request.setName("Test Event");
+        request.setTournamentId(tournamentId);
         request.setPools(Collections.singletonList(poolA));
 
-        MvcResult result = mockMvc.perform(post("/api/v1/tournaments")
+        MvcResult result = mockMvc.perform(post("/api/v1/events")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -111,13 +111,13 @@ class BackendIntegrationTest {
                 .andReturn();
 
         String response = result.getResponse().getContentAsString();
-        tournamentId = UUID.fromString(objectMapper.readTree(response).path("data").path("id").asText());
+        eventId = UUID.fromString(objectMapper.readTree(response).path("data").path("id").asText());
     }
 
     @Test
     @Order(4)
-    void testGetEvents() throws Exception {
-        mockMvc.perform(get("/api/v1/events")
+    void testGetTournaments() throws Exception {
+        mockMvc.perform(get("/api/v1/tournaments")
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray());
