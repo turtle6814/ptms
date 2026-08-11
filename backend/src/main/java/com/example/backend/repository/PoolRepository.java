@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface PoolRepository extends JpaRepository<Pool, UUID> {
-    List<Pool> findByTournamentId(UUID tournamentId);
+    List<Pool> findByEventId(UUID eventId);
 }

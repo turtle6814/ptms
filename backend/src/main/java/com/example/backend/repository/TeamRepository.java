@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface TeamRepository extends JpaRepository<Team, UUID> {
-    List<Team> findByTournamentId(UUID tournamentId);
+    List<Team> findByEventId(UUID eventId);
 
     List<Team> findByPoolId(UUID poolId);
 }
