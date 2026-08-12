@@ -2,13 +2,13 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './pages/LandingPage';
-import { TournamentSetup } from './pages/TournamentSetup';
+import { EventSetup } from './pages/EventSetup';
 import { AdminDashboard } from './pages/AdminDashboard';
-import { EventViewerPage } from './pages/EventViewerPage';
+import { TournamentViewerPage } from './pages/TournamentViewerPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
-import { EventsPage } from './pages/EventsPage';
-import { EventDetailPage } from './pages/EventDetailPage';
+import { TournamentsPage } from './pages/TournamentsPage';
+import { TournamentDetailPage } from './pages/TournamentDetailPage';
 import './index.css';
 
 function App() {
@@ -31,24 +31,24 @@ function App() {
           } />
           <Route path="/setup" element={
             <ProtectedRoute>
-              <TournamentSetup />
+              <EventSetup />
             </ProtectedRoute>
           } />
 
-          {/* Events routes */}
-          <Route path="/events" element={
+          {/* Tournaments routes */}
+          <Route path="/tournaments" element={
             <ProtectedRoute>
-              <EventsPage />
+              <TournamentsPage />
             </ProtectedRoute>
           } />
-          <Route path="/events/:eventId" element={
+          <Route path="/tournaments/:tournamentId" element={
             <ProtectedRoute>
-              <EventDetailPage />
+              <TournamentDetailPage />
             </ProtectedRoute>
           } />
 
-          {/* Public event viewer route - no auth required */}
-          <Route path="/view/event/:eventId" element={<EventViewerPage />} />
+          {/* Public tournament viewer route - no auth required */}
+          <Route path="/view/tournament/:tournamentId" element={<TournamentViewerPage />} />
 
           {/* Fallback to landing */}
           <Route path="*" element={<LandingPage />} />
@@ -59,4 +59,3 @@ function App() {
 }
 
 export default App;
-
