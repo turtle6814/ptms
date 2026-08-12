@@ -7,95 +7,95 @@ import { EliminationBracket } from '../components/EliminationBracket';
 import { QRCodeShare } from '../components/QRCodeShare';
 import { TournamentTabs } from '../components/TournamentTabs';
 import {
-    getTournament,
-    getAllTournaments,
-    updateMatchScore,
-    subscribeTournament,
+    getEventById,
     getAllEvents,
+    updateMatchScore,
+    subscribeEvent,
+    getAllTournaments,
 } from '../api';
-import { Tournament, Event } from '../api/types';
+import { Event, Tournament } from '../api/types';
 import { Share2, RefreshCw, ChevronDown, Calendar } from 'lucide-react';
 import './AdminDashboard.css';
 
 export function AdminDashboard() {
     const [searchParams] = useSearchParams();
-    const tournamentId = searchParams.get('id');
+    const eventId = searchParams.get('id');
 
-    const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [events, setEvents] = useState<Event[]>([]);
-    const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
-    const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
-    const [shareEventId, setShareEventId] = useState<string | null>(null);
+    const [tournaments, setTournaments] = useState<Tournament[]>([]);
+    const [expandedTournaments, setExpandedTournaments] = useState<Set<string>>(new Set());
+    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+    const [shareTournamentId, setShareTournamentId] = useState<string | null>(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [hasThirdPlaceMatch, setHasThirdPlaceMatch] = useState(false);
 
-    const loadTournaments = useCallback(async () => {
-        const [tournamentsRes, eventsRes] = await Promise.all([
-            getAllTournaments(),
-            getAllEvents()
+    const loadSidebarData = useCallback(async () => {
+        const [eventsRes, tournamentsRes] = await Promise.all([
+            getAllEvents(),
+            getAllTournaments()
         ]);
-        if (tournamentsRes.success && tournamentsRes.data) {
-            setTournaments(tournamentsRes.data);
-        }
         if (eventsRes.success && eventsRes.data) {
             setEvents(eventsRes.data);
         }
+        if (tournamentsRes.success && tournamentsRes.data) {
+            setTournaments(tournamentsRes.data);
+        }
     }, []);
 
-    const loadSelectedTournament = useCallback(async (id: string) => {
-        const response = await getTournament(id);
+    const loadSelectedEvent = useCallback(async (id: string) => {
+        const response = await getEventById(id);
         if (response.success && response.data) {
-            setSelectedTournament(response.data);
+            setSelectedEvent(response.data);
         }
     }, []);
 
     useEffect(() => {
         const init = async () => {
             setLoading(true);
-            await loadTournaments();
-            if (tournamentId) {
-                await loadSelectedTournament(tournamentId);
+            await loadSidebarData();
+            if (eventId) {
+                await loadSelectedEvent(eventId);
             }
             setLoading(false);
         };
         init();
-    }, [tournamentId, loadTournaments, loadSelectedTournament]);
+    }, [eventId, loadSidebarData, loadSelectedEvent]);
 
     // Subscribe to live updates
     useEffect(() => {
-        if (selectedTournament) {
-            const unsubscribe = subscribeTournament(selectedTournament.id, (updated) => {
-                setSelectedTournament(updated);
+        if (selectedEvent) {
+            const unsubscribe = subscribeEvent(selectedEvent.id, (updated) => {
+                setSelectedEvent(updated);
             });
             return unsubscribe;
         }
-    }, [selectedTournament?.id]);
+    }, [selectedEvent?.id]);
 
     const handleScoreUpdate = async (matchId: string, team1Score: number, team2Score: number) => {
-        if (!selectedTournament) return;
+        if (!selectedEvent) return;
 
-        const response = await updateMatchScore(selectedTournament.id, {
+        const response = await updateMatchScore(selectedEvent.id, {
             matchId,
             team1Score,
             team2Score,
         });
 
         if (response.success && response.data) {
-            setSelectedTournament(response.data);
-            // Also update the tournaments list
-            setTournaments(prev =>
-                prev.map(t => t.id === response.data!.id ? response.data! : t)
+            setSelectedEvent(response.data);
+            // Also update the events list
+            setEvents(prev =>
+                prev.map(e => e.id === response.data!.id ? response.data! : e)
             );
         }
     };
 
-    const handleSelectTournament = async (id: string) => {
-        await loadSelectedTournament(id);
+    const handleSelectEvent = async (id: string) => {
+        await loadSelectedEvent(id);
         window.history.replaceState({}, '', `/admin?id=${id}`);
     };
 
-    const getStatusLabel = (status: Tournament['status']) => {
+    const getStatusLabel = (status: Event['status']) => {
         switch (status) {
             case 'setup': return 'Setup';
             case 'pool_play': return 'Pool Play';
@@ -105,20 +105,20 @@ export function AdminDashboard() {
         }
     };
 
-    const toggleEventExpand = (eventId: string) => {
-        setExpandedEvents(prev => {
+    const toggleTournamentExpand = (tournamentId: string) => {
+        setExpandedTournaments(prev => {
             const next = new Set(prev);
-            if (next.has(eventId)) {
-                next.delete(eventId);
+            if (next.has(tournamentId)) {
+                next.delete(tournamentId);
             } else {
-                next.add(eventId);
+                next.add(tournamentId);
             }
             return next;
         });
     };
 
-    const getEventTournaments = (eventId: string) => {
-        return tournaments.filter(t => t.eventId === eventId);
+    const getEventsForTournament = (tournamentId: string) => {
+        return events.filter(e => e.tournamentId === tournamentId);
     };
 
     if (loading) {
@@ -139,54 +139,54 @@ export function AdminDashboard() {
             <main className="admin-content">
                 <aside className="tournaments-sidebar">
                     <div className="sidebar-header">
-                        <h2>Events</h2>
-                        <Link to="/events" className="manage-events-btn">
+                        <h2>Tournaments</h2>
+                        <Link to="/tournaments" className="manage-events-btn">
                             <Calendar size={16} />
                         </Link>
                     </div>
 
-                    {events.length === 0 ? (
+                    {tournaments.length === 0 ? (
                         <div className="empty-state">
-                            <p>No events yet</p>
-                            <Link to="/events" className="create-link">Create your first event</Link>
+                            <p>No tournaments yet</p>
+                            <Link to="/tournaments" className="create-link">Create your first tournament</Link>
                         </div>
                     ) : (
                         <ul className="event-list">
-                            {events.map(event => (
-                                <li key={event.id} className="event-item">
+                            {tournaments.map(tournament => (
+                                <li key={tournament.id} className="event-item">
                                     <button
-                                        className={`event-header-btn ${expandedEvents.has(event.id) ? 'expanded' : ''}`}
-                                        onClick={() => toggleEventExpand(event.id)}
+                                        className={`event-header-btn ${expandedTournaments.has(tournament.id) ? 'expanded' : ''}`}
+                                        onClick={() => toggleTournamentExpand(tournament.id)}
                                     >
                                         <ChevronDown
                                             size={16}
-                                            className={`expand-icon ${expandedEvents.has(event.id) ? 'rotated' : ''}`}
+                                            className={`expand-icon ${expandedTournaments.has(tournament.id) ? 'rotated' : ''}`}
                                         />
-                                        <span className="event-name">{event.name}</span>
+                                        <span className="event-name">{tournament.name}</span>
                                         <span className="tournament-count">
-                                            {getEventTournaments(event.id).length}
+                                            {getEventsForTournament(tournament.id).length}
                                         </span>
                                     </button>
 
-                                    {expandedEvents.has(event.id) && (
+                                    {expandedTournaments.has(tournament.id) && (
                                         <ul className="tournament-dropdown">
-                                            {getEventTournaments(event.id).length === 0 ? (
+                                            {getEventsForTournament(tournament.id).length === 0 ? (
                                                 <li className="no-tournaments">
-                                                    <Link to={`/setup?eventId=${event.id}`}>+ Add tournament</Link>
+                                                    <Link to={`/setup?tournamentId=${tournament.id}`}>+ Add event</Link>
                                                 </li>
                                             ) : (
-                                                getEventTournaments(event.id).map(t => (
+                                                getEventsForTournament(tournament.id).map(e => (
                                                     <li
-                                                        key={t.id}
-                                                        className={`tournament-item ${selectedTournament?.id === t.id ? 'active' : ''}`}
+                                                        key={e.id}
+                                                        className={`tournament-item ${selectedEvent?.id === e.id ? 'active' : ''}`}
                                                     >
                                                         <button
                                                             className="tournament-select-btn"
-                                                            onClick={() => handleSelectTournament(t.id)}
+                                                            onClick={() => handleSelectEvent(e.id)}
                                                         >
-                                                            <span className="tournament-name">{t.name}</span>
-                                                            <span className={`tournament-status status-${t.status}`}>
-                                                                {getStatusLabel(t.status)}
+                                                            <span className="tournament-name">{e.name}</span>
+                                                            <span className={`tournament-status status-${e.status}`}>
+                                                                {getStatusLabel(e.status)}
                                                             </span>
                                                         </button>
                                                     </li>
@@ -201,54 +201,52 @@ export function AdminDashboard() {
                 </aside>
 
                 <div className="tournament-detail">
-                    {!selectedTournament ? (
+                    {!selectedEvent ? (
                         <div className="no-selection">
-                            <h2>Select a tournament</h2>
-                            <p>Choose a tournament from the sidebar or go to Events to create one</p>
-                            <Link to="/events" className="create-btn-large">
+                            <h2>Select an event</h2>
+                            <p>Choose an event from the sidebar or go to Tournaments to create one</p>
+                            <Link to="/tournaments" className="create-btn-large">
                                 <Calendar size={20} />
-                                Go to Events
+                                Go to Tournaments
                             </Link>
                         </div>
                     ) : (
                         <>
                             <div className="detail-header">
                                 <div className="header-info">
-                                    <h1>{selectedTournament.name}</h1>
-                                    <span className={`status-badge status-${selectedTournament.status}`}>
-                                        {getStatusLabel(selectedTournament.status)}
+                                    <h1>{selectedEvent.name}</h1>
+                                    <span className={`status-badge status-${selectedEvent.status}`}>
+                                        {getStatusLabel(selectedEvent.status)}
                                     </span>
                                 </div>
                                 <div className="header-actions">
                                     <button
                                         className="action-btn refresh"
-                                        onClick={() => loadSelectedTournament(selectedTournament.id)}
+                                        onClick={() => loadSelectedEvent(selectedEvent.id)}
                                     >
                                         <RefreshCw size={16} />
                                     </button>
-                                    {selectedTournament.eventId && (
-                                        <button
-                                            className="action-btn share"
-                                            onClick={() => {
-                                                setShareEventId(selectedTournament.eventId!);
-                                                setShowShareModal(true);
-                                            }}
-                                        >
-                                            <Share2 size={16} />
-                                            Share Event
-                                        </button>
-                                    )}
+                                    <button
+                                        className="action-btn share"
+                                        onClick={() => {
+                                            setShareTournamentId(selectedEvent.tournamentId);
+                                            setShowShareModal(true);
+                                        }}
+                                    >
+                                        <Share2 size={16} />
+                                        Share Tournament
+                                    </button>
                                 </div>
                             </div>
 
                             <TournamentTabs
-                                hasPoolPlay={selectedTournament.pools.length > 0}
-                                hasPlayoffs={!!selectedTournament.eliminationBracket}
+                                hasPoolPlay={selectedEvent.pools.length > 0}
+                                hasPlayoffs={!!selectedEvent.eliminationBracket}
                             >
                                 {{
                                     poolPlay: (
                                         <section className="pools-section">
-                                            {selectedTournament.pools.map(pool => (
+                                            {selectedEvent.pools.map(pool => (
                                                 <div key={pool.id} className="pool-container">
                                                     <div className="pool-grid">
                                                         <PoolStandings
@@ -265,7 +263,7 @@ export function AdminDashboard() {
                                                                     <MatchCard
                                                                         key={match.id}
                                                                         match={match}
-                                                                        teams={selectedTournament.teams}
+                                                                        teams={selectedEvent.teams}
                                                                         isAdmin={true}
                                                                         poolTeamIds={pool.teamIds}
                                                                         onScoreUpdate={handleScoreUpdate}
@@ -280,10 +278,10 @@ export function AdminDashboard() {
                                     ),
                                     playoffs: (
                                         <section className="elimination-section">
-                                            {selectedTournament.eliminationBracket ? (
+                                            {selectedEvent.eliminationBracket ? (
                                                 <EliminationBracket
-                                                    bracket={selectedTournament.eliminationBracket}
-                                                    teams={selectedTournament.teams}
+                                                    bracket={selectedEvent.eliminationBracket}
+                                                    teams={selectedEvent.teams}
                                                     isAdmin={true}
                                                     hasThirdPlaceMatch={hasThirdPlaceMatch}
                                                     onThirdPlaceToggle={setHasThirdPlaceMatch}
@@ -306,13 +304,13 @@ export function AdminDashboard() {
             </main>
 
             {/* Share Modal */}
-            {showShareModal && shareEventId && (
+            {showShareModal && shareTournamentId && (
                 <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
                         <button className="modal-close" onClick={() => setShowShareModal(false)}>×</button>
                         <QRCodeShare
-                            url={`${window.location.origin}/view/event/${shareEventId}`}
-                            tournamentName={events.find(e => e.id === shareEventId)?.name || 'Event'}
+                            url={`${window.location.origin}/view/tournament/${shareTournamentId}`}
+                            tournamentName={tournaments.find(t => t.id === shareTournamentId)?.name || 'Tournament'}
                         />
                     </div>
                 </div>
