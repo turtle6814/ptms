@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Plus, Trophy } from 'lucide-react';
-import { Event } from '../api/types';
-import { getAllEvents, createEvent } from '../api';
+import { Tournament } from '../api/types';
+import { getAllTournaments, createTournament } from '../api';
 import { Header } from '../components/Header';
-import './EventsPage.css';
+import './TournamentsPage.css';
 
-export function EventsPage() {
+export function TournamentsPage() {
     const navigate = useNavigate();
-    const [events, setEvents] = useState<Event[]>([]);
+    const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newEventName, setNewEventName] = useState('');
-    const [newEventDescription, setNewEventDescription] = useState('');
+    const [newTournamentName, setNewTournamentName] = useState('');
+    const [newTournamentDescription, setNewTournamentDescription] = useState('');
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -21,43 +21,43 @@ export function EventsPage() {
 
     const loadData = async () => {
         setIsLoading(true);
-        const eventsRes = await getAllEvents();
+        const tournamentsRes = await getAllTournaments();
 
-        if (eventsRes.success && eventsRes.data) {
-            setEvents(eventsRes.data);
+        if (tournamentsRes.success && tournamentsRes.data) {
+            setTournaments(tournamentsRes.data);
         }
         setIsLoading(false);
     };
 
-    const handleCreateEvent = async (e: React.FormEvent) => {
+    const handleCreateTournament = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (!newEventName.trim()) {
-            setError('Event name is required');
+        if (!newTournamentName.trim()) {
+            setError('Tournament name is required');
             return;
         }
 
-        const result = await createEvent({
-            name: newEventName.trim(),
-            description: newEventDescription.trim() || undefined,
+        const result = await createTournament({
+            name: newTournamentName.trim(),
+            description: newTournamentDescription.trim() || undefined,
         });
 
         if (result.success && result.data) {
-            setEvents(prev => [...prev, result.data!]);
+            setTournaments(prev => [...prev, result.data!]);
             setShowCreateModal(false);
-            setNewEventName('');
-            setNewEventDescription('');
-            // Navigate to the new event
-            navigate(`/events/${result.data.id}`);
+            setNewTournamentName('');
+            setNewTournamentDescription('');
+            // Navigate to the new tournament
+            navigate(`/tournaments/${result.data.id}`);
         } else {
-            setError(result.error || 'Failed to create event');
+            setError(result.error || 'Failed to create tournament');
         }
     };
 
 
-    const getTournamentCount = (event: Event) => {
-        return event.tournamentIds?.length || 0;
+    const getEventCount = (tournament: Tournament) => {
+        return tournament.eventIds?.length || 0;
     };
 
 
@@ -66,7 +66,7 @@ export function EventsPage() {
         return (
             <div className="events-page">
                 <Header />
-                <div className="loading-state">Loading events...</div>
+                <div className="loading-state">Loading tournaments...</div>
             </div>
         );
     }
@@ -78,54 +78,54 @@ export function EventsPage() {
             <main className="events-content">
                 <div className="events-header">
                     <div className="header-text">
-                        <h1>Events</h1>
-                        <p>Manage your events and tournaments</p>
+                        <h1>Tournaments</h1>
+                        <p>Manage your tournaments and events</p>
                     </div>
                     <button
                         className="create-event-btn"
                         onClick={() => setShowCreateModal(true)}
                     >
                         <Plus size={20} />
-                        Create Event
+                        Create Tournament
                     </button>
                 </div>
 
-                {events.length === 0 ? (
+                {tournaments.length === 0 ? (
                     <div className="empty-state">
                         <Calendar size={64} />
-                        <h2>No Events Yet</h2>
-                        <p>Create your first event to organize multiple tournaments together.</p>
+                        <h2>No Tournaments Yet</h2>
+                        <p>Create your first tournament to organize multiple events together.</p>
                         <button
                             className="create-event-btn-large"
                             onClick={() => setShowCreateModal(true)}
                         >
-                            Create Your First Event
+                            Create Your First Tournament
                         </button>
                     </div>
                 ) : (
                     <>
-                        {/* Events List */}
+                        {/* Tournaments List */}
                         <section className="events-section">
                             <h2 className="section-title">
                                 <Calendar size={20} />
-                                Your Events
+                                Your Tournaments
                             </h2>
                             <div className="events-grid">
-                                {events.map(event => (
-                                    <div key={event.id} className="event-card">
-                                        <Link to={`/events/${event.id}`} className="event-card-content">
+                                {tournaments.map(tournament => (
+                                    <div key={tournament.id} className="event-card">
+                                        <Link to={`/tournaments/${tournament.id}`} className="event-card-content">
                                             <div className="event-icon">
                                                 <Calendar size={24} />
                                             </div>
                                             <div className="event-info">
-                                                <h3>{event.name}</h3>
-                                                {event.description && (
-                                                    <p className="event-description">{event.description}</p>
+                                                <h3>{tournament.name}</h3>
+                                                {tournament.description && (
+                                                    <p className="event-description">{tournament.description}</p>
                                                 )}
                                                 <div className="event-meta">
                                                     <span className="tournament-count">
                                                         <Trophy size={14} />
-                                                        {getTournamentCount(event)} tournament{getTournamentCount(event) !== 1 ? 's' : ''}
+                                                        {getEventCount(tournament)} event{getEventCount(tournament) !== 1 ? 's' : ''}
                                                     </span>
                                                 </div>
                                             </div>
@@ -138,30 +138,30 @@ export function EventsPage() {
                 )}
             </main>
 
-            {/* Create Event Modal */}
+            {/* Create Tournament Modal */}
             {showCreateModal && (
                 <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <h2>Create New Event</h2>
-                        <form onSubmit={handleCreateEvent}>
+                        <h2>Create New Tournament</h2>
+                        <form onSubmit={handleCreateTournament}>
                             <div className="form-group">
-                                <label htmlFor="eventName">Event Name *</label>
+                                <label htmlFor="tournamentName">Tournament Name *</label>
                                 <input
-                                    id="eventName"
+                                    id="tournamentName"
                                     type="text"
-                                    value={newEventName}
-                                    onChange={e => setNewEventName(e.target.value)}
+                                    value={newTournamentName}
+                                    onChange={e => setNewTournamentName(e.target.value)}
                                     placeholder="e.g., Summer Pickleball Championship 2026"
                                     autoFocus
                                 />
                             </div>
                             <div className="form-group">
-                                <label htmlFor="eventDescription">Description (optional)</label>
+                                <label htmlFor="tournamentDescription">Description (optional)</label>
                                 <textarea
-                                    id="eventDescription"
-                                    value={newEventDescription}
-                                    onChange={e => setNewEventDescription(e.target.value)}
-                                    placeholder="Describe your event..."
+                                    id="tournamentDescription"
+                                    value={newTournamentDescription}
+                                    onChange={e => setNewTournamentDescription(e.target.value)}
+                                    placeholder="Describe your tournament..."
                                     rows={3}
                                 />
                             </div>
@@ -175,7 +175,7 @@ export function EventsPage() {
                                     Cancel
                                 </button>
                                 <button type="submit" className="btn-primary">
-                                    Create Event
+                                    Create Tournament
                                 </button>
                             </div>
                         </form>
