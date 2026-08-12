@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { createTournament } from '../api';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { createEvent } from '../api';
 import { ChevronLeft, Plus, Trash2, Users } from 'lucide-react';
-import './TournamentSetup.css';
+import './EventSetup.css';
 
-export function TournamentSetup() {
+export function EventSetup() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const eventId = searchParams.get('eventId'); // Get eventId from URL if present
+    const tournamentId = searchParams.get('tournamentId');
 
-    const [tournamentName, setTournamentName] = useState('');
+    const [eventName, setEventName] = useState('');
 
     // Initial state: 1 pool with 2 empty slots
     const [pools, setPools] = useState<{ name: string; teams: string[] }[]>([
@@ -30,7 +30,6 @@ export function TournamentSetup() {
     const removePool = (index: number) => {
         if (pools.length > 1) {
             const newPools = pools.filter((_, i) => i !== index);
-            // Renumber pools? Optional, but nice for consistency
             const renumbered = newPools.map((pool, i) => ({
                 ...pool,
                 name: `Pool ${String.fromCharCode(65 + i)}`
@@ -63,9 +62,14 @@ export function TournamentSetup() {
         e.preventDefault();
         setError(null);
 
+        if (!tournamentId) {
+            setError('No tournament selected — go back and add an event from a tournament page');
+            return;
+        }
+
         // Validation
-        if (!tournamentName.trim()) {
-            setError('Please enter a tournament name');
+        if (!eventName.trim()) {
+            setError('Please enter an event name');
             return;
         }
 
@@ -85,9 +89,9 @@ export function TournamentSetup() {
         setLoading(true);
 
         try {
-            const response = await createTournament({
-                name: tournamentName,
-                eventId: eventId || undefined, // Link to event if coming from event context
+            const response = await createEvent({
+                name: eventName,
+                tournamentId,
                 pools: pools.map(pool => ({
                     name: pool.name,
                     teamNames: pool.teams.filter(t => t.trim())
@@ -95,14 +99,9 @@ export function TournamentSetup() {
             });
 
             if (response.success) {
-                // Navigate back to event if created from event, otherwise go to admin
-                if (eventId) {
-                    navigate(`/events/${eventId}`);
-                } else {
-                    navigate('/admin');
-                }
+                navigate(`/tournaments/${tournamentId}`);
             } else {
-                setError(response.error || 'Failed to create tournament');
+                setError(response.error || 'Failed to create event');
             }
         } catch (err) {
             setError('An unexpected error occurred');
@@ -113,12 +112,29 @@ export function TournamentSetup() {
     };
 
     const handleBack = () => {
-        if (eventId) {
-            navigate(`/events/${eventId}`);
+        if (tournamentId) {
+            navigate(`/tournaments/${tournamentId}`);
         } else {
-            navigate('/admin');
+            navigate('/tournaments');
         }
     };
+
+    if (!tournamentId) {
+        return (
+            <div className="setup-container">
+                <header className="setup-header">
+                    <button onClick={() => navigate('/tournaments')} className="back-button">
+                        <ChevronLeft size={20} />
+                        Back
+                    </button>
+                    <h1>No Tournament Selected</h1>
+                </header>
+                <div className="setup-content">
+                    <p>An event must be created from inside a tournament. <Link to="/tournaments">Go to Tournaments</Link> and use "Add Event" from a tournament page.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="setup-container">
@@ -127,22 +143,22 @@ export function TournamentSetup() {
                     <ChevronLeft size={20} />
                     Back
                 </button>
-                <h1>Create New Tournament</h1>
+                <h1>Create New Event</h1>
             </header>
 
             <div className="setup-content">
                 <form onSubmit={handleSubmit} className="setup-form">
                     <div className="form-section">
                         <div className="section-header">
-                            <h2>Tournament Details</h2>
+                            <h2>Event Details</h2>
                         </div>
                         <div className="input-group">
-                            <label htmlFor="name">Tournament Name</label>
+                            <label htmlFor="name">Event Name</label>
                             <input
                                 type="text"
                                 id="name"
-                                value={tournamentName}
-                                onChange={(e) => setTournamentName(e.target.value)}
+                                value={eventName}
+                                onChange={(e) => setEventName(e.target.value)}
                                 placeholder="e.g. Summer Pickleball Open 2024"
                                 disabled={loading}
                             />
@@ -228,7 +244,7 @@ export function TournamentSetup() {
                             className="create-btn"
                             disabled={loading}
                         >
-                            {loading ? 'Creating...' : 'Create Tournament'}
+                            {loading ? 'Creating...' : 'Create Event'}
                         </button>
                     </div>
                 </form>
@@ -238,7 +254,7 @@ export function TournamentSetup() {
                         <Users size={24} />
                         <h3>Builder Guide</h3>
                         <p>
-                            Construct your tournament by adding pools and teams.
+                            Construct your event by adding pools and teams.
                         </p>
                         <ul>
                             <li><strong>Pools:</strong> Add as many as needed (A, B, C...)</li>
