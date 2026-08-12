@@ -28,6 +28,8 @@ Needs a local Postgres reachable via `DB_HOST`/`DB_PORT`/`DB_NAME`/`DB_USER`/`DB
 
 **Schema reset required before first run on this branch:** the Tournament/Event table shapes changed incompatibly (FK direction flip, dropped now-unmapped `NOT NULL` columns), and `ddl-auto=update` cannot migrate an existing pre-swap database. Drop and recreate the schema (`DROP SCHEMA public CASCADE; CREATE SCHEMA public;` against the target Postgres) before running against a database that predates this change — this includes a fresh local dev DB and the Render-managed Postgres.
 
+**Schema is now managed by Flyway, not `ddl-auto`.** `ddl-auto=validate` — Hibernate only checks the entities match the database, it never creates or alters anything. `V1__baseline.sql` (`backend/src/main/resources/db/migration/`) captures the schema exactly as it existed pre-Flyway; `baseline-on-migrate=true` means any database that already has this schema (every current dev DB, Render) adopts V1 as a baseline on first boot without re-running it. Any schema change from here on needs **both** a new migration file and the matching entity change — otherwise boot fails at `validate`, naming the mismatched column.
+
 ### Frontend (`frontend/`)
 ```
 npm run dev       # Vite dev server (port 5173)
