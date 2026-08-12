@@ -190,7 +190,7 @@ In `backend/src/main/resources/application.properties`, line 7:
 
 ```properties
 # before
-spring.datasource.password=${DB_PASSWORD:140903}
+spring.datasource.password=${DB_PASSWORD:<redacted>}
 # after
 spring.datasource.password=${DB_PASSWORD}
 ```
@@ -199,7 +199,7 @@ Line 26:
 
 ```properties
 # before
-app.jwt-secret=${JWT_SECRET:daf66e01593f61a15b857cf433aae03a005812b31234e149036bcc8dee755dbb}
+app.jwt-secret=${JWT_SECRET:<redacted>}
 # after
 app.jwt-secret=${JWT_SECRET}
 ```

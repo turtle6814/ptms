@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: pickleball_tms
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 140903
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -29,8 +29,8 @@ services:
       DB_PORT: 5432
       DB_NAME: pickleball_tms
       DB_USER: postgres
-      DB_PASSWORD: 140903
-      JWT_SECRET: daf66e01593f61a15b857cf433aae03a005812b31234e149036bcc8dee755dbb
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "3000:8080"
 

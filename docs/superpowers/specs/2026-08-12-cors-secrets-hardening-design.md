@@ -12,8 +12,8 @@ independently-shippable issues, picked as the first fix out of a longer findings
    `updateMatchRules()` in `api/index.ts` but no UI wires it up yet, but it's a real bug waiting
    for its first caller.
 2. **Real secrets are hardcoded as fallback defaults in `application.properties`**, committed to
-   git: `spring.datasource.password=${DB_PASSWORD:140903}` and
-   `app.jwt-secret=${JWT_SECRET:daf66e01593f61a15b857cf433aae03a005812b31234e149036bcc8dee755dbb}`.
+   git: `spring.datasource.password=${DB_PASSWORD:<redacted>}` and
+   `app.jwt-secret=${JWT_SECRET:<redacted>}`.
    Production is not exposed today — `render.yaml` supplies the real `DB_PASSWORD` from the
    managed database and `generateValue: true`s a real `JWT_SECRET` — but the fallback values are
    real (the local dev Postgres password), sitting in git history regardless of whether any code
@@ -84,7 +84,7 @@ default and pointing at `.env.example`.
 
 ### 5. Rotate the burned local Postgres password (manual step, not a code change)
 
-The current local dev Postgres password (`140903`) is real and already in git history; rotating it
+The current local dev Postgres password (a real value, now redacted from this doc) is real and already in git history; rotating it
 is what makes leaving history untouched acceptable. Done via `ALTER USER postgres WITH PASSWORD
 '<new>'` against the local instance, then setting `DB_PASSWORD` in the shell/IDE env used to run
 the backend. **This step touches the user's local Postgres credential and will be confirmed before
