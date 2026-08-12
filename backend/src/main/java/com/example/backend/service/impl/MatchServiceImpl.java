@@ -1,12 +1,17 @@
 package com.example.backend.service.impl;
 
+import com.example.backend.dto.ForfeitRequest;
 import com.example.backend.dto.MatchDTO;
+import com.example.backend.dto.ScoreRulesDTO;
 import com.example.backend.dto.ScoreUpdateRequest;
 import com.example.backend.entity.*;
+import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
+import com.example.backend.exception.ValidationException;
 import com.example.backend.repository.*;
 import com.example.backend.service.MatchService;
+import com.example.backend.validation.ScoreRules;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -33,22 +38,84 @@ public class MatchServiceImpl implements MatchService {
 
         verifyOwnership(match.getEvent(), username);
 
+        if (request.getTeam1Score() == null || request.getTeam2Score() == null) {
+            throw new ValidationException("Both scores are required");
+        }
+        ScoreRules.validate(match, request.getTeam1Score(), request.getTeam2Score());
+
         match.setTeam1Score(request.getTeam1Score());
         match.setTeam2Score(request.getTeam2Score());
-        match.setStatus(MatchStatus.completed);
-
-        // Determine winner
-        if (request.getTeam1Score() > request.getTeam2Score()) {
-            match.setWinner(match.getTeam1());
-        } else if (request.getTeam2Score() > request.getTeam1Score()) {
-            match.setWinner(match.getTeam2());
-        } else {
-            // Draw? Spec doesn't clarify. Pickleball usually no draws.
-            // For now, leave winner null if draw, but set status completed.
-        }
+        match.setStatus(MatchStatus.COMPLETED);
+        match.setWinner(request.getTeam1Score() > request.getTeam2Score() ? match.getTeam1() : match.getTeam2());
 
         matchRepository.saveAndFlush(match);
+        advanceTournamentState(match);
 
+        return modelMapper.map(match, MatchDTO.class);
+    }
+
+    @Override
+    @Transactional
+    public MatchDTO updateRules(UUID matchId, ScoreRulesDTO request, String username) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
+
+        verifyOwnership(match.getEvent(), username);
+
+        if (match.getStatus().isFinished()) {
+            throw new ValidationException("Cannot change scoring rules after a match has a result");
+        }
+
+        if (request.getTargetScore() != null) {
+            match.setTargetScore(request.getTargetScore());
+        }
+        if (request.getWinByTwo() != null) {
+            match.setWinByTwo(request.getWinByTwo());
+        }
+        if (request.getScoreCap() != null) {
+            match.setScoreCap(request.getScoreCap());
+        }
+
+        matchRepository.save(match);
+        return modelMapper.map(match, MatchDTO.class);
+    }
+
+    @Override
+    @Transactional
+    public MatchDTO recordForfeit(UUID matchId, ForfeitRequest request, String username) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found"));
+
+        verifyOwnership(match.getEvent(), username);
+
+        if (match.getTeam1() == null || match.getTeam2() == null) {
+            throw new ValidationException("Cannot record a forfeit before both teams are set");
+        }
+        if (request.getStatus() != MatchStatus.FORFEIT && request.getStatus() != MatchStatus.WALKOVER) {
+            throw new ValidationException("Status must be forfeit or walkover");
+        }
+
+        Team winnerTeam;
+        if (request.getWinnerId() != null && request.getWinnerId().equals(match.getTeam1().getId())) {
+            winnerTeam = match.getTeam1();
+        } else if (request.getWinnerId() != null && request.getWinnerId().equals(match.getTeam2().getId())) {
+            winnerTeam = match.getTeam2();
+        } else {
+            throw new ValidationException("Winner must be one of the two teams in this match");
+        }
+
+        match.setWinner(winnerTeam);
+        match.setStatus(request.getStatus());
+        match.setTeam1Score(null);
+        match.setTeam2Score(null);
+
+        matchRepository.saveAndFlush(match);
+        advanceTournamentState(match);
+
+        return modelMapper.map(match, MatchDTO.class);
+    }
+
+    private void advanceTournamentState(Match match) {
         try {
             if (match.getPool() != null) {
                 updatePoolStandings(match);
@@ -66,8 +133,6 @@ public class MatchServiceImpl implements MatchService {
             System.err.println("Error advancing tournament state: " + e.getMessage());
             e.printStackTrace();
         }
-
-        return modelMapper.map(match, MatchDTO.class);
     }
 
     private void verifyOwnership(Event event, String username) {
@@ -94,12 +159,22 @@ public class MatchServiceImpl implements MatchService {
         }
 
         for (Match m : poolMatches) {
-            if (m.getStatus() == MatchStatus.completed && m.getTeam1() != null && m.getTeam2() != null) {
-                int s1 = m.getTeam1Score() != null ? m.getTeam1Score() : 0;
-                int s2 = m.getTeam2Score() != null ? m.getTeam2Score() : 0;
+            if (m.getStatus().isFinished() && m.getTeam1() != null && m.getTeam2() != null) {
+                if (m.getStatus() == MatchStatus.FORFEIT || m.getStatus() == MatchStatus.WALKOVER) {
+                    if (m.getWinner() != null) {
+                        UUID loserId = m.getWinner().getId().equals(m.getTeam1().getId())
+                                ? m.getTeam2().getId()
+                                : m.getTeam1().getId();
+                        updateStandingWinLossOnly(standings, m.getWinner().getId(), true);
+                        updateStandingWinLossOnly(standings, loserId, false);
+                    }
+                } else {
+                    int s1 = m.getTeam1Score() != null ? m.getTeam1Score() : 0;
+                    int s2 = m.getTeam2Score() != null ? m.getTeam2Score() : 0;
 
-                updateStandingFromScratch(standings, m.getTeam1().getId(), s1, s2);
-                updateStandingFromScratch(standings, m.getTeam2().getId(), s2, s1);
+                    updateStandingFromScratch(standings, m.getTeam1().getId(), s1, s2);
+                    updateStandingFromScratch(standings, m.getTeam2().getId(), s2, s1);
+                }
             }
         }
 
@@ -124,11 +199,25 @@ public class MatchServiceImpl implements MatchService {
         }
     }
 
+    private void updateStandingWinLossOnly(List<PoolStanding> standings, UUID teamId, boolean won) {
+        PoolStanding s = standings.stream()
+                .filter(ps -> ps.getTeam().getId().equals(teamId))
+                .findFirst().orElse(null);
+
+        if (s != null) {
+            if (won) {
+                s.setWins(s.getWins() + 1);
+            } else {
+                s.setLosses(s.getLosses() + 1);
+            }
+        }
+    }
+
     private void checkAndAdvancePoolWinners(Pool pool) {
         List<Match> poolMatches = matchRepository.findByPoolId(pool.getId());
 
         boolean allComplete = poolMatches.stream()
-                .allMatch(m -> m.getStatus() == MatchStatus.completed);
+                .allMatch(m -> m.getStatus().isFinished());
 
         if (!allComplete)
             return;
@@ -186,7 +275,7 @@ public class MatchServiceImpl implements MatchService {
                 if (seed2 != null)
                     finalMatch.setTeam2(seed2);
 
-                finalMatch.setStatus(MatchStatus.pending);
+                finalMatch.setStatus(MatchStatus.PENDING);
                 matchRepository.save(finalMatch);
             }
         } else {
@@ -250,7 +339,7 @@ public class MatchServiceImpl implements MatchService {
                     nextMatch.setTeam2Score(0);
                     nextMatch.setTeam1Score(0);
                     nextMatch.setWinner(match.getWinner()); // Auto-win
-                    nextMatch.setStatus(MatchStatus.completed);
+                    nextMatch.setStatus(MatchStatus.COMPLETED);
 
                     matchRepository.save(nextMatch);
 
@@ -309,17 +398,19 @@ public class MatchServiceImpl implements MatchService {
 
     private void updateEventStatus(Event event) {
         // 1. Check for transition from POOL_PLAY to ELIMINATION
-        if (event.getStatus() == EventStatus.pool_play) {
+        if (event.getStatus() == EventStatus.POOL_PLAY) {
             boolean allPoolsComplete = poolRepository.findByEventId(event.getId()).stream()
                     .allMatch(Pool::isComplete);
 
             if (allPoolsComplete) {
-                event.setStatus(EventStatus.elimination);
+                event.setStatus(event.getFormat() == EventFormat.ROUND_ROBIN_ONLY
+                        ? EventStatus.COMPLETED
+                        : EventStatus.ELIMINATION);
             }
         }
 
         // 2. Check for transition to COMPLETED
-        if (event.getStatus() == EventStatus.elimination) {
+        if (event.getStatus() == EventStatus.ELIMINATION) {
             List<Match> eliminationMatches = matchRepository.findByEventId(event.getId()).stream()
                     .filter(m -> m.getPool() == null)
                     .toList();
@@ -333,10 +424,10 @@ public class MatchServiceImpl implements MatchService {
             boolean allComplete = eliminationMatches.stream()
                     .filter(m -> !(m.getBracketRound() != null && m.getBracketRound() == maxRound
                             && m.getBracketPosition() != null && m.getBracketPosition() == 2))
-                    .allMatch(m -> m.getStatus() == MatchStatus.completed);
+                    .allMatch(m -> m.getStatus().isFinished());
 
             if (allComplete && !eliminationMatches.isEmpty()) {
-                event.setStatus(EventStatus.completed);
+                event.setStatus(EventStatus.COMPLETED);
             }
         }
     }

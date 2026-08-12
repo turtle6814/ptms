@@ -67,6 +67,19 @@
     color: #64748b;
 }
 
+.match-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.match-card .error-message {
+    font-size: 0.75rem;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+}
+
 .edit-btn {
     background: transparent;
     border: none;

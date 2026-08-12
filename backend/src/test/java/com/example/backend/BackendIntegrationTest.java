@@ -5,6 +5,7 @@ import com.example.backend.dto.AuthDtos.SignupRequest;
 import com.example.backend.dto.CreateEventRequest;
 import com.example.backend.dto.CreateTournamentRequest;
 import com.example.backend.dto.PoolConfigDTO;
+import com.example.backend.dto.ScoreUpdateRequest;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -121,5 +122,56 @@ class BackendIntegrationTest {
                 .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray());
+    }
+
+    @Test
+    @Order(5)
+    void testScoreSubmissionEnforcesRules() throws Exception {
+        MvcResult eventResult = mockMvc.perform(get("/api/v1/events/" + eventId))
+                .andExpect(status().isOk())
+                .andReturn();
+        String eventJson = eventResult.getResponse().getContentAsString();
+        String matchId = objectMapper.readTree(eventJson)
+                .path("data").path("pools").get(0).path("matches").get(0).path("id").asText();
+
+        ScoreUpdateRequest belowTarget = new ScoreUpdateRequest();
+        belowTarget.setTeam1Score(5);
+        belowTarget.setTeam2Score(3);
+        mockMvc.perform(put("/api/v1/events/" + eventId + "/matches/" + matchId + "/score")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(belowTarget)))
+                .andExpect(status().isUnprocessableEntity());
+
+        ScoreUpdateRequest validScore = new ScoreUpdateRequest();
+        validScore.setTeam1Score(11);
+        validScore.setTeam2Score(9);
+        mockMvc.perform(put("/api/v1/events/" + eventId + "/matches/" + matchId + "/score")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validScore)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @Order(6)
+    void testRoundRobinOnlyEventSkipsBracket() throws Exception {
+        PoolConfigDTO poolA = new PoolConfigDTO();
+        poolA.setName("Pool A");
+        poolA.setTeamNames(List.of("RR Team 1", "RR Team 2"));
+
+        CreateEventRequest request = new CreateEventRequest();
+        request.setName("Round Robin Only Event");
+        request.setTournamentId(tournamentId);
+        request.setPools(Collections.singletonList(poolA));
+        request.setFormat(com.example.backend.enums.EventFormat.ROUND_ROBIN_ONLY);
+
+        mockMvc.perform(post("/api/v1/events")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.format").value("ROUND_ROBIN_ONLY"))
+                .andExpect(jsonPath("$.data.eliminationBracket").doesNotExist());
     }
 }

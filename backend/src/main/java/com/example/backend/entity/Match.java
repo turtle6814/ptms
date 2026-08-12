@@ -50,9 +50,18 @@ public class Match {
     @JoinColumn(name = "winner_id")
     private Team winner;
 
+    @Column(name = "target_score", nullable = false)
+    private Integer targetScore = 11;
+
+    @Column(name = "win_by_two", nullable = false)
+    private Boolean winByTwo = true;
+
+    @Column(name = "score_cap", nullable = false)
+    private Integer scoreCap = 15;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MatchStatus status = MatchStatus.pending;
+    private MatchStatus status = MatchStatus.PENDING;
 
     @CreationTimestamp
     @Column(updatable = false)

@@ -2,6 +2,7 @@ package com.example.backend.service.impl;
 
 import com.example.backend.dto.*;
 import com.example.backend.entity.*;
+import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
 import com.example.backend.repository.*;
@@ -55,7 +56,8 @@ public class EventServiceImpl implements EventService {
 
         Event event = new Event();
         event.setName(request.getName());
-        event.setStatus(EventStatus.pool_play);
+        event.setStatus(EventStatus.POOL_PLAY);
+        event.setFormat(request.getFormat() != null ? request.getFormat() : EventFormat.POOL_TO_ELIM);
         event.setTournament(tournament);
 
         List<Pool> pools = new ArrayList<>();
@@ -85,14 +87,20 @@ public class EventServiceImpl implements EventService {
 
         Event savedEvent = eventRepository.save(event);
 
+        ScoreRulesDTO poolRules = resolveRules(request.getPoolStageRules(), 11, true, 15);
+        ScoreRulesDTO playoffRules = resolveRules(request.getPlayoffStageRules(), 15, true, 21);
+
         // Now generate matches and standings
         for (Pool pool : savedEvent.getPools()) {
-            generateRoundRobinMatches(pool, savedEvent, allMatches);
+            generateRoundRobinMatches(pool, savedEvent, allMatches, poolRules);
             initializeStandings(pool);
         }
 
-        // Generate placeholder elimination bracket (Semis and Finals)
-        generateEliminationBracket(savedEvent, allMatches);
+        // Generate placeholder elimination bracket (Semis and Finals), unless the event skips
+        // playoffs entirely
+        if (savedEvent.getFormat() != EventFormat.ROUND_ROBIN_ONLY) {
+            generateEliminationBracket(savedEvent, allMatches, playoffRules);
+        }
 
         savedEvent.setMatches(allMatches);
         eventRepository.save(savedEvent);
@@ -100,7 +108,25 @@ public class EventServiceImpl implements EventService {
         return convertToDTO(savedEvent);
     }
 
-    private void generateRoundRobinMatches(Pool pool, Event event, List<Match> allMatches) {
+    private ScoreRulesDTO resolveRules(ScoreRulesDTO override, int defaultTarget, boolean defaultWinByTwo,
+            int defaultCap) {
+        ScoreRulesDTO resolved = new ScoreRulesDTO();
+        resolved.setTargetScore(override != null && override.getTargetScore() != null
+                ? override.getTargetScore() : defaultTarget);
+        resolved.setWinByTwo(override != null && override.getWinByTwo() != null
+                ? override.getWinByTwo() : defaultWinByTwo);
+        resolved.setScoreCap(override != null && override.getScoreCap() != null
+                ? override.getScoreCap() : defaultCap);
+        return resolved;
+    }
+
+    private void stampRules(Match match, ScoreRulesDTO rules) {
+        match.setTargetScore(rules.getTargetScore());
+        match.setWinByTwo(rules.getWinByTwo());
+        match.setScoreCap(rules.getScoreCap());
+    }
+
+    private void generateRoundRobinMatches(Pool pool, Event event, List<Match> allMatches, ScoreRulesDTO rules) {
         List<Team> teams = new ArrayList<>(pool.getTeams());
         int n = teams.size();
 
@@ -129,8 +155,9 @@ public class EventServiceImpl implements EventService {
                     match.setPool(pool);
                     match.setTeam1(home);
                     match.setTeam2(away);
-                    match.setStatus(MatchStatus.pending);
+                    match.setStatus(MatchStatus.PENDING);
                     match.setBracketRound(round + 1); // Store round number (1-based)
+                    stampRules(match, rules);
 
                     matchRepository.save(match);
                     allMatches.add(match);
@@ -157,7 +184,7 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private void generateEliminationBracket(Event event, List<Match> allMatches) {
+    private void generateEliminationBracket(Event event, List<Match> allMatches, ScoreRulesDTO rules) {
         int numPools = event.getPools().size();
         if (numPools < 1)
             return;
@@ -166,10 +193,10 @@ public class EventServiceImpl implements EventService {
         int roundNumber = 1;
 
         if (numPools == 1) {
-            createPlaceholderMatch(event, 1, 1, allMatches, currentRoundMatches);
+            createPlaceholderMatch(event, 1, 1, allMatches, currentRoundMatches, rules);
         } else {
             for (int i = 0; i < numPools; i++) {
-                createPlaceholderMatch(event, 1, i + 1, allMatches, currentRoundMatches);
+                createPlaceholderMatch(event, 1, i + 1, allMatches, currentRoundMatches, rules);
             }
         }
 
@@ -181,7 +208,7 @@ public class EventServiceImpl implements EventService {
 
             List<Match> nextRoundMatches = new ArrayList<>();
             for (int i = 0; i < nextRoundMatchCount; i++) {
-                createPlaceholderMatch(event, roundNumber, i + 1, allMatches, nextRoundMatches);
+                createPlaceholderMatch(event, roundNumber, i + 1, allMatches, nextRoundMatches, rules);
             }
 
             matchCount = nextRoundMatchCount;
@@ -194,18 +221,20 @@ public class EventServiceImpl implements EventService {
             thirdPlace.setEvent(event);
             thirdPlace.setBracketRound(roundNumber); // Same round as finals
             thirdPlace.setBracketPosition(2);
-            thirdPlace.setStatus(MatchStatus.pending);
+            thirdPlace.setStatus(MatchStatus.PENDING);
+            stampRules(thirdPlace, rules);
             allMatches.add(thirdPlace);
         }
     }
 
     private void createPlaceholderMatch(Event event, int round, int position, List<Match> allMatches,
-            List<Match> currentRoundList) {
+            List<Match> currentRoundList, ScoreRulesDTO rules) {
         Match match = new Match();
         match.setEvent(event);
         match.setBracketRound(round);
         match.setBracketPosition(position);
-        match.setStatus(MatchStatus.pending);
+        match.setStatus(MatchStatus.PENDING);
+        stampRules(match, rules);
 
         allMatches.add(match);
         if (currentRoundList != null) {

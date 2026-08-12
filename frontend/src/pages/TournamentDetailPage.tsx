@@ -78,9 +78,9 @@ export function TournamentDetailPage() {
 
     const getStatusColor = (status: Event['status']) => {
         switch (status) {
-            case 'pool_play': return 'status-pool';
-            case 'elimination': return 'status-elimination';
-            case 'completed': return 'status-completed';
+            case 'POOL_PLAY': return 'status-pool';
+            case 'ELIMINATION': return 'status-elimination';
+            case 'COMPLETED': return 'status-completed';
             default: return 'status-setup';
         }
     };

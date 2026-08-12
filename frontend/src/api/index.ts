@@ -11,6 +11,8 @@ import {
     Event,
     CreateEventRequest,
     ScoreUpdateRequest,
+    ScoreRules,
+    ForfeitRequest,
 } from './types';
 
 // ================================
@@ -208,6 +210,44 @@ export async function updateMatchScore(
         return {
             success: false,
             error: error.response?.data?.error || error.message || 'Failed to update score',
+        };
+    }
+}
+
+export async function updateMatchRules(
+    eventId: string,
+    matchId: string,
+    rules: ScoreRules
+): Promise<ApiResponse<any>> {
+    try {
+        await client.patch<ApiResponse<any>>(
+            `/events/${eventId}/matches/${matchId}/rules`,
+            rules
+        );
+        return await getEventById(eventId);
+    } catch (error: any) {
+        return {
+            success: false,
+            error: error.response?.data?.error || error.message || 'Failed to update scoring rules',
+        };
+    }
+}
+
+export async function recordForfeit(
+    eventId: string,
+    matchId: string,
+    payload: ForfeitRequest
+): Promise<ApiResponse<any>> {
+    try {
+        await client.put<ApiResponse<any>>(
+            `/events/${eventId}/matches/${matchId}/forfeit`,
+            payload
+        );
+        return await getEventById(eventId);
+    } catch (error: any) {
+        return {
+            success: false,
+            error: error.response?.data?.error || error.message || 'Failed to record forfeit',
         };
     }
 }

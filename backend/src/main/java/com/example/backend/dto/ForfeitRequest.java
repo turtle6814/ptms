@@ -1,0 +1,12 @@
+package com.example.backend.dto;
+
+import com.example.backend.enums.MatchStatus;
+import lombok.Data;
+
+import java.util.UUID;
+
+@Data
+public class ForfeitRequest {
+    private UUID winnerId;
+    private MatchStatus status;
+}

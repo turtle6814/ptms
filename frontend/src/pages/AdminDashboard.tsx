@@ -10,6 +10,7 @@ import {
     getEventById,
     getAllEvents,
     updateMatchScore,
+    recordForfeit,
     subscribeEvent,
     getAllTournaments,
 } from '../api';
@@ -90,6 +91,19 @@ export function AdminDashboard() {
         }
     };
 
+    const handleForfeit = async (matchId: string, winnerId: string, status: 'FORFEIT' | 'WALKOVER') => {
+        if (!selectedEvent) return;
+
+        const response = await recordForfeit(selectedEvent.id, matchId, { winnerId, status });
+
+        if (response.success && response.data) {
+            setSelectedEvent(response.data);
+            setEvents(prev =>
+                prev.map(e => e.id === response.data!.id ? response.data! : e)
+            );
+        }
+    };
+
     const handleSelectEvent = async (id: string) => {
         await loadSelectedEvent(id);
         window.history.replaceState({}, '', `/admin?id=${id}`);
@@ -97,10 +111,10 @@ export function AdminDashboard() {
 
     const getStatusLabel = (status: Event['status']) => {
         switch (status) {
-            case 'setup': return 'Setup';
-            case 'pool_play': return 'Pool Play';
-            case 'elimination': return 'Playoffs';
-            case 'completed': return 'Complete';
+            case 'SETUP': return 'Setup';
+            case 'POOL_PLAY': return 'Pool Play';
+            case 'ELIMINATION': return 'Playoffs';
+            case 'COMPLETED': return 'Complete';
             default: return status;
         }
     };
@@ -267,6 +281,7 @@ export function AdminDashboard() {
                                                                         isAdmin={true}
                                                                         poolTeamIds={pool.teamIds}
                                                                         onScoreUpdate={handleScoreUpdate}
+                                                                        onForfeit={handleForfeit}
                                                                     />
                                                                 ))}
                                                             </div>
@@ -286,6 +301,7 @@ export function AdminDashboard() {
                                                     hasThirdPlaceMatch={hasThirdPlaceMatch}
                                                     onThirdPlaceToggle={setHasThirdPlaceMatch}
                                                     onScoreUpdate={handleScoreUpdate}
+                                                    onForfeit={handleForfeit}
                                                 />
                                             ) : (
                                                 <div className="empty-bracket-message">

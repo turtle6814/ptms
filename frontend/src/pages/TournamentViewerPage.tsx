@@ -93,10 +93,10 @@ export function TournamentViewerPage() {
 
     const getStatusLabel = (status: Event['status']) => {
         switch (status) {
-            case 'setup': return 'Setting Up';
-            case 'pool_play': return 'Pool Play';
-            case 'elimination': return 'Playoffs';
-            case 'completed': return 'Complete';
+            case 'SETUP': return 'Setting Up';
+            case 'POOL_PLAY': return 'Pool Play';
+            case 'ELIMINATION': return 'Playoffs';
+            case 'COMPLETED': return 'Complete';
             default: return status;
         }
     };
@@ -176,7 +176,7 @@ export function TournamentViewerPage() {
                         )}
 
                         <div className="meta-badges">
-                            {selectedEvent && selectedEvent.status !== 'completed' && (
+                            {selectedEvent && selectedEvent.status !== 'COMPLETED' && (
                                 <span className="live-badge">
                                     <Wifi size={12} />
                                     Live

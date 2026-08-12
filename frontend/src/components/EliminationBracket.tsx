@@ -12,6 +12,7 @@ interface EliminationBracketProps {
     hasThirdPlaceMatch?: boolean;
     onThirdPlaceToggle?: (enabled: boolean) => void;
     onScoreUpdate?: (matchId: string, team1Score: number, team2Score: number) => void;
+    onForfeit?: (matchId: string, winnerId: string, status: 'FORFEIT' | 'WALKOVER') => void;
 }
 
 export function EliminationBracket({
@@ -22,6 +23,7 @@ export function EliminationBracket({
     hasThirdPlaceMatch = false,
     onThirdPlaceToggle,
     onScoreUpdate,
+    onForfeit,
 }: EliminationBracketProps) {
     const champion = bracket.champion ? teams.find(t => t.id === bracket.champion) : null;
 
@@ -34,7 +36,7 @@ export function EliminationBracket({
         if (finalsIndex <= 0) return { match: null, autoThirdTeam: null };
 
         const semisRound = bracket.rounds[finalsIndex - 1];
-        const completedSemis = semisRound.matches.filter(m => m.status === 'completed' && m.winnerId);
+        const completedSemis = semisRound.matches.filter(m => m.status === 'COMPLETED' && m.winnerId);
 
         // Get losers from completed semifinals
         const losers = completedSemis.map(m =>
@@ -61,7 +63,10 @@ export function EliminationBracket({
                 team1Score: existingMatch?.team1Score ?? null,
                 team2Score: existingMatch?.team2Score ?? null,
                 winnerId: existingMatch?.winnerId || null,
-                status: existingMatch?.status || 'pending' as const,
+                status: existingMatch?.status || 'PENDING' as const,
+                targetScore: existingMatch?.targetScore ?? 15,
+                winByTwo: existingMatch?.winByTwo ?? true,
+                scoreCap: existingMatch?.scoreCap ?? 21,
                 createdAt: existingMatch?.createdAt || new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             };
@@ -111,7 +116,7 @@ export function EliminationBracket({
                 if (!bracket.champion) return null;
                 const finalsRound = bracket.rounds.find(r => r.name === 'Finals');
                 const finalsMatch = finalsRound?.matches[0];
-                if (!finalsMatch || finalsMatch.status !== 'completed') return null;
+                if (!finalsMatch || finalsMatch.status !== 'COMPLETED') return null;
                 const runnerUpId = finalsMatch.team1Id === bracket.champion
                     ? finalsMatch.team2Id
                     : finalsMatch.team1Id;
@@ -152,10 +157,11 @@ export function EliminationBracket({
                             {round.matches.map((match) => (
                                 <div key={match.id} className="bracket-match-wrapper">
                                     <MatchCard
-                                        match={showPlaceholders ? { ...match, team1Id: '', team2Id: '', team1Score: null, team2Score: null, winnerId: null, status: 'pending' } : match}
+                                        match={showPlaceholders ? { ...match, team1Id: '', team2Id: '', team1Score: null, team2Score: null, winnerId: null, status: 'PENDING' } : match}
                                         teams={teams}
                                         isAdmin={isAdmin && !showPlaceholders}
                                         onScoreUpdate={onScoreUpdate}
+                                        onForfeit={onForfeit}
                                     />
                                 </div>
                             ))}
@@ -174,6 +180,7 @@ export function EliminationBracket({
                                         teams={teams}
                                         isAdmin={isAdmin}
                                         onScoreUpdate={onScoreUpdate}
+                                        onForfeit={onForfeit}
                                     />
                                 </div>
                             </div>

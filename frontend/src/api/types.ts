@@ -66,6 +66,12 @@ export interface Team {
   createdAt: string; // date-time
 }
 
+export interface ScoreRules {
+  targetScore: number;
+  winByTwo: boolean;
+  scoreCap: number;
+}
+
 export interface Match {
   id: string; // uuid
   eventId: string; // uuid
@@ -77,7 +83,10 @@ export interface Match {
   team1Score?: number | null;
   team2Score?: number | null;
   winnerId?: string | null; // uuid
-  status: 'pending' | 'in_progress' | 'completed';
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FORFEIT' | 'WALKOVER';
+  targetScore: number;
+  winByTwo: boolean;
+  scoreCap: number;
   createdAt: string; // date-time
   updatedAt: string; // date-time
 }
@@ -120,7 +129,8 @@ export interface Event {
   id: string; // uuid
   tournamentId: string; // uuid — required
   name: string;
-  status: 'setup' | 'pool_play' | 'elimination' | 'completed';
+  status: 'SETUP' | 'POOL_PLAY' | 'ELIMINATION' | 'COMPLETED';
+  format: 'POOL_TO_ELIM' | 'ROUND_ROBIN_ONLY';
   teams: Team[];
   pools: Pool[];
   eliminationBracket?: EliminationBracket | null;
@@ -137,12 +147,20 @@ export interface CreateEventRequest {
   name: string;
   tournamentId: string; // required
   pools: PoolConfig[];
+  format?: 'POOL_TO_ELIM' | 'ROUND_ROBIN_ONLY';
+  poolStageRules?: ScoreRules;
+  playoffStageRules?: ScoreRules;
 }
 
 export interface ScoreUpdateRequest {
   matchId: string; // uuid
   team1Score: number;
   team2Score: number;
+}
+
+export interface ForfeitRequest {
+  winnerId: string; // uuid
+  status: 'FORFEIT' | 'WALKOVER';
 }
 
 // ----------------------------------------------------------

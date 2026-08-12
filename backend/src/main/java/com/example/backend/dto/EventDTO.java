@@ -11,6 +11,7 @@ public class EventDTO {
     private UUID tournamentId;
     private String name;
     private String status;
+    private String format;
     private List<TeamDTO> teams;
     private List<PoolDTO> pools;
     private EliminationBracketDTO eliminationBracket;

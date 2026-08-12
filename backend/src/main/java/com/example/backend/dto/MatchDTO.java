@@ -17,6 +17,9 @@ public class MatchDTO {
     private Integer team2Score;
     private UUID winnerId;
     private String status;
+    private Integer targetScore;
+    private Boolean winByTwo;
+    private Integer scoreCap;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

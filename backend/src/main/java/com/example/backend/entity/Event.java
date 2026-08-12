@@ -1,5 +1,6 @@
 package com.example.backend.entity;
 
+import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,7 +29,11 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EventStatus status = EventStatus.pool_play;
+    private EventStatus status = EventStatus.POOL_PLAY;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EventFormat format = EventFormat.POOL_TO_ELIM;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tournament_id", nullable = false)

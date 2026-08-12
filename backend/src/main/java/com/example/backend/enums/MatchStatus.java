@@ -1,5 +1,12 @@
 package com.example.backend.enums;
 
 public enum MatchStatus {
-    pending, in_progress, completed
+    PENDING, IN_PROGRESS,
+    COMPLETED,
+    FORFEIT,
+    WALKOVER;
+
+    public boolean isFinished() {
+        return this == COMPLETED || this == FORFEIT || this == WALKOVER;
+    }
 }

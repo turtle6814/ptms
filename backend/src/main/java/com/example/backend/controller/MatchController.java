@@ -1,7 +1,9 @@
 package com.example.backend.controller;
 
 import com.example.backend.dto.ApiResponse;
+import com.example.backend.dto.ForfeitRequest;
 import com.example.backend.dto.MatchDTO;
+import com.example.backend.dto.ScoreRulesDTO;
 import com.example.backend.dto.ScoreUpdateRequest;
 import com.example.backend.service.EventService;
 import com.example.backend.service.MatchService;
@@ -36,6 +38,36 @@ public class MatchController {
         var fullEvent = eventService.getEventById(eventId);
 
         // 3. Broadcast to subscribers
+        messagingTemplate.convertAndSend("/topic/event/" + eventId, fullEvent);
+
+        return ResponseEntity.ok(ApiResponse.success(updatedMatch));
+    }
+
+    @PatchMapping("/{matchId}/rules")
+    public ResponseEntity<ApiResponse<MatchDTO>> updateRules(
+            @PathVariable UUID eventId,
+            @PathVariable UUID matchId,
+            @RequestBody ScoreRulesDTO request,
+            Authentication authentication) {
+
+        MatchDTO updatedMatch = matchService.updateRules(matchId, request, authentication.getName());
+
+        var fullEvent = eventService.getEventById(eventId);
+        messagingTemplate.convertAndSend("/topic/event/" + eventId, fullEvent);
+
+        return ResponseEntity.ok(ApiResponse.success(updatedMatch));
+    }
+
+    @PutMapping("/{matchId}/forfeit")
+    public ResponseEntity<ApiResponse<MatchDTO>> recordForfeit(
+            @PathVariable UUID eventId,
+            @PathVariable UUID matchId,
+            @RequestBody ForfeitRequest request,
+            Authentication authentication) {
+
+        MatchDTO updatedMatch = matchService.recordForfeit(matchId, request, authentication.getName());
+
+        var fullEvent = eventService.getEventById(eventId);
         messagingTemplate.convertAndSend("/topic/event/" + eventId, fullEvent);
 
         return ResponseEntity.ok(ApiResponse.success(updatedMatch));

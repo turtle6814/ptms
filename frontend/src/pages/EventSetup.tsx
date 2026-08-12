@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { createEvent } from '../api';
+import { ScoreRules } from '../api/types';
 import { ChevronLeft, Plus, Trash2, Users } from 'lucide-react';
 import './EventSetup.css';
 
@@ -10,6 +11,10 @@ export function EventSetup() {
     const tournamentId = searchParams.get('tournamentId');
 
     const [eventName, setEventName] = useState('');
+    const [format, setFormat] = useState<'POOL_TO_ELIM' | 'ROUND_ROBIN_ONLY'>('POOL_TO_ELIM');
+
+    const [poolRules, setPoolRules] = useState<ScoreRules>({ targetScore: 11, winByTwo: true, scoreCap: 15 });
+    const [playoffRules, setPlayoffRules] = useState<ScoreRules>({ targetScore: 15, winByTwo: true, scoreCap: 21 });
 
     // Initial state: 1 pool with 2 empty slots
     const [pools, setPools] = useState<{ name: string; teams: string[] }[]>([
@@ -92,10 +97,13 @@ export function EventSetup() {
             const response = await createEvent({
                 name: eventName,
                 tournamentId,
+                format,
                 pools: pools.map(pool => ({
                     name: pool.name,
                     teamNames: pool.teams.filter(t => t.trim())
-                }))
+                })),
+                poolStageRules: poolRules,
+                ...(format === 'POOL_TO_ELIM' ? { playoffStageRules: playoffRules } : {}),
             });
 
             if (response.success) {
@@ -162,6 +170,31 @@ export function EventSetup() {
                                 placeholder="e.g. Summer Pickleball Open 2024"
                                 disabled={loading}
                             />
+                        </div>
+
+                        <div className="input-group">
+                            <label htmlFor="format">Format</label>
+                            <select
+                                id="format"
+                                value={format}
+                                onChange={(e) => setFormat(e.target.value as 'POOL_TO_ELIM' | 'ROUND_ROBIN_ONLY')}
+                                disabled={loading}
+                            >
+                                <option value="POOL_TO_ELIM">Pool Play + Playoffs</option>
+                                <option value="ROUND_ROBIN_ONLY">Round Robin Only</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="form-section">
+                        <div className="section-header">
+                            <h2>Scoring Rules</h2>
+                        </div>
+                        <div className="pools-grid">
+                            <ScoreRulesGroup title="Pool Play" rules={poolRules} onChange={setPoolRules} disabled={loading} />
+                            {format === 'POOL_TO_ELIM' && (
+                                <ScoreRulesGroup title="Playoffs" rules={playoffRules} onChange={setPlayoffRules} disabled={loading} />
+                            )}
                         </div>
                     </div>
 
@@ -264,6 +297,52 @@ export function EventSetup() {
                         </ul>
                     </div>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+function ScoreRulesGroup({ title, rules, onChange, disabled }: {
+    title: string;
+    rules: ScoreRules;
+    onChange: (rules: ScoreRules) => void;
+    disabled: boolean;
+}) {
+    return (
+        <div className="form-section pool-section">
+            <div className="pool-header">
+                <h3>{title}</h3>
+            </div>
+            <div className="teams-list">
+                <div className="team-input-row">
+                    <span className="team-number">Target</span>
+                    <input
+                        type="number"
+                        min="1"
+                        value={rules.targetScore}
+                        onChange={(e) => onChange({ ...rules, targetScore: parseInt(e.target.value) || 0 })}
+                        disabled={disabled}
+                    />
+                </div>
+                <div className="team-input-row">
+                    <span className="team-number">Cap</span>
+                    <input
+                        type="number"
+                        min="1"
+                        value={rules.scoreCap}
+                        onChange={(e) => onChange({ ...rules, scoreCap: parseInt(e.target.value) || 0 })}
+                        disabled={disabled}
+                    />
+                </div>
+                <label className="team-input-row">
+                    <input
+                        type="checkbox"
+                        checked={rules.winByTwo}
+                        onChange={(e) => onChange({ ...rules, winByTwo: e.target.checked })}
+                        disabled={disabled}
+                    />
+                    <span>Win by two</span>
+                </label>
             </div>
         </div>
     );
