@@ -67,9 +67,9 @@ export function Header(_props?: HeaderProps) {
                                         <Plus size={16} />
                                         New
                                     </Link> */}
-                                    <Link to="/events" className="nav-link nav-link-events">
+                                    <Link to="/tournaments" className="nav-link nav-link-events">
                                         <Calendar size={16} />
-                                        Events
+                                        Tournaments
                                     </Link>
                                     <Link to="/admin" className="nav-link nav-link-dashboard">
                                         <Settings size={16} />

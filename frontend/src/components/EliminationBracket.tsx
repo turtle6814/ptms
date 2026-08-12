@@ -53,7 +53,7 @@ export function EliminationBracket({
             // Always create/update match with current loser IDs
             const match = {
                 id: existingMatch?.id || 'third-place-match',
-                tournamentId: bracket.tournamentId,
+                eventId: bracket.eventId,
                 bracketRound: finalsIndex + 1,
                 bracketPosition: 0,
                 team1Id: losers[0] || existingMatch?.team1Id || '',
