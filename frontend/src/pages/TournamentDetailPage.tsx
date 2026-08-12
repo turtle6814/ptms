@@ -1,84 +1,82 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Trophy, Plus, Trash2, Edit2, X, Check } from 'lucide-react';
-import { Event, Tournament } from '../api/types';
-import { getEventById, updateEvent, getEventTournaments, removeTournamentFromEvent, deleteEvent } from '../api';
+import { Tournament, Event } from '../api/types';
+import { getTournamentById, updateTournament, getTournamentEvents, deleteEvent, deleteTournament } from '../api';
 import { Header } from '../components/Header';
-import './EventDetailPage.css';
+import './TournamentDetailPage.css';
 
-export function EventDetailPage() {
-    const { eventId } = useParams<{ eventId: string }>();
+export function TournamentDetailPage() {
+    const { tournamentId } = useParams<{ tournamentId: string }>();
     const navigate = useNavigate();
 
-    const [event, setEvent] = useState<Event | null>(null);
-    const [tournaments, setTournaments] = useState<Tournament[]>([]);
+    const [tournament, setTournament] = useState<Tournament | null>(null);
+    const [events, setEvents] = useState<Event[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState('');
     const [editDescription, setEditDescription] = useState('');
 
     useEffect(() => {
-        if (eventId) {
-            loadEventData();
+        if (tournamentId) {
+            loadTournamentData();
         }
-    }, [eventId]);
+    }, [tournamentId]);
 
-    const loadEventData = async () => {
-        if (!eventId) return;
+    const loadTournamentData = async () => {
+        if (!tournamentId) return;
 
         setIsLoading(true);
-        const [eventRes, tournamentsRes] = await Promise.all([
-            getEventById(eventId),
-            getEventTournaments(eventId)
+        const [tournamentRes, eventsRes] = await Promise.all([
+            getTournamentById(tournamentId),
+            getTournamentEvents(tournamentId)
         ]);
 
-        if (eventRes.success && eventRes.data) {
-            setEvent(eventRes.data);
-            setEditName(eventRes.data.name);
-            setEditDescription(eventRes.data.description || '');
+        if (tournamentRes.success && tournamentRes.data) {
+            setTournament(tournamentRes.data);
+            setEditName(tournamentRes.data.name);
+            setEditDescription(tournamentRes.data.description || '');
         }
-        if (tournamentsRes.success && tournamentsRes.data) {
-            setTournaments(tournamentsRes.data);
+        if (eventsRes.success && eventsRes.data) {
+            setEvents(eventsRes.data);
         }
         setIsLoading(false);
     };
 
     const handleSaveEdit = async () => {
-        if (!eventId || !editName.trim()) return;
+        if (!tournamentId || !editName.trim()) return;
 
-        const result = await updateEvent(eventId, {
+        const result = await updateTournament(tournamentId, {
             name: editName.trim(),
             description: editDescription.trim() || undefined,
         });
 
         if (result.success && result.data) {
-            setEvent(result.data);
+            setTournament(result.data);
             setIsEditing(false);
         }
     };
 
-    const handleRemoveTournament = async (tournamentId: string) => {
-        if (!eventId) return;
-        if (!confirm('Remove this tournament from the event?')) return;
-
-        const result = await removeTournamentFromEvent(eventId, tournamentId);
-        if (result.success) {
-            setTournaments(prev => prev.filter(t => t.id !== tournamentId));
-            setEvent(result.data!);
-        }
-    };
-
-    const handleDeleteEvent = async () => {
-        if (!eventId) return;
-        if (!confirm('Delete this event?')) return;
+    const handleDeleteEventFromTournament = async (eventId: string) => {
+        if (!confirm('Delete this event? This cannot be undone.')) return;
 
         const result = await deleteEvent(eventId);
         if (result.success) {
-            navigate('/events');
+            setEvents(prev => prev.filter(e => e.id !== eventId));
         }
     };
 
-    const getStatusColor = (status: Tournament['status']) => {
+    const handleDeleteTournament = async () => {
+        if (!tournamentId) return;
+        if (!confirm('Delete this tournament?')) return;
+
+        const result = await deleteTournament(tournamentId);
+        if (result.success) {
+            navigate('/tournaments');
+        }
+    };
+
+    const getStatusColor = (status: Event['status']) => {
         switch (status) {
             case 'pool_play': return 'status-pool';
             case 'elimination': return 'status-elimination';
@@ -91,18 +89,18 @@ export function EventDetailPage() {
         return (
             <div className="event-detail-page">
                 <Header />
-                <div className="loading-state">Loading event...</div>
+                <div className="loading-state">Loading tournament...</div>
             </div>
         );
     }
 
-    if (!event) {
+    if (!tournament) {
         return (
             <div className="event-detail-page">
                 <Header />
                 <div className="error-state">
-                    <h2>Event Not Found</h2>
-                    <Link to="/events" className="back-link">← Back to Events</Link>
+                    <h2>Tournament Not Found</h2>
+                    <Link to="/tournaments" className="back-link">← Back to Tournaments</Link>
                 </div>
             </div>
         );
@@ -114,12 +112,12 @@ export function EventDetailPage() {
 
             <main className="event-detail-content">
                 {/* Back Navigation */}
-                <Link to="/events" className="back-nav">
+                <Link to="/tournaments" className="back-nav">
                     <ArrowLeft size={20} />
-                    Back to Events
+                    Back to Tournaments
                 </Link>
 
-                {/* Event Header */}
+                {/* Tournament Header */}
                 <div className="event-header-card">
                     <div className="event-header-icon">
                         <Calendar size={32} />
@@ -133,7 +131,7 @@ export function EventDetailPage() {
                                     value={editName}
                                     onChange={e => setEditName(e.target.value)}
                                     className="edit-name-input"
-                                    placeholder="Event name"
+                                    placeholder="Tournament name"
                                     autoFocus
                                 />
                                 <textarea
@@ -154,12 +152,12 @@ export function EventDetailPage() {
                             </div>
                         ) : (
                             <>
-                                <h1>{event.name}</h1>
-                                {event.description && <p className="event-description">{event.description}</p>}
+                                <h1>{tournament.name}</h1>
+                                {tournament.description && <p className="event-description">{tournament.description}</p>}
                                 <div className="event-meta">
                                     <span className="tournament-count">
                                         <Trophy size={16} />
-                                        {tournaments.length} tournament{tournaments.length !== 1 ? 's' : ''}
+                                        {events.length} event{events.length !== 1 ? 's' : ''}
                                     </span>
                                 </div>
                             </>
@@ -171,60 +169,59 @@ export function EventDetailPage() {
                             <button className="btn-icon" onClick={() => setIsEditing(true)}>
                                 <Edit2 size={18} />
                             </button>
-                            <button className="btn-icon btn-danger" onClick={handleDeleteEvent}>
+                            <button className="btn-icon btn-danger" onClick={handleDeleteTournament}>
                                 <Trash2 size={18} />
                             </button>
                         </div>
                     )}
                 </div>
 
-                {/* Tournaments Section */}
+                {/* Events Section */}
                 <section className="tournaments-section">
                     <div className="section-header">
                         <h2>
                             <Trophy size={20} />
-                            Tournaments
+                            Events
                         </h2>
-                        <Link to={`/setup?eventId=${eventId}`} className="add-tournament-btn">
+                        <Link to={`/setup?tournamentId=${tournamentId}`} className="add-tournament-btn">
                             <Plus size={18} />
-                            Add Tournament
+                            Add Event
                         </Link>
                     </div>
 
-                    {tournaments.length === 0 ? (
+                    {events.length === 0 ? (
                         <div className="empty-tournaments">
                             <Trophy size={48} />
-                            <h3>No Tournaments Yet</h3>
-                            <p>Create your first tournament for this event</p>
-                            <Link to={`/setup?eventId=${eventId}`} className="create-tournament-btn">
-                                Create Tournament
+                            <h3>No Events Yet</h3>
+                            <p>Create your first event for this tournament</p>
+                            <Link to={`/setup?tournamentId=${tournamentId}`} className="create-tournament-btn">
+                                Create Event
                             </Link>
                         </div>
                     ) : (
                         <div className="tournaments-grid">
-                            {tournaments.map(tournament => (
-                                <div key={tournament.id} className="tournament-card">
-                                    <Link to={`/admin?id=${tournament.id}`} className="tournament-card-content">
+                            {events.map(event => (
+                                <div key={event.id} className="tournament-card">
+                                    <Link to={`/admin?id=${event.id}`} className="tournament-card-content">
                                         <div className="tournament-info">
-                                            <h3>{tournament.name}</h3>
+                                            <h3>{event.name}</h3>
                                             <div className="tournament-meta">
-                                                <span className={`status-badge ${getStatusColor(tournament.status)}`}>
-                                                    {tournament.status.replace('_', ' ')}
+                                                <span className={`status-badge ${getStatusColor(event.status)}`}>
+                                                    {event.status.replace('_', ' ')}
                                                 </span>
                                                 <span className="team-count">
-                                                    {tournament.teams.length} teams
+                                                    {event.teams.length} teams
                                                 </span>
                                                 <span className="pool-count">
-                                                    {tournament.pools.length} pools
+                                                    {event.pools.length} pools
                                                 </span>
                                             </div>
                                         </div>
-                                        {/* <ExternalLink size={18} className="external-icon" /> */}
                                     </Link>
                                     <button
                                         className="remove-tournament-btn"
-                                        onClick={() => handleRemoveTournament(tournament.id)}
-                                        title="Remove from event"
+                                        onClick={() => handleDeleteEventFromTournament(event.id)}
+                                        title="Delete event"
                                     >
                                         <Trash2 size={16} />
                                     </button>
