@@ -5,93 +5,93 @@ import { PoolStandings } from '../components/PoolStandings';
 import { MatchCard } from '../components/MatchCard';
 import { EliminationBracket } from '../components/EliminationBracket';
 import { TournamentTabs } from '../components/TournamentTabs';
-import { getEventById, getEventTournaments, subscribeTournament, pollTournament } from '../api';
-import { Tournament, Event } from '../api/types';
+import { getTournamentById, getTournamentEvents, subscribeEvent, pollEvent } from '../api';
+import { Event, Tournament } from '../api/types';
 import { RefreshCw, Wifi, ChevronDown, Trophy } from 'lucide-react';
-import './EventViewerPage.css';
+import './TournamentViewerPage.css';
 
-export function EventViewerPage() {
-    const { eventId } = useParams<{ eventId: string }>();
-    const [event, setEvent] = useState<Event | null>(null);
-    const [tournaments, setTournaments] = useState<Tournament[]>([]);
-    const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+export function TournamentViewerPage() {
+    const { tournamentId } = useParams<{ tournamentId: string }>();
+    const [tournament, setTournament] = useState<Tournament | null>(null);
+    const [events, setEvents] = useState<Event[]>([]);
+    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
-    const loadEvent = useCallback(async () => {
-        if (!eventId) {
-            setError('No event ID provided');
+    const loadTournament = useCallback(async () => {
+        if (!tournamentId) {
+            setError('No tournament ID provided');
             setLoading(false);
             return;
         }
 
-        const [eventRes, tournamentsRes] = await Promise.all([
-            getEventById(eventId),
-            getEventTournaments(eventId)
+        const [tournamentRes, eventsRes] = await Promise.all([
+            getTournamentById(tournamentId),
+            getTournamentEvents(tournamentId)
         ]);
 
-        if (eventRes.success && eventRes.data) {
-            setEvent(eventRes.data);
+        if (tournamentRes.success && tournamentRes.data) {
+            setTournament(tournamentRes.data);
             setError('');
         } else {
-            setError(eventRes.error || 'Event not found');
+            setError(tournamentRes.error || 'Tournament not found');
             setLoading(false);
             return;
         }
 
-        if (tournamentsRes.success && tournamentsRes.data) {
-            setTournaments(tournamentsRes.data);
-            // Auto-select first tournament and fetch full data
-            if (tournamentsRes.data.length > 0) {
-                const firstTournament = tournamentsRes.data[0];
-                setSelectedTournament(firstTournament);
+        if (eventsRes.success && eventsRes.data) {
+            setEvents(eventsRes.data);
+            // Auto-select first event and fetch full data
+            if (eventsRes.data.length > 0) {
+                const firstEvent = eventsRes.data[0];
+                setSelectedEvent(firstEvent);
 
-                // Immediately fetch full tournament data (pools, bracket, etc.)
-                const fullData = await pollTournament(firstTournament.id);
+                // Immediately fetch full event data (pools, bracket, etc.)
+                const fullData = await pollEvent(firstEvent.id);
                 if (fullData.success && fullData.data) {
-                    setSelectedTournament(fullData.data);
-                    setTournaments(prev => prev.map(t => t.id === fullData.data!.id ? fullData.data! : t));
+                    setSelectedEvent(fullData.data);
+                    setEvents(prev => prev.map(e => e.id === fullData.data!.id ? fullData.data! : e));
                 }
             }
             setLastUpdated(new Date());
         }
         setLoading(false);
-    }, [eventId]);
+    }, [tournamentId]);
 
     useEffect(() => {
-        loadEvent();
-    }, [loadEvent]);
+        loadTournament();
+    }, [loadTournament]);
 
-    // Subscribe to live updates for selected tournament
+    // Subscribe to live updates for selected event
     useEffect(() => {
-        if (selectedTournament) {
-            const unsubscribe = subscribeTournament(selectedTournament.id, (updated) => {
-                setSelectedTournament(updated);
-                setTournaments(prev => prev.map(t => t.id === updated.id ? updated : t));
+        if (selectedEvent) {
+            const unsubscribe = subscribeEvent(selectedEvent.id, (updated) => {
+                setSelectedEvent(updated);
+                setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
                 setLastUpdated(new Date());
             });
             return unsubscribe;
         }
-    }, [selectedTournament?.id]);
+    }, [selectedEvent?.id]);
 
-    // Poll removed — using WebSocket (subscribeTournament) for real-time updates
+    // Poll removed — using WebSocket (subscribeEvent) for real-time updates
 
-    const handleSelectTournament = async (tournament: Tournament) => {
-        setSelectedTournament(tournament); // Show immediately with whatever data we have
+    const handleSelectEvent = async (event: Event) => {
+        setSelectedEvent(event); // Show immediately with whatever data we have
         setDropdownOpen(false);
 
-        // Immediately fetch full tournament data (don't wait for next poll)
-        const response = await pollTournament(tournament.id);
+        // Immediately fetch full event data (don't wait for next poll)
+        const response = await pollEvent(event.id);
         if (response.success && response.data) {
-            setSelectedTournament(response.data);
-            setTournaments(prev => prev.map(t => t.id === response.data!.id ? response.data! : t));
+            setSelectedEvent(response.data);
+            setEvents(prev => prev.map(e => e.id === response.data!.id ? response.data! : e));
             setLastUpdated(new Date());
         }
     };
 
-    const getStatusLabel = (status: Tournament['status']) => {
+    const getStatusLabel = (status: Event['status']) => {
         switch (status) {
             case 'setup': return 'Setting Up';
             case 'pool_play': return 'Pool Play';
@@ -108,21 +108,21 @@ export function EventViewerPage() {
                 <main className="viewer-content">
                     <div className="loading-state">
                         <RefreshCw className="spin" size={32} />
-                        <p>Loading event...</p>
+                        <p>Loading tournament...</p>
                     </div>
                 </main>
             </div>
         );
     }
 
-    if (error || !event) {
+    if (error || !tournament) {
         return (
             <div className="event-viewer-page">
                 <Header />
                 <main className="viewer-content">
                     <div className="error-state">
-                        <h2>Event Not Found</h2>
-                        <p>{error || 'The event you\'re looking for doesn\'t exist or has been deleted.'}</p>
+                        <h2>Tournament Not Found</h2>
+                        <p>{error || 'The tournament you\'re looking for doesn\'t exist or has been deleted.'}</p>
                     </div>
                 </main>
             </div>
@@ -136,20 +136,20 @@ export function EventViewerPage() {
             <main className="viewer-content">
                 <div className="viewer-header">
                     <div className="event-info">
-                        <h1>{event.name}</h1>
+                        <h1>{tournament.name}</h1>
 
-                        {/* Tournament Selector Dropdown */}
-                        {tournaments.length > 0 && (
+                        {/* Event Selector Dropdown */}
+                        {events.length > 0 && (
                             <div className="tournament-selector">
                                 <button
                                     className={`selector-btn ${dropdownOpen ? 'open' : ''}`}
                                     onClick={() => setDropdownOpen(!dropdownOpen)}
                                 >
                                     <Trophy size={16} />
-                                    <span>{selectedTournament?.name || 'Select Tournament'}</span>
-                                    {selectedTournament && (
-                                        <span className={`status-badge status-${selectedTournament.status}`}>
-                                            {getStatusLabel(selectedTournament.status)}
+                                    <span>{selectedEvent?.name || 'Select Event'}</span>
+                                    {selectedEvent && (
+                                        <span className={`status-badge status-${selectedEvent.status}`}>
+                                            {getStatusLabel(selectedEvent.status)}
                                         </span>
                                     )}
                                     <ChevronDown size={16} className={`dropdown-arrow ${dropdownOpen ? 'open' : ''}`} />
@@ -157,15 +157,15 @@ export function EventViewerPage() {
 
                                 {dropdownOpen && (
                                     <ul className="tournament-dropdown-menu">
-                                        {tournaments.map(t => (
-                                            <li key={t.id}>
+                                        {events.map(e => (
+                                            <li key={e.id}>
                                                 <button
-                                                    className={`dropdown-item ${selectedTournament?.id === t.id ? 'active' : ''}`}
-                                                    onClick={() => handleSelectTournament(t)}
+                                                    className={`dropdown-item ${selectedEvent?.id === e.id ? 'active' : ''}`}
+                                                    onClick={() => handleSelectEvent(e)}
                                                 >
-                                                    <span className="tournament-name">{t.name}</span>
-                                                    <span className={`status-badge status-${t.status}`}>
-                                                        {getStatusLabel(t.status)}
+                                                    <span className="tournament-name">{e.name}</span>
+                                                    <span className={`status-badge status-${e.status}`}>
+                                                        {getStatusLabel(e.status)}
                                                     </span>
                                                 </button>
                                             </li>
@@ -176,7 +176,7 @@ export function EventViewerPage() {
                         )}
 
                         <div className="meta-badges">
-                            {selectedTournament && selectedTournament.status !== 'completed' && (
+                            {selectedEvent && selectedEvent.status !== 'completed' && (
                                 <span className="live-badge">
                                     <Wifi size={12} />
                                     Live
@@ -192,21 +192,21 @@ export function EventViewerPage() {
                     )}
                 </div>
 
-                {!selectedTournament ? (
+                {!selectedEvent ? (
                     <div className="no-tournaments">
                         <Trophy size={48} />
-                        <h2>No Tournaments</h2>
-                        <p>This event doesn't have any tournaments yet.</p>
+                        <h2>No Events</h2>
+                        <p>This tournament doesn't have any events yet.</p>
                     </div>
                 ) : (
                     <TournamentTabs
-                        hasPoolPlay={selectedTournament.pools.length > 0}
-                        hasPlayoffs={!!selectedTournament.eliminationBracket}
+                        hasPoolPlay={selectedEvent.pools.length > 0}
+                        hasPlayoffs={!!selectedEvent.eliminationBracket}
                     >
                         {{
                             poolPlay: (
                                 <section className="viewer-section">
-                                    {selectedTournament.pools.map(pool => (
+                                    {selectedEvent.pools.map(pool => (
                                         <div key={pool.id} className="pool-view-container">
                                             <div className="pool-view-grid">
                                                 <PoolStandings
@@ -222,7 +222,7 @@ export function EventViewerPage() {
                                                             <MatchCard
                                                                 key={match.id}
                                                                 match={match}
-                                                                teams={selectedTournament.teams}
+                                                                teams={selectedEvent.teams}
                                                                 isAdmin={false}
                                                                 poolTeamIds={pool.teamIds}
                                                             />
@@ -234,13 +234,13 @@ export function EventViewerPage() {
                                     ))}
                                 </section>
                             ),
-                            playoffs: selectedTournament.eliminationBracket && (
+                            playoffs: selectedEvent.eliminationBracket && (
                                 <section className="viewer-section">
                                     <EliminationBracket
-                                        bracket={selectedTournament.eliminationBracket}
-                                        teams={selectedTournament.teams}
+                                        bracket={selectedEvent.eliminationBracket}
+                                        teams={selectedEvent.teams}
                                         isAdmin={false}
-                                        hasThirdPlaceMatch={!!selectedTournament.eliminationBracket.thirdPlaceMatch}
+                                        hasThirdPlaceMatch={!!selectedEvent.eliminationBracket.thirdPlaceMatch}
                                     />
                                 </section>
                             )
