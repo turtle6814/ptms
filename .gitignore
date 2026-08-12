@@ -5,3 +5,6 @@ testsprite_out.log
 
 # Git worktrees
 .worktrees/
+
+# Subagent-driven-development scratch workspace
+.superpowers/
