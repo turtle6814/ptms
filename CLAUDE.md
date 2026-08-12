@@ -24,7 +24,7 @@ The repo is two independent projects (`backend/`, `frontend/`) that get combined
 ./mvnw test -Dtest=ClassName#method # run a single test
 ./mvnw package -Dmaven.test.skip=true -B   # build jar without tests (used in Docker build)
 ```
-Needs a local Postgres reachable via `DB_HOST`/`DB_PORT`/`DB_NAME`/`DB_USER`/`DB_PASSWORD` (defaults to `localhost:5432/pickleball_tms`, user `postgres`). `docker-compose.yml` spins up just the `db` service for local dev.
+Needs a local Postgres reachable via `DB_HOST`/`DB_PORT`/`DB_NAME`/`DB_USER`/`DB_PASSWORD` — none of the five have a default, all must be set, along with `JWT_SECRET` (see `.env.example`). `PORT` still defaults to `8080`. `docker-compose.yml` spins up just the `db` service for local dev.
 
 **Schema reset required before first run on this branch:** the Tournament/Event table shapes changed incompatibly (FK direction flip, dropped now-unmapped `NOT NULL` columns), and `ddl-auto=update` cannot migrate an existing pre-swap database. Drop and recreate the schema (`DROP SCHEMA public CASCADE; CREATE SCHEMA public;` against the target Postgres) before running against a database that predates this change — this includes a fresh local dev DB and the Render-managed Postgres.
 

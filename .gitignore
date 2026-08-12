@@ -8,3 +8,7 @@ testsprite_out.log
 
 # Subagent-driven-development scratch workspace
 .superpowers/
+
+# Local secrets
+.env
+.env.local
