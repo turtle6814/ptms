@@ -18,8 +18,8 @@ public class SpaForwardingController {
             "/admin/**",
             "/setup",
             "/setup/**",
-            "/events",
-            "/events/**",
+            "/tournaments",
+            "/tournaments/**",
             "/view/**"
     })
     public String forward() {
