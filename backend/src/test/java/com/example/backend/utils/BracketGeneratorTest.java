@@ -1,4 +1,4 @@
-package com.example.backend.bracket;
+package com.example.backend.utils;
 
 import com.example.backend.dto.ScoreRulesDTO;
 import com.example.backend.entity.BracketSlotSource;

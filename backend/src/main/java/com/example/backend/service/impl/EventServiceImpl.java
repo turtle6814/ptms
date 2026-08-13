@@ -1,6 +1,6 @@
 package com.example.backend.service.impl;
 
-import com.example.backend.bracket.BracketGenerator;
+import com.example.backend.utils.BracketGenerator;
 import com.example.backend.dto.*;
 import com.example.backend.entity.*;
 import com.example.backend.enums.EventFormat;

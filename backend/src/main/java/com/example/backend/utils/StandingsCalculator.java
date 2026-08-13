@@ -1,4 +1,4 @@
-package com.example.backend.standings;
+package com.example.backend.utils;
 
 import com.example.backend.dto.PoolStandingDTO;
 import com.example.backend.entity.Match;
