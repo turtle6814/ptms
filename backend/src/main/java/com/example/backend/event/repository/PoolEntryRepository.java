@@ -1,6 +1,6 @@
-package com.example.backend.repository;
+package com.example.backend.event.repository;
 
-import com.example.backend.entity.PoolEntry;
+import com.example.backend.event.entity.PoolEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

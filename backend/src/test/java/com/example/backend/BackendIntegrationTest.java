@@ -2,9 +2,9 @@ package com.example.backend;
 
 import com.example.backend.auth.dto.AuthDtos.LoginRequest;
 import com.example.backend.auth.dto.AuthDtos.SignupRequest;
-import com.example.backend.dto.CreateEventRequest;
+import com.example.backend.event.dto.CreateEventRequest;
 import com.example.backend.tournament.dto.CreateTournamentRequest;
-import com.example.backend.dto.PoolConfigDTO;
+import com.example.backend.event.dto.PoolConfigDTO;
 import com.example.backend.dto.ScoreUpdateRequest;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.MethodOrderer;

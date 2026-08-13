@@ -1,7 +1,9 @@
-package com.example.backend.controller;
+package com.example.backend.event.controller;
 
-import com.example.backend.dto.*;
-import com.example.backend.service.EventService;
+import com.example.backend.dto.ApiResponse;
+import com.example.backend.event.dto.CreateEventRequest;
+import com.example.backend.event.dto.EventDTO;
+import com.example.backend.event.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

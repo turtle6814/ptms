@@ -1,7 +1,7 @@
-package com.example.backend.service;
+package com.example.backend.event.service;
 
-import com.example.backend.dto.CreateEventRequest;
-import com.example.backend.dto.EventDTO;
+import com.example.backend.event.dto.CreateEventRequest;
+import com.example.backend.event.dto.EventDTO;
 
 import java.util.List;
 import java.util.UUID;

@@ -1,21 +1,31 @@
-package com.example.backend.service.impl;
+package com.example.backend.event.service.impl;
 
-import com.example.backend.utils.BracketGenerator;
-import com.example.backend.utils.StandingsCalculator;
-import com.example.backend.dto.*;
-import com.example.backend.entity.*;
+import com.example.backend.dto.ScoreRulesDTO;
+import com.example.backend.entity.BracketSlotSource;
+import com.example.backend.entity.Match;
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;
-import com.example.backend.repository.*;
-import com.example.backend.service.EventService;
+import com.example.backend.event.dto.CreateEventRequest;
+import com.example.backend.event.dto.EventDTO;
+import com.example.backend.event.dto.PoolConfigDTO;
+import com.example.backend.event.entity.Event;
+import com.example.backend.event.entity.Pool;
+import com.example.backend.event.entity.PoolEntry;
+import com.example.backend.event.entity.Team;
+import com.example.backend.event.mapper.EventMapper;
+import com.example.backend.event.repository.EventRepository;
+import com.example.backend.event.repository.PoolRepository;
+import com.example.backend.event.repository.TeamRepository;
+import com.example.backend.event.service.EventService;
+import com.example.backend.repository.MatchRepository;
 import com.example.backend.tournament.entity.Tournament;
 import com.example.backend.tournament.repository.TournamentRepository;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
+import com.example.backend.utils.BracketGenerator;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +44,7 @@ public class EventServiceImpl implements EventService {
     private final PoolRepository poolRepository;
     private final TeamRepository teamRepository;
     private final MatchRepository matchRepository;
-    private final ModelMapper modelMapper;
+    private final EventMapper eventMapper;
 
     @Override
     public List<EventDTO> getAllEvents(String username) {
@@ -42,7 +52,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return tournamentRepository.findByOwner(owner).stream()
                 .flatMap(tournament -> tournament.getEvents().stream())
-                .map(this::convertToDTO)
+                .map(eventMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -50,7 +60,7 @@ public class EventServiceImpl implements EventService {
     public EventDTO getEventById(UUID id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
-        return convertToDTO(event);
+        return eventMapper.toDto(event);
     }
 
     @Override
@@ -121,7 +131,7 @@ public class EventServiceImpl implements EventService {
         savedEvent.setMatches(allMatches);
         eventRepository.save(savedEvent);
 
-        return convertToDTO(savedEvent);
+        return eventMapper.toDto(savedEvent);
     }
 
     private ScoreRulesDTO resolveRules(ScoreRulesDTO override, int defaultTarget, boolean defaultWinByTwo,
@@ -203,129 +213,5 @@ public class EventServiceImpl implements EventService {
         if (tournament.getOwner() == null || !tournament.getOwner().getUsername().equals(username)) {
             throw new RuntimeException("You do not have permission to modify this tournament's events");
         }
-    }
-
-    private EventDTO convertToDTO(Event event) {
-        EventDTO dto = modelMapper.map(event, EventDTO.class);
-
-        // Manual mapping for Pool Team IDs and Sort Matches
-        if (event.getPools() != null && dto.getPools() != null) {
-            // Sort pools by name to ensure stable ordering (Pool A, Pool B, Pool C...)
-            dto.getPools().sort(java.util.Comparator.comparing(PoolDTO::getName));
-
-            for (int i = 0; i < event.getPools().size(); i++) {
-                Pool pool = event.getPools().get(i);
-                // Find matching PoolDTO
-                for (PoolDTO poolDTO : dto.getPools()) {
-                    if (poolDTO.getId().equals(pool.getId())) {
-                        // Sort Teams by CreatedAt to respect input order
-                        if (pool.getPoolEntries() != null) {
-                            poolDTO.setTeamIds(teamsInPool(pool).stream()
-                                    .sorted(java.util.Comparator.comparing(Team::getCreatedAt,
-                                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
-                                    .map(Team::getId)
-                                    .collect(Collectors.toList()));
-                        }
-
-                        // Sort Matches: Round (asc), then CreatedAt (asc), then ID (asc) for stability
-                        if (poolDTO.getMatches() != null) {
-                            poolDTO.getMatches().sort(java.util.Comparator.comparing(MatchDTO::getRoundNumber,
-                                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
-                                    .thenComparing(MatchDTO::getCreatedAt,
-                                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
-                                    .thenComparing(MatchDTO::getId));
-                        }
-
-                        poolDTO.setStandings(StandingsCalculator.compute(
-                                teamsInPool(pool), matchRepository.findByPoolId(pool.getId())));
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Populate Elimination Bracket DTO
-        List<Match> bracketMatches = event.getMatches().stream()
-                .filter(m -> m.getMatchType() == MatchType.BRACKET)
-                .collect(Collectors.toList());
-
-        if (!bracketMatches.isEmpty()) {
-            EliminationBracketDTO bracketDTO = new EliminationBracketDTO();
-            bracketDTO.setEventId(event.getId());
-
-            // Find max round number to identify Finals
-            int maxRound = bracketMatches.stream()
-                    .mapToInt(Match::getBracketRound)
-                    .max().orElse(0);
-
-            // Champion/3rd-place logic: identify structurally via the winner/loser pointer graph
-            // instead of a (maxRound, position) convention. The final is the terminal match
-            // (nothing to advance to) that no other match's loser routes into; the 3rd-place
-            // match (if any) is the terminal match that IS a loser-edge target.
-            java.util.Set<UUID> loserEdgeTargetIds = bracketMatches.stream()
-                    .map(Match::getLoserNextMatch)
-                    .filter(m -> m != null)
-                    .map(Match::getId)
-                    .collect(Collectors.toSet());
-
-            Match finalMatch = bracketMatches.stream()
-                    .filter(m -> m.getWinnerNextMatch() == null && !loserEdgeTargetIds.contains(m.getId()))
-                    .findFirst().orElse(null);
-
-            if (finalMatch != null && finalMatch.getWinner() != null) {
-                bracketDTO.setChampion(finalMatch.getWinner().getId());
-            }
-
-            Match thirdPlaceMatch = bracketMatches.stream()
-                    .filter(m -> m.getWinnerNextMatch() == null && loserEdgeTargetIds.contains(m.getId()))
-                    .findFirst().orElse(null);
-            if (thirdPlaceMatch != null) {
-                bracketDTO.setThirdPlaceMatch(modelMapper.map(thirdPlaceMatch, MatchDTO.class));
-                if (thirdPlaceMatch.getWinner() != null) {
-                    bracketDTO.setThirdPlaceTeamId(thirdPlaceMatch.getWinner().getId());
-                }
-            }
-
-            // Group matches into rounds
-            List<BracketRoundDTO> roundDTOs = new ArrayList<>();
-
-            for (int r = 1; r <= maxRound; r++) {
-                int currentRound = r;
-                List<Match> roundMatches = bracketMatches.stream()
-                        .filter(m -> m.getBracketRound() == currentRound)
-                        .sorted(java.util.Comparator.comparing(Match::getBracketPosition))
-                        .collect(Collectors.toList());
-
-                // For the final round, exclude the 3rd place match from the main list
-                if (currentRound == maxRound && thirdPlaceMatch != null) {
-                    roundMatches.removeIf(m -> m.getId().equals(thirdPlaceMatch.getId()));
-                }
-
-                if (!roundMatches.isEmpty()) {
-                    BracketRoundDTO roundDTO = new BracketRoundDTO();
-                    roundDTO.setRoundNumber(currentRound);
-                    roundDTO.setName(getRoundName(currentRound, maxRound));
-                    roundDTO.setMatches(roundMatches.stream()
-                            .map(m -> modelMapper.map(m, MatchDTO.class))
-                            .collect(Collectors.toList()));
-                    roundDTOs.add(roundDTO);
-                }
-            }
-
-            bracketDTO.setRounds(roundDTOs);
-            dto.setEliminationBracket(bracketDTO);
-        }
-
-        return dto;
-    }
-
-    private String getRoundName(int roundNumber, int totalRounds) {
-        if (roundNumber == totalRounds)
-            return "Finals";
-        if (roundNumber == totalRounds - 1)
-            return "Semifinals";
-        if (roundNumber == totalRounds - 2)
-            return "Quarterfinals";
-        return "Round " + roundNumber;
     }
 }

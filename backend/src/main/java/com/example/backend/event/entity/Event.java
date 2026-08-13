@@ -1,5 +1,6 @@
-package com.example.backend.entity;
+package com.example.backend.event.entity;
 
+import com.example.backend.entity.Match;
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.tournament.entity.Tournament;

@@ -1,6 +1,7 @@
 package com.example.backend.entity;
 
 import com.example.backend.enums.BracketSlot;
+import com.example.backend.event.entity.Pool;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,6 +1,6 @@
 package com.example.backend.tournament.mapper;
 
-import com.example.backend.entity.Event;
+import com.example.backend.event.entity.Event;
 import com.example.backend.tournament.dto.TournamentDTO;
 import com.example.backend.tournament.entity.Tournament;
 import lombok.RequiredArgsConstructor;

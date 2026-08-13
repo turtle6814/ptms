@@ -1,6 +1,6 @@
 package com.example.backend.tournament.service.impl;
 
-import com.example.backend.dto.EventDTO;
+import com.example.backend.event.dto.EventDTO;
 import com.example.backend.tournament.dto.CreateTournamentRequest;
 import com.example.backend.tournament.dto.TournamentDTO;
 import com.example.backend.tournament.dto.UpdateTournamentRequest;

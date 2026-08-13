@@ -5,7 +5,7 @@ import com.example.backend.dto.ForfeitRequest;
 import com.example.backend.dto.MatchDTO;
 import com.example.backend.dto.ScoreRulesDTO;
 import com.example.backend.dto.ScoreUpdateRequest;
-import com.example.backend.service.EventService;
+import com.example.backend.event.service.EventService;
 import com.example.backend.service.MatchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

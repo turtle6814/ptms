@@ -1,7 +1,7 @@
 package com.example.backend.tournament.controller;
 
 import com.example.backend.dto.ApiResponse;
-import com.example.backend.dto.EventDTO;
+import com.example.backend.event.dto.EventDTO;
 import com.example.backend.tournament.dto.CreateTournamentRequest;
 import com.example.backend.tournament.dto.TournamentDTO;
 import com.example.backend.tournament.dto.UpdateTournamentRequest;

@@ -1,5 +1,6 @@
-package com.example.backend.dto;
+package com.example.backend.event.dto;
 
+import com.example.backend.dto.MatchDTO;
 import lombok.Data;
 import java.util.List;
 
