@@ -1,5 +1,6 @@
 package com.example.backend.service.impl;
 
+import com.example.backend.bracket.BracketGenerator;
 import com.example.backend.dto.*;
 import com.example.backend.entity.*;
 import com.example.backend.enums.EventFormat;
@@ -103,7 +104,15 @@ public class EventServiceImpl implements EventService {
         // Generate placeholder elimination bracket (Semis and Finals), unless the event skips
         // playoffs entirely
         if (savedEvent.getFormat() != EventFormat.ROUND_ROBIN_ONLY) {
-            generateEliminationBracket(savedEvent, allMatches, playoffRules);
+            BracketGenerator.Result bracket = BracketGenerator.generate(savedEvent, savedEvent.getPools(), playoffRules);
+            allMatches.addAll(bracket.matches());
+            // Cascade-persisted via Pool (like matches are via Event) rather than saved directly:
+            // these BracketSlotSource rows have client-assigned UUIDs (needed so the generator
+            // can wire pointers before anything is persisted), which would make a direct
+            // repository.save() incorrectly attempt an UPDATE instead of an INSERT.
+            for (BracketSlotSource source : bracket.bracketSlotSources()) {
+                source.getSourcePool().getBracketSlotSources().add(source);
+            }
         }
 
         savedEvent.setMatches(allMatches);
@@ -193,66 +202,6 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private void generateEliminationBracket(Event event, List<Match> allMatches, ScoreRulesDTO rules) {
-        int numPools = event.getPools().size();
-        if (numPools < 1)
-            return;
-
-        List<Match> currentRoundMatches = new ArrayList<>();
-        int roundNumber = 1;
-
-        if (numPools == 1) {
-            createPlaceholderMatch(event, 1, 1, allMatches, currentRoundMatches, rules);
-        } else {
-            for (int i = 0; i < numPools; i++) {
-                createPlaceholderMatch(event, 1, i + 1, allMatches, currentRoundMatches, rules);
-            }
-        }
-
-        int matchCount = currentRoundMatches.size();
-
-        while (matchCount > 1) {
-            roundNumber++;
-            int nextRoundMatchCount = (int) Math.ceil((double) matchCount / 2);
-
-            List<Match> nextRoundMatches = new ArrayList<>();
-            for (int i = 0; i < nextRoundMatchCount; i++) {
-                createPlaceholderMatch(event, roundNumber, i + 1, allMatches, nextRoundMatches, rules);
-            }
-
-            matchCount = nextRoundMatchCount;
-            currentRoundMatches = nextRoundMatches;
-        }
-
-        // Add 3rd Place Match if there's at least a semifinal round
-        if (roundNumber >= 2) {
-            Match thirdPlace = new Match();
-            thirdPlace.setEvent(event);
-            thirdPlace.setMatchType(MatchType.BRACKET);
-            thirdPlace.setBracketRound(roundNumber); // Same round as finals
-            thirdPlace.setBracketPosition(2);
-            thirdPlace.setStatus(MatchStatus.PENDING);
-            stampRules(thirdPlace, rules);
-            allMatches.add(thirdPlace);
-        }
-    }
-
-    private void createPlaceholderMatch(Event event, int round, int position, List<Match> allMatches,
-            List<Match> currentRoundList, ScoreRulesDTO rules) {
-        Match match = new Match();
-        match.setEvent(event);
-        match.setMatchType(MatchType.BRACKET);
-        match.setBracketRound(round);
-        match.setBracketPosition(position);
-        match.setStatus(MatchStatus.PENDING);
-        stampRules(match, rules);
-
-        allMatches.add(match);
-        if (currentRoundList != null) {
-            currentRoundList.add(match);
-        }
-    }
-
     @Override
     public void deleteEvent(UUID id, String username) {
         Event event = eventRepository.findById(id)
@@ -328,18 +277,26 @@ public class EventServiceImpl implements EventService {
                     .mapToInt(Match::getBracketRound)
                     .max().orElse(0);
 
-            // Champion logic (Finals is maxRound, Pos 1)
+            // Champion/3rd-place logic: identify structurally via the winner/loser pointer graph
+            // instead of a (maxRound, position) convention. The final is the terminal match
+            // (nothing to advance to) that no other match's loser routes into; the 3rd-place
+            // match (if any) is the terminal match that IS a loser-edge target.
+            java.util.Set<UUID> loserEdgeTargetIds = bracketMatches.stream()
+                    .map(Match::getLoserNextMatch)
+                    .filter(m -> m != null)
+                    .map(Match::getId)
+                    .collect(Collectors.toSet());
+
             Match finalMatch = bracketMatches.stream()
-                    .filter(m -> m.getBracketRound() == maxRound && m.getBracketPosition() == 1)
+                    .filter(m -> m.getWinnerNextMatch() == null && !loserEdgeTargetIds.contains(m.getId()))
                     .findFirst().orElse(null);
 
             if (finalMatch != null && finalMatch.getWinner() != null) {
                 bracketDTO.setChampion(finalMatch.getWinner().getId());
             }
 
-            // Third place match (maxRound, Pos 2)
             Match thirdPlaceMatch = bracketMatches.stream()
-                    .filter(m -> m.getBracketRound() == maxRound && m.getBracketPosition() == 2)
+                    .filter(m -> m.getWinnerNextMatch() == null && loserEdgeTargetIds.contains(m.getId()))
                     .findFirst().orElse(null);
             if (thirdPlaceMatch != null) {
                 bracketDTO.setThirdPlaceMatch(modelMapper.map(thirdPlaceMatch, MatchDTO.class));
@@ -360,7 +317,7 @@ public class EventServiceImpl implements EventService {
 
                 // For the final round, exclude the 3rd place match from the main list
                 if (currentRound == maxRound && thirdPlaceMatch != null) {
-                    roundMatches.removeIf(m -> m.getBracketPosition() == 2);
+                    roundMatches.removeIf(m -> m.getId().equals(thirdPlaceMatch.getId()));
                 }
 
                 if (!roundMatches.isEmpty()) {

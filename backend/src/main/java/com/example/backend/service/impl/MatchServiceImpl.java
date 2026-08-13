@@ -5,6 +5,7 @@ import com.example.backend.dto.MatchDTO;
 import com.example.backend.dto.ScoreRulesDTO;
 import com.example.backend.dto.ScoreUpdateRequest;
 import com.example.backend.entity.*;
+import com.example.backend.enums.BracketSlot;
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
@@ -19,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,7 @@ public class MatchServiceImpl implements MatchService {
     private final PoolStandingRepository poolStandingRepository;
     private final PoolRepository poolRepository;
     private final EventRepository eventRepository;
+    private final BracketSlotSourceRepository bracketSlotSourceRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -239,162 +243,65 @@ public class MatchServiceImpl implements MatchService {
         if (standings.size() < 1)
             return;
 
-        Team seed1 = standings.get(0).getTeam();
-        Team seed2 = standings.size() > 1 ? standings.get(1).getTeam() : null;
-
-        Event event = pool.getEvent();
-
-        List<Pool> allPools = poolRepository.findByEventId(event.getId());
-        allPools.sort(java.util.Comparator.comparing(Pool::getName));
-
-        int poolIndex = -1;
-        for (int i = 0; i < allPools.size(); i++) {
-            if (allPools.get(i).getId().equals(pool.getId())) {
-                poolIndex = i;
-                break;
-            }
+        seedBracketSlot(pool, 1, standings.get(0).getTeam());
+        if (standings.size() > 1) {
+            seedBracketSlot(pool, 2, standings.get(1).getTeam());
         }
+    }
 
-        if (poolIndex == -1) {
-            System.err.println("Could not find pool index for pool: " + pool.getName());
-            return;
-        }
-
-        int totalPools = allPools.size();
-
-        List<Match> bracketMatches = matchRepository.findByEventId(event.getId()).stream()
-                .filter(m -> m.getMatchType() == MatchType.BRACKET)
-                .toList();
-
-        if (totalPools == 1) {
-            Match finalMatch = bracketMatches.stream()
-                    .filter(m -> m.getBracketRound() == 1 && m.getBracketPosition() == 1)
-                    .findFirst().orElse(null);
-
-            if (finalMatch != null) {
-                finalMatch.setTeam1(seed1);
-                if (seed2 != null)
-                    finalMatch.setTeam2(seed2);
-
-                finalMatch.setStatus(MatchStatus.PENDING);
-                matchRepository.save(finalMatch);
+    private void seedBracketSlot(Pool pool, int sourceRank, Team seedTeam) {
+        List<BracketSlotSource> sources = bracketSlotSourceRepository
+                .findBySourcePoolIdAndSourceRank(pool.getId(), sourceRank);
+        for (BracketSlotSource source : sources) {
+            Match match = source.getBracketMatch();
+            if (source.getSlot() == BracketSlot.TEAM1) {
+                match.setTeam1(seedTeam);
+            } else {
+                match.setTeam2(seedTeam);
             }
-        } else {
-            int matchPosForSeed1 = poolIndex + 1;
-            Match match1 = bracketMatches.stream()
-                    .filter(m -> m.getBracketRound() == 1 && m.getBracketPosition() == matchPosForSeed1)
-                    .findFirst().orElse(null);
-
-            if (match1 != null) {
-                match1.setTeam1(seed1);
-                matchRepository.save(match1);
-            }
-
-            int matchIndexForSeed2 = (poolIndex - 1 + totalPools) % totalPools;
-            int matchPosForSeed2 = matchIndexForSeed2 + 1;
-
-            Match match2 = bracketMatches.stream()
-                    .filter(m -> m.getBracketRound() == 1 && m.getBracketPosition() == matchPosForSeed2)
-                    .findFirst().orElse(null);
-
-            if (match2 != null && seed2 != null) {
-                match2.setTeam2(seed2);
-                matchRepository.save(match2);
-            }
+            matchRepository.save(match);
         }
     }
 
     private void advanceInBracket(Match match) {
-        if (match.getWinner() == null || match.getBracketRound() == null || match.getBracketPosition() == null)
-            return;
-
-        int currentRound = match.getBracketRound();
-        int currentPos = match.getBracketPosition();
-
-        int nextRound = currentRound + 1;
-        int nextPos = (currentPos + 1) / 2;
-
-        List<Match> allEliminationMatches = matchRepository.findByEventId(match.getEvent().getId())
-                .stream()
-                .filter(m -> m.getMatchType() == MatchType.BRACKET)
-                .toList();
-
-        Match nextMatch = allEliminationMatches.stream()
-                .filter(m -> m.getBracketRound() != null &&
-                        m.getBracketRound() == nextRound &&
-                        m.getBracketPosition() != null &&
-                        m.getBracketPosition() == nextPos)
-                .findFirst()
-                .orElse(null);
-
-        if (nextMatch != null) {
-            if (currentPos % 2 != 0) { // Odd position -> Team 1
-                nextMatch.setTeam1(match.getWinner());
-
-                long currentRoundMatchCount = allEliminationMatches.stream()
-                        .filter(m -> m.getBracketRound() != null && m.getBracketRound() == currentRound)
-                        .count();
-
-                // If there is no opponent match (currentPos == count), it's a bye
-                if (currentPos == currentRoundMatchCount) {
-                    nextMatch.setTeam2Score(0);
-                    nextMatch.setTeam1Score(0);
-                    nextMatch.setWinner(match.getWinner()); // Auto-win
-                    nextMatch.setStatus(MatchStatus.COMPLETED);
-
-                    matchRepository.save(nextMatch);
-
-                    advanceInBracket(nextMatch);
-                    return;
-                }
-
-            } else { // Even position -> Team 2
-                nextMatch.setTeam2(match.getWinner());
-            }
-            matchRepository.save(nextMatch);
-        }
-
-        populateThirdPlaceMatch(match, allEliminationMatches);
-    }
-
-    private void populateThirdPlaceMatch(Match match, List<Match> allEliminationMatches) {
         if (match.getWinner() == null)
             return;
 
-        int currentRound = match.getBracketRound();
+        route(match.getWinnerNextMatch(), match.getWinnerNextSlot(), match.getWinner(), true);
+        route(match.getLoserNextMatch(), match.getLoserNextSlot(), computeLoser(match), false);
+    }
 
-        int maxRound = allEliminationMatches.stream()
-                .filter(m -> m.getBracketRound() != null)
-                .mapToInt(Match::getBracketRound)
-                .max().orElse(0);
-
-        // This match must be in the round just before the Finals (Semifinals)
-        if (currentRound != maxRound - 1)
-            return;
-
-        Match thirdPlaceMatch = allEliminationMatches.stream()
-                .filter(m -> m.getBracketRound() != null &&
-                        m.getBracketRound() == maxRound &&
-                        m.getBracketPosition() != null &&
-                        m.getBracketPosition() == 2)
-                .findFirst().orElse(null);
-
-        if (thirdPlaceMatch == null)
-            return;
-
-        Team loser = match.getTeam1().getId().equals(match.getWinner().getId())
+    private Team computeLoser(Match match) {
+        return match.getTeam1().getId().equals(match.getWinner().getId())
                 ? match.getTeam2()
                 : match.getTeam1();
+    }
 
-        if (loser == null)
+    private void route(Match targetMatch, BracketSlot slot, Team team, boolean checkForBye) {
+        if (targetMatch == null || slot == null || team == null)
             return;
 
-        if (thirdPlaceMatch.getTeam1() == null) {
-            thirdPlaceMatch.setTeam1(loser);
-        } else if (thirdPlaceMatch.getTeam2() == null) {
-            thirdPlaceMatch.setTeam2(loser);
+        if (slot == BracketSlot.TEAM1) {
+            targetMatch.setTeam1(team);
+        } else {
+            targetMatch.setTeam2(team);
         }
-        matchRepository.save(thirdPlaceMatch);
+        matchRepository.save(targetMatch);
+
+        if (!checkForBye)
+            return;
+
+        // Structural bye: if no other match's winner edge also targets this match, there's no
+        // real opponent coming - auto-complete now and cascade.
+        List<Match> winnerSources = matchRepository.findByWinnerNextMatch_Id(targetMatch.getId());
+        if (winnerSources.size() == 1) {
+            targetMatch.setTeam1Score(0);
+            targetMatch.setTeam2Score(0);
+            targetMatch.setWinner(team);
+            targetMatch.setStatus(MatchStatus.COMPLETED);
+            matchRepository.save(targetMatch);
+            advanceInBracket(targetMatch);
+        }
     }
 
     private void updateEventStatus(Event event) {
@@ -416,15 +323,17 @@ public class MatchServiceImpl implements MatchService {
                     .filter(m -> m.getMatchType() == MatchType.BRACKET)
                     .toList();
 
-            int maxRound = eliminationMatches.stream()
-                    .filter(m -> m.getBracketRound() != null)
-                    .mapToInt(Match::getBracketRound)
-                    .max().orElse(0);
+            // Exclude the 3rd place match (optional) from the completion check: the terminal
+            // match (nothing to advance to) that is a loser-edge target, same structural rule
+            // used to identify it for display.
+            Set<UUID> loserEdgeTargetIds = eliminationMatches.stream()
+                    .map(Match::getLoserNextMatch)
+                    .filter(m -> m != null)
+                    .map(Match::getId)
+                    .collect(Collectors.toSet());
 
-            // Exclude the 3rd place match (optional) from the completion check
             boolean allComplete = eliminationMatches.stream()
-                    .filter(m -> !(m.getBracketRound() != null && m.getBracketRound() == maxRound
-                            && m.getBracketPosition() != null && m.getBracketPosition() == 2))
+                    .filter(m -> !(m.getWinnerNextMatch() == null && loserEdgeTargetIds.contains(m.getId())))
                     .allMatch(m -> m.getStatus().isFinished());
 
             if (allComplete && !eliminationMatches.isEmpty()) {

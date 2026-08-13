@@ -1,5 +1,6 @@
 package com.example.backend.entity;
 
+import com.example.backend.enums.BracketSlot;
 import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;
 import jakarta.persistence.*;
@@ -42,6 +43,22 @@ public class Match {
 
     @Column(name = "bracket_position")
     private Integer bracketPosition;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "winner_next_match_id")
+    private Match winnerNextMatch;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "winner_next_slot")
+    private BracketSlot winnerNextSlot;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loser_next_match_id")
+    private Match loserNextMatch;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "loser_next_slot")
+    private BracketSlot loserNextSlot;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team1_id")

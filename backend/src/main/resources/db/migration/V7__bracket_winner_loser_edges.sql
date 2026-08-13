@@ -1,0 +1,4 @@
+ALTER TABLE matches ADD COLUMN winner_next_match_id UUID REFERENCES matches(id) DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE matches ADD COLUMN winner_next_slot VARCHAR(8);
+ALTER TABLE matches ADD COLUMN loser_next_match_id UUID REFERENCES matches(id) DEFERRABLE INITIALLY DEFERRED;
+ALTER TABLE matches ADD COLUMN loser_next_slot VARCHAR(8);

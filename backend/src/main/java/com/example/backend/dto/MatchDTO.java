@@ -12,6 +12,10 @@ public class MatchDTO {
     private Integer roundNumber;
     private Integer bracketRound;
     private Integer bracketPosition;
+    private UUID winnerNextMatchId;
+    private String winnerNextSlot;
+    private UUID loserNextMatchId;
+    private String loserNextSlot;
     private UUID team1Id;
     private UUID team2Id;
     private Integer team1Score;

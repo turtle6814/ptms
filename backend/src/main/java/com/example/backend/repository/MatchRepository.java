@@ -12,4 +12,6 @@ public interface MatchRepository extends JpaRepository<Match, UUID> {
     List<Match> findByEventId(UUID eventId);
 
     List<Match> findByPoolId(UUID poolId);
+
+    List<Match> findByWinnerNextMatch_Id(UUID matchId);
 }
