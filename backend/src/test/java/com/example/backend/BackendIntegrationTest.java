@@ -174,4 +174,27 @@ class BackendIntegrationTest {
                 .andExpect(jsonPath("$.data.format").value("ROUND_ROBIN_ONLY"))
                 .andExpect(jsonPath("$.data.eliminationBracket").doesNotExist());
     }
+
+    @Test
+    @Order(7)
+    void testDuplicateTeamNameInSameEventIsRejected() throws Exception {
+        PoolConfigDTO poolA = new PoolConfigDTO();
+        poolA.setName("Dup Pool A");
+        poolA.setTeamNames(List.of("Dup Team"));
+
+        PoolConfigDTO poolB = new PoolConfigDTO();
+        poolB.setName("Dup Pool B");
+        poolB.setTeamNames(List.of("dup team"));
+
+        CreateEventRequest request = new CreateEventRequest();
+        request.setName("Duplicate Team Name Event");
+        request.setTournamentId(tournamentId);
+        request.setPools(List.of(poolA, poolB));
+
+        mockMvc.perform(post("/api/v1/events")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
 }
