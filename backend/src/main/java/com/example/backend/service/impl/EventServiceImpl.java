@@ -1,6 +1,7 @@
 package com.example.backend.service.impl;
 
 import com.example.backend.utils.BracketGenerator;
+import com.example.backend.utils.StandingsCalculator;
 import com.example.backend.dto.*;
 import com.example.backend.entity.*;
 import com.example.backend.enums.EventFormat;
@@ -29,7 +30,6 @@ public class EventServiceImpl implements EventService {
     private final PoolRepository poolRepository;
     private final TeamRepository teamRepository;
     private final MatchRepository matchRepository;
-    private final PoolStandingRepository poolStandingRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -95,10 +95,9 @@ public class EventServiceImpl implements EventService {
         ScoreRulesDTO poolRules = resolveRules(request.getPoolStageRules(), 11, true, 15);
         ScoreRulesDTO playoffRules = resolveRules(request.getPlayoffStageRules(), 15, true, 21);
 
-        // Now generate matches and standings
+        // Now generate matches
         for (Pool pool : savedEvent.getPools()) {
             generateRoundRobinMatches(pool, savedEvent, allMatches, poolRules);
-            initializeStandings(pool);
         }
 
         // Generate placeholder elimination bracket (Semis and Finals), unless the event skips
@@ -188,20 +187,6 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private void initializeStandings(Pool pool) {
-        for (Team team : teamsInPool(pool)) {
-            PoolStanding standing = new PoolStanding();
-            standing.setPool(pool);
-            standing.setTeam(team);
-            standing.setWins(0);
-            standing.setLosses(0);
-            standing.setPointsFor(0);
-            standing.setPointsAgainst(0);
-            standing.setPointDifferential(0);
-            poolStandingRepository.save(standing);
-        }
-    }
-
     @Override
     public void deleteEvent(UUID id, String username) {
         Event event = eventRepository.findById(id)
@@ -247,16 +232,8 @@ public class EventServiceImpl implements EventService {
                                     .thenComparing(MatchDTO::getId));
                         }
 
-                        // Sort Standings: Wins (desc), PointDiff (desc), PointsFor (desc)
-                        if (poolDTO.getStandings() != null) {
-                            poolDTO.getStandings().sort((s1, s2) -> {
-                                if (s2.getWins() != s1.getWins())
-                                    return s2.getWins() - s1.getWins();
-                                if (s2.getPointDifferential() != s1.getPointDifferential())
-                                    return s2.getPointDifferential() - s1.getPointDifferential();
-                                return s2.getPointsFor() - s1.getPointsFor();
-                            });
-                        }
+                        poolDTO.setStandings(StandingsCalculator.compute(
+                                teamsInPool(pool), matchRepository.findByPoolId(pool.getId())));
                         break;
                     }
                 }

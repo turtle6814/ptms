@@ -2,6 +2,7 @@ package com.example.backend.service.impl;
 
 import com.example.backend.dto.ForfeitRequest;
 import com.example.backend.dto.MatchDTO;
+import com.example.backend.dto.PoolStandingDTO;
 import com.example.backend.dto.ScoreRulesDTO;
 import com.example.backend.dto.ScoreUpdateRequest;
 import com.example.backend.entity.*;
@@ -13,6 +14,7 @@ import com.example.backend.enums.MatchType;
 import com.example.backend.exception.ValidationException;
 import com.example.backend.repository.*;
 import com.example.backend.service.MatchService;
+import com.example.backend.utils.StandingsCalculator;
 import com.example.backend.validation.ScoreRules;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -29,7 +31,6 @@ import java.util.stream.Collectors;
 public class MatchServiceImpl implements MatchService {
 
     private final MatchRepository matchRepository;
-    private final PoolStandingRepository poolStandingRepository;
     private final PoolRepository poolRepository;
     private final EventRepository eventRepository;
     private final BracketSlotSourceRepository bracketSlotSourceRepository;
@@ -123,7 +124,6 @@ public class MatchServiceImpl implements MatchService {
     private void advanceTournamentState(Match match) {
         try {
             if (match.getMatchType() == MatchType.POOL) {
-                updatePoolStandings(match);
                 checkAndAdvancePoolWinners(match.getPool());
             } else if (match.getMatchType() == MatchType.BRACKET) {
                 advanceInBracket(match);
@@ -147,77 +147,6 @@ public class MatchServiceImpl implements MatchService {
         }
     }
 
-    private void updatePoolStandings(Match match) {
-        Pool pool = match.getPool();
-        // Recalculate ALL standings for this pool from scratch to ensure mathematical
-        // correctness and avoid incremental drift.
-
-        List<Match> poolMatches = matchRepository.findByPoolId(pool.getId());
-        List<PoolStanding> standings = poolStandingRepository.findByPoolId(pool.getId());
-
-        for (PoolStanding standing : standings) {
-            standing.setWins(0);
-            standing.setLosses(0);
-            standing.setPointsFor(0);
-            standing.setPointsAgainst(0);
-            standing.setPointDifferential(0);
-        }
-
-        for (Match m : poolMatches) {
-            if (m.getStatus().isFinished() && m.getTeam1() != null && m.getTeam2() != null) {
-                if (m.getStatus() == MatchStatus.FORFEIT || m.getStatus() == MatchStatus.WALKOVER) {
-                    if (m.getWinner() != null) {
-                        UUID loserId = m.getWinner().getId().equals(m.getTeam1().getId())
-                                ? m.getTeam2().getId()
-                                : m.getTeam1().getId();
-                        updateStandingWinLossOnly(standings, m.getWinner().getId(), true);
-                        updateStandingWinLossOnly(standings, loserId, false);
-                    }
-                } else {
-                    int s1 = m.getTeam1Score() != null ? m.getTeam1Score() : 0;
-                    int s2 = m.getTeam2Score() != null ? m.getTeam2Score() : 0;
-
-                    updateStandingFromScratch(standings, m.getTeam1().getId(), s1, s2);
-                    updateStandingFromScratch(standings, m.getTeam2().getId(), s2, s1);
-                }
-            }
-        }
-
-        poolStandingRepository.saveAll(standings);
-    }
-
-    private void updateStandingFromScratch(List<PoolStanding> standings, UUID teamId, int scored, int allowed) {
-        PoolStanding s = standings.stream()
-                .filter(ps -> ps.getTeam().getId().equals(teamId))
-                .findFirst().orElse(null);
-
-        if (s != null) {
-            s.setPointsFor(s.getPointsFor() + scored);
-            s.setPointsAgainst(s.getPointsAgainst() + allowed);
-            s.setPointDifferential(s.getPointsFor() - s.getPointsAgainst());
-
-            if (scored > allowed) {
-                s.setWins(s.getWins() + 1);
-            } else if (scored < allowed) {
-                s.setLosses(s.getLosses() + 1);
-            }
-        }
-    }
-
-    private void updateStandingWinLossOnly(List<PoolStanding> standings, UUID teamId, boolean won) {
-        PoolStanding s = standings.stream()
-                .filter(ps -> ps.getTeam().getId().equals(teamId))
-                .findFirst().orElse(null);
-
-        if (s != null) {
-            if (won) {
-                s.setWins(s.getWins() + 1);
-            } else {
-                s.setLosses(s.getLosses() + 1);
-            }
-        }
-    }
-
     private void checkAndAdvancePoolWinners(Pool pool) {
         List<Match> poolMatches = matchRepository.findByPoolId(pool.getId());
 
@@ -230,23 +159,24 @@ public class MatchServiceImpl implements MatchService {
         pool.setComplete(true);
         poolRepository.save(pool);
 
-        List<PoolStanding> standings = poolStandingRepository.findByPoolId(pool.getId());
+        List<Team> teams = teamsInPool(pool);
+        List<PoolStandingDTO> standings = StandingsCalculator.compute(teams, poolMatches);
 
-        standings.sort((s1, s2) -> {
-            if (s2.getWins() != s1.getWins())
-                return s2.getWins() - s1.getWins();
-            if (s2.getPointDifferential() != s1.getPointDifferential())
-                return s2.getPointDifferential() - s1.getPointDifferential();
-            return s2.getPointsFor() - s1.getPointsFor();
-        });
-
-        if (standings.size() < 1)
+        if (standings.isEmpty())
             return;
 
-        seedBracketSlot(pool, 1, standings.get(0).getTeam());
+        seedBracketSlot(pool, 1, resolveTeam(teams, standings.get(0).getTeamId()));
         if (standings.size() > 1) {
-            seedBracketSlot(pool, 2, standings.get(1).getTeam());
+            seedBracketSlot(pool, 2, resolveTeam(teams, standings.get(1).getTeamId()));
         }
+    }
+
+    private List<Team> teamsInPool(Pool pool) {
+        return pool.getPoolEntries().stream().map(PoolEntry::getTeam).toList();
+    }
+
+    private Team resolveTeam(List<Team> teams, UUID teamId) {
+        return teams.stream().filter(t -> t.getId().equals(teamId)).findFirst().orElse(null);
     }
 
     private void seedBracketSlot(Pool pool, int sourceRank, Team seedTeam) {
