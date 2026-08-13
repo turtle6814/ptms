@@ -58,7 +58,9 @@ public final class StandingsCalculator {
                 return s2.getWins() - s1.getWins();
             if (s2.getPointDifferential() != s1.getPointDifferential())
                 return s2.getPointDifferential() - s1.getPointDifferential();
-            return s2.getPointsFor() - s1.getPointsFor();
+            if (s2.getPointsFor() != s1.getPointsFor())
+                return s2.getPointsFor() - s1.getPointsFor();
+            return s1.getTeamName().compareTo(s2.getTeamName());
         });
         return standings;
     }

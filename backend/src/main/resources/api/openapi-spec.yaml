@@ -910,7 +910,6 @@ paths:
         1. Create all teams from the pool configuration
         2. Generate round-robin matches for each pool
         3. Create an elimination bracket structure (with placeholder matches)
-        4. Set initial standings for each pool
       operationId: createTournament
       security:
         - bearerAuth: []

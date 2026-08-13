@@ -176,7 +176,7 @@ public class MatchServiceImpl implements MatchService {
     }
 
     private Team resolveTeam(List<Team> teams, UUID teamId) {
-        return teams.stream().filter(t -> t.getId().equals(teamId)).findFirst().orElse(null);
+        return teams.stream().filter(t -> t.getId().equals(teamId)).findFirst().orElseThrow();
     }
 
     private void seedBracketSlot(Pool pool, int sourceRank, Team seedTeam) {

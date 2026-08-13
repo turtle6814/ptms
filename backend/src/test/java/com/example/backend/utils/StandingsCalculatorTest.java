@@ -102,6 +102,41 @@ class StandingsCalculatorTest {
     }
 
     @Test
+    void sortsByPointsForWhenWinsAndDifferentialTie() {
+        Team a = team("A");
+        Team b = team("B");
+        Team c = team("C");
+        Team d = team("D");
+        Team e = team("E");
+        Team f = team("F");
+
+        // a: beats c 15-5, loses to d 5-15 -> 1W-1L, diff 0, pointsFor 20
+        // b: beats e 11-1, loses to f 1-11 -> 1W-1L, diff 0, pointsFor 12
+        // c/d/e/f only ever play against a or b, never each other, so their
+        // own records don't interact with a's or b's.
+        List<Match> matches = List.of(
+                completedMatch(a, c, 15, 5),
+                completedMatch(d, a, 15, 5),
+                completedMatch(b, e, 11, 1),
+                completedMatch(f, b, 11, 1));
+
+        List<PoolStandingDTO> standings = StandingsCalculator.compute(List.of(a, b, c, d, e, f), matches);
+
+        PoolStandingDTO aStanding = standingFor(standings, a);
+        PoolStandingDTO bStanding = standingFor(standings, b);
+        assertEquals(1, aStanding.getWins());
+        assertEquals(0, aStanding.getPointDifferential());
+        assertEquals(20, aStanding.getPointsFor());
+        assertEquals(1, bStanding.getWins());
+        assertEquals(0, bStanding.getPointDifferential());
+        assertEquals(12, bStanding.getPointsFor());
+
+        int aIndex = standings.indexOf(aStanding);
+        int bIndex = standings.indexOf(bStanding);
+        assertEquals(true, aIndex < bIndex);
+    }
+
+    @Test
     void unfinishedAndIncompleteMatchesAreIgnored() {
         Team a = team("A");
         Team b = team("B");
