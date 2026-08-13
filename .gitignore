@@ -12,3 +12,6 @@ testsprite_out.log
 # Local secrets
 .env
 .env.local
+
+# Superpowers planning docs (not pushed)
+docs/
