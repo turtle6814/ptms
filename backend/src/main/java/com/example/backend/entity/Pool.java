@@ -32,9 +32,6 @@ public class Pool {
     @OneToMany(mappedBy = "pool", cascade = CascadeType.ALL)
     private List<Match> matches = new ArrayList<>();
 
-    @OneToMany(mappedBy = "pool", cascade = CascadeType.ALL)
-    private List<PoolStanding> standings = new ArrayList<>();
-
     @OneToMany(mappedBy = "sourcePool", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BracketSlotSource> bracketSlotSources = new ArrayList<>();
 
