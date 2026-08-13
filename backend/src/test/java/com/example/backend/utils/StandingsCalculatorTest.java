@@ -1,8 +1,8 @@
 package com.example.backend.utils;
 
-import com.example.backend.entity.Match;
 import com.example.backend.event.dto.PoolStandingDTO;
 import com.example.backend.event.entity.Team;
+import com.example.backend.match.entity.Match;
 import com.example.backend.enums.MatchStatus;
 import org.junit.jupiter.api.Test;
 

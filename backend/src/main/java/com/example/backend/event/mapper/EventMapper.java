@@ -1,7 +1,5 @@
 package com.example.backend.event.mapper;
 
-import com.example.backend.dto.MatchDTO;
-import com.example.backend.entity.Match;
 import com.example.backend.enums.MatchType;
 import com.example.backend.event.dto.BracketRoundDTO;
 import com.example.backend.event.dto.EliminationBracketDTO;
@@ -11,7 +9,9 @@ import com.example.backend.event.entity.Event;
 import com.example.backend.event.entity.Pool;
 import com.example.backend.event.entity.PoolEntry;
 import com.example.backend.event.entity.Team;
-import com.example.backend.repository.MatchRepository;
+import com.example.backend.match.dto.MatchDTO;
+import com.example.backend.match.entity.Match;
+import com.example.backend.match.repository.MatchRepository;
 import com.example.backend.utils.StandingsCalculator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;

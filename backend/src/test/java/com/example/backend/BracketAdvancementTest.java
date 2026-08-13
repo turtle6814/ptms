@@ -4,7 +4,7 @@ import com.example.backend.auth.dto.AuthDtos.SignupRequest;
 import com.example.backend.event.dto.CreateEventRequest;
 import com.example.backend.tournament.dto.CreateTournamentRequest;
 import com.example.backend.event.dto.PoolConfigDTO;
-import com.example.backend.dto.ScoreUpdateRequest;
+import com.example.backend.match.dto.ScoreUpdateRequest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;

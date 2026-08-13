@@ -1,6 +1,6 @@
-package com.example.backend.repository;
+package com.example.backend.match.repository;
 
-import com.example.backend.entity.BracketSlotSource;
+import com.example.backend.match.entity.BracketSlotSource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

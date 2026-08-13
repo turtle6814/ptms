@@ -1,7 +1,7 @@
 package com.example.backend.event.entity;
 
-import com.example.backend.entity.BracketSlotSource;
-import com.example.backend.entity.Match;
+import com.example.backend.match.entity.BracketSlotSource;
+import com.example.backend.match.entity.Match;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,12 +1,12 @@
-package com.example.backend.controller;
+package com.example.backend.match.controller;
 
 import com.example.backend.dto.ApiResponse;
-import com.example.backend.dto.ForfeitRequest;
-import com.example.backend.dto.MatchDTO;
-import com.example.backend.dto.ScoreRulesDTO;
-import com.example.backend.dto.ScoreUpdateRequest;
 import com.example.backend.event.service.EventService;
-import com.example.backend.service.MatchService;
+import com.example.backend.match.dto.ForfeitRequest;
+import com.example.backend.match.dto.MatchDTO;
+import com.example.backend.match.dto.ScoreRulesDTO;
+import com.example.backend.match.dto.ScoreUpdateRequest;
+import com.example.backend.match.service.MatchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

@@ -1,9 +1,9 @@
-package com.example.backend.service;
+package com.example.backend.match.service;
 
-import com.example.backend.dto.ForfeitRequest;
-import com.example.backend.dto.MatchDTO;
-import com.example.backend.dto.ScoreRulesDTO;
-import com.example.backend.dto.ScoreUpdateRequest;
+import com.example.backend.match.dto.ForfeitRequest;
+import com.example.backend.match.dto.MatchDTO;
+import com.example.backend.match.dto.ScoreRulesDTO;
+import com.example.backend.match.dto.ScoreUpdateRequest;
 
 import java.util.UUID;
 

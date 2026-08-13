@@ -1,11 +1,5 @@
-package com.example.backend.service.impl;
+package com.example.backend.match.service.impl;
 
-import com.example.backend.dto.ForfeitRequest;
-import com.example.backend.dto.MatchDTO;
-import com.example.backend.dto.ScoreRulesDTO;
-import com.example.backend.dto.ScoreUpdateRequest;
-import com.example.backend.entity.BracketSlotSource;
-import com.example.backend.entity.Match;
 import com.example.backend.enums.BracketSlot;
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
@@ -19,14 +13,20 @@ import com.example.backend.event.entity.Team;
 import com.example.backend.event.repository.EventRepository;
 import com.example.backend.event.repository.PoolRepository;
 import com.example.backend.exception.ValidationException;
-import com.example.backend.repository.BracketSlotSourceRepository;
-import com.example.backend.repository.MatchRepository;
-import com.example.backend.service.MatchService;
+import com.example.backend.match.dto.ForfeitRequest;
+import com.example.backend.match.dto.MatchDTO;
+import com.example.backend.match.dto.ScoreRulesDTO;
+import com.example.backend.match.dto.ScoreUpdateRequest;
+import com.example.backend.match.entity.BracketSlotSource;
+import com.example.backend.match.entity.Match;
+import com.example.backend.match.mapper.MatchMapper;
+import com.example.backend.match.repository.BracketSlotSourceRepository;
+import com.example.backend.match.repository.MatchRepository;
+import com.example.backend.match.service.MatchService;
 import com.example.backend.tournament.entity.Tournament;
 import com.example.backend.utils.StandingsCalculator;
 import com.example.backend.validation.ScoreRules;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +43,7 @@ public class MatchServiceImpl implements MatchService {
     private final PoolRepository poolRepository;
     private final EventRepository eventRepository;
     private final BracketSlotSourceRepository bracketSlotSourceRepository;
-    private final ModelMapper modelMapper;
+    private final MatchMapper matchMapper;
 
     @Override
     @Transactional
@@ -66,7 +66,7 @@ public class MatchServiceImpl implements MatchService {
         matchRepository.saveAndFlush(match);
         advanceTournamentState(match);
 
-        return modelMapper.map(match, MatchDTO.class);
+        return matchMapper.toDto(match);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class MatchServiceImpl implements MatchService {
         }
 
         matchRepository.save(match);
-        return modelMapper.map(match, MatchDTO.class);
+        return matchMapper.toDto(match);
     }
 
     @Override
@@ -127,7 +127,7 @@ public class MatchServiceImpl implements MatchService {
         matchRepository.saveAndFlush(match);
         advanceTournamentState(match);
 
-        return modelMapper.map(match, MatchDTO.class);
+        return matchMapper.toDto(match);
     }
 
     private void advanceTournamentState(Match match) {

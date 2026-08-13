@@ -1,8 +1,5 @@
 package com.example.backend.event.service.impl;
 
-import com.example.backend.dto.ScoreRulesDTO;
-import com.example.backend.entity.BracketSlotSource;
-import com.example.backend.entity.Match;
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
@@ -19,7 +16,10 @@ import com.example.backend.event.repository.EventRepository;
 import com.example.backend.event.repository.PoolRepository;
 import com.example.backend.event.repository.TeamRepository;
 import com.example.backend.event.service.EventService;
-import com.example.backend.repository.MatchRepository;
+import com.example.backend.match.dto.ScoreRulesDTO;
+import com.example.backend.match.entity.BracketSlotSource;
+import com.example.backend.match.entity.Match;
+import com.example.backend.match.repository.MatchRepository;
 import com.example.backend.tournament.entity.Tournament;
 import com.example.backend.tournament.repository.TournamentRepository;
 import com.example.backend.user.entity.User;

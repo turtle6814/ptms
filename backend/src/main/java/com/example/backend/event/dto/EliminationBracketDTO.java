@@ -1,6 +1,6 @@
 package com.example.backend.event.dto;
 
-import com.example.backend.dto.MatchDTO;
+import com.example.backend.match.dto.MatchDTO;
 import lombok.Data;
 import java.util.List;
 import java.util.UUID;

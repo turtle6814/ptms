@@ -1,10 +1,10 @@
 package com.example.backend.utils;
 
-import com.example.backend.dto.ScoreRulesDTO;
-import com.example.backend.entity.BracketSlotSource;
-import com.example.backend.entity.Match;
 import com.example.backend.event.entity.Event;
 import com.example.backend.event.entity.Pool;
+import com.example.backend.match.dto.ScoreRulesDTO;
+import com.example.backend.match.entity.BracketSlotSource;
+import com.example.backend.match.entity.Match;
 import com.example.backend.enums.BracketSlot;
 import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;

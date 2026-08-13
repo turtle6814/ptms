@@ -1,6 +1,6 @@
 package com.example.backend.validation;
 
-import com.example.backend.entity.Match;
+import com.example.backend.match.entity.Match;
 import com.example.backend.exception.ValidationException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;

@@ -1,4 +1,4 @@
-package com.example.backend.entity;
+package com.example.backend.match.entity;
 
 import com.example.backend.enums.BracketSlot;
 import com.example.backend.event.entity.Pool;

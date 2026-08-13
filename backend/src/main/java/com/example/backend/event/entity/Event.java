@@ -1,8 +1,8 @@
 package com.example.backend.event.entity;
 
-import com.example.backend.entity.Match;
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
+import com.example.backend.match.entity.Match;
 import com.example.backend.tournament.entity.Tournament;
 import jakarta.persistence.*;
 import lombok.*;
