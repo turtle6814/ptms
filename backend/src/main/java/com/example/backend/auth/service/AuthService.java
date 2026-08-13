@@ -1,6 +1,6 @@
-package com.example.backend.service;
+package com.example.backend.auth.service;
 
-import com.example.backend.dto.AuthDtos.*;
+import com.example.backend.auth.dto.AuthDtos.*;
 import com.example.backend.user.dto.UserDTO;
 
 public interface AuthService {

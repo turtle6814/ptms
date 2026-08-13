@@ -1,6 +1,6 @@
 package com.example.backend;
 
-import com.example.backend.dto.AuthDtos.SignupRequest;
+import com.example.backend.auth.dto.AuthDtos.SignupRequest;
 import com.example.backend.dto.CreateEventRequest;
 import com.example.backend.dto.CreateTournamentRequest;
 import com.example.backend.dto.PoolConfigDTO;

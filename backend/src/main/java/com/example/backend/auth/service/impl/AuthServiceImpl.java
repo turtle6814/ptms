@@ -1,8 +1,8 @@
-package com.example.backend.service.impl;
+package com.example.backend.auth.service.impl;
 
-import com.example.backend.dto.AuthDtos.*;
+import com.example.backend.auth.dto.AuthDtos.*;
+import com.example.backend.auth.service.AuthService;
 import com.example.backend.security.JwtUtils;
-import com.example.backend.service.AuthService;
 import com.example.backend.user.dto.UserDTO;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.mapper.UserMapper;
