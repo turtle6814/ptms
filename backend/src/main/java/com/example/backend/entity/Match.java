@@ -1,6 +1,7 @@
 package com.example.backend.entity;
 
 import com.example.backend.enums.MatchStatus;
+import com.example.backend.enums.MatchType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -28,6 +29,13 @@ public class Match {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pool_id")
     private Pool pool;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "match_type", nullable = false)
+    private MatchType matchType = MatchType.POOL;
+
+    @Column(name = "round_number")
+    private Integer roundNumber;
 
     @Column(name = "bracket_round")
     private Integer bracketRound;

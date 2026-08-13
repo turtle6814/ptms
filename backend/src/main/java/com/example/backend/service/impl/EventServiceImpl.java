@@ -5,6 +5,7 @@ import com.example.backend.entity.*;
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
+import com.example.backend.enums.MatchType;
 import com.example.backend.repository.*;
 import com.example.backend.service.EventService;
 import lombok.RequiredArgsConstructor;
@@ -69,16 +70,19 @@ public class EventServiceImpl implements EventService {
             pool.setName(poolConfig.getName());
             pool.setEvent(event);
 
-            List<Team> poolTeams = new ArrayList<>();
+            List<PoolEntry> poolEntries = new ArrayList<>();
             for (String teamName : poolConfig.getTeamNames()) {
                 Team team = new Team();
                 team.setName(teamName);
                 team.setEvent(event);
-                team.setPool(pool);
-                poolTeams.add(team);
                 allTeams.add(team);
+
+                PoolEntry entry = new PoolEntry();
+                entry.setPool(pool);
+                entry.setTeam(team);
+                poolEntries.add(entry);
             }
-            pool.setTeams(poolTeams);
+            pool.setPoolEntries(poolEntries);
             pools.add(pool);
         }
 
@@ -126,8 +130,12 @@ public class EventServiceImpl implements EventService {
         match.setScoreCap(rules.getScoreCap());
     }
 
+    private List<Team> teamsInPool(Pool pool) {
+        return pool.getPoolEntries().stream().map(PoolEntry::getTeam).collect(Collectors.toList());
+    }
+
     private void generateRoundRobinMatches(Pool pool, Event event, List<Match> allMatches, ScoreRulesDTO rules) {
-        List<Team> teams = new ArrayList<>(pool.getTeams());
+        List<Team> teams = new ArrayList<>(teamsInPool(pool));
         int n = teams.size();
 
         if (n < 2)
@@ -156,7 +164,8 @@ public class EventServiceImpl implements EventService {
                     match.setTeam1(home);
                     match.setTeam2(away);
                     match.setStatus(MatchStatus.PENDING);
-                    match.setBracketRound(round + 1); // Store round number (1-based)
+                    match.setMatchType(MatchType.POOL);
+                    match.setRoundNumber(round + 1); // Store round number (1-based)
                     stampRules(match, rules);
 
                     matchRepository.save(match);
@@ -171,7 +180,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private void initializeStandings(Pool pool) {
-        for (Team team : pool.getTeams()) {
+        for (Team team : teamsInPool(pool)) {
             PoolStanding standing = new PoolStanding();
             standing.setPool(pool);
             standing.setTeam(team);
@@ -219,6 +228,7 @@ public class EventServiceImpl implements EventService {
         if (roundNumber >= 2) {
             Match thirdPlace = new Match();
             thirdPlace.setEvent(event);
+            thirdPlace.setMatchType(MatchType.BRACKET);
             thirdPlace.setBracketRound(roundNumber); // Same round as finals
             thirdPlace.setBracketPosition(2);
             thirdPlace.setStatus(MatchStatus.PENDING);
@@ -231,6 +241,7 @@ public class EventServiceImpl implements EventService {
             List<Match> currentRoundList, ScoreRulesDTO rules) {
         Match match = new Match();
         match.setEvent(event);
+        match.setMatchType(MatchType.BRACKET);
         match.setBracketRound(round);
         match.setBracketPosition(position);
         match.setStatus(MatchStatus.PENDING);
@@ -270,8 +281,8 @@ public class EventServiceImpl implements EventService {
                 for (PoolDTO poolDTO : dto.getPools()) {
                     if (poolDTO.getId().equals(pool.getId())) {
                         // Sort Teams by CreatedAt to respect input order
-                        if (pool.getTeams() != null) {
-                            poolDTO.setTeamIds(pool.getTeams().stream()
+                        if (pool.getPoolEntries() != null) {
+                            poolDTO.setTeamIds(teamsInPool(pool).stream()
                                     .sorted(java.util.Comparator.comparing(Team::getCreatedAt,
                                             java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
                                     .map(Team::getId)
@@ -280,7 +291,7 @@ public class EventServiceImpl implements EventService {
 
                         // Sort Matches: Round (asc), then CreatedAt (asc), then ID (asc) for stability
                         if (poolDTO.getMatches() != null) {
-                            poolDTO.getMatches().sort(java.util.Comparator.comparing(MatchDTO::getBracketRound,
+                            poolDTO.getMatches().sort(java.util.Comparator.comparing(MatchDTO::getRoundNumber,
                                     java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
                                     .thenComparing(MatchDTO::getCreatedAt,
                                             java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
@@ -305,7 +316,7 @@ public class EventServiceImpl implements EventService {
 
         // Populate Elimination Bracket DTO
         List<Match> bracketMatches = event.getMatches().stream()
-                .filter(m -> m.getPool() == null && m.getBracketRound() != null)
+                .filter(m -> m.getMatchType() == MatchType.BRACKET)
                 .collect(Collectors.toList());
 
         if (!bracketMatches.isEmpty()) {

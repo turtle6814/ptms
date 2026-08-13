@@ -8,5 +8,4 @@ public class TeamDTO {
     private UUID id;
     private String name;
     private UUID eventId;
-    private UUID poolId;
 }

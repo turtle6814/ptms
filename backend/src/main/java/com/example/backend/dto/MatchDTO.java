@@ -9,6 +9,7 @@ public class MatchDTO {
     private UUID id;
     private UUID eventId;
     private UUID poolId;
+    private Integer roundNumber;
     private Integer bracketRound;
     private Integer bracketPosition;
     private UUID team1Id;

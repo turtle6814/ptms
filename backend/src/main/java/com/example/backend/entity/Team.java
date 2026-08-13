@@ -26,10 +26,6 @@ public class Team {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pool_id")
-    private Pool pool;
-
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

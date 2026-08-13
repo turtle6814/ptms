@@ -8,6 +8,7 @@ import com.example.backend.entity.*;
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
+import com.example.backend.enums.MatchType;
 import com.example.backend.exception.ValidationException;
 import com.example.backend.repository.*;
 import com.example.backend.service.MatchService;
@@ -117,10 +118,10 @@ public class MatchServiceImpl implements MatchService {
 
     private void advanceTournamentState(Match match) {
         try {
-            if (match.getPool() != null) {
+            if (match.getMatchType() == MatchType.POOL) {
                 updatePoolStandings(match);
                 checkAndAdvancePoolWinners(match.getPool());
-            } else if (match.getBracketRound() != null) {
+            } else if (match.getMatchType() == MatchType.BRACKET) {
                 advanceInBracket(match);
             }
 
@@ -262,7 +263,7 @@ public class MatchServiceImpl implements MatchService {
         int totalPools = allPools.size();
 
         List<Match> bracketMatches = matchRepository.findByEventId(event.getId()).stream()
-                .filter(m -> m.getPool() == null)
+                .filter(m -> m.getMatchType() == MatchType.BRACKET)
                 .toList();
 
         if (totalPools == 1) {
@@ -315,7 +316,7 @@ public class MatchServiceImpl implements MatchService {
 
         List<Match> allEliminationMatches = matchRepository.findByEventId(match.getEvent().getId())
                 .stream()
-                .filter(m -> m.getPool() == null)
+                .filter(m -> m.getMatchType() == MatchType.BRACKET)
                 .toList();
 
         Match nextMatch = allEliminationMatches.stream()
@@ -412,7 +413,7 @@ public class MatchServiceImpl implements MatchService {
         // 2. Check for transition to COMPLETED
         if (event.getStatus() == EventStatus.ELIMINATION) {
             List<Match> eliminationMatches = matchRepository.findByEventId(event.getId()).stream()
-                    .filter(m -> m.getPool() == null)
+                    .filter(m -> m.getMatchType() == MatchType.BRACKET)
                     .toList();
 
             int maxRound = eliminationMatches.stream()

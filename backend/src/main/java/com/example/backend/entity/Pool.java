@@ -26,8 +26,8 @@ public class Pool {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
-    @OneToMany(mappedBy = "pool", cascade = CascadeType.ALL)
-    private List<Team> teams = new ArrayList<>();
+    @OneToMany(mappedBy = "pool", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PoolEntry> poolEntries = new ArrayList<>();
 
     @OneToMany(mappedBy = "pool", cascade = CascadeType.ALL)
     private List<Match> matches = new ArrayList<>();
