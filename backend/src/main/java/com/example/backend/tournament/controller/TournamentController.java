@@ -1,7 +1,11 @@
-package com.example.backend.controller;
+package com.example.backend.tournament.controller;
 
-import com.example.backend.dto.*;
-import com.example.backend.service.TournamentService;
+import com.example.backend.dto.ApiResponse;
+import com.example.backend.dto.EventDTO;
+import com.example.backend.tournament.dto.CreateTournamentRequest;
+import com.example.backend.tournament.dto.TournamentDTO;
+import com.example.backend.tournament.dto.UpdateTournamentRequest;
+import com.example.backend.tournament.service.TournamentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

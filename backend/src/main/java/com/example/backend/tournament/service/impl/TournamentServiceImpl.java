@@ -1,10 +1,13 @@
-package com.example.backend.service.impl;
+package com.example.backend.tournament.service.impl;
 
-import com.example.backend.dto.*;
-import com.example.backend.entity.Event;
-import com.example.backend.entity.Tournament;
-import com.example.backend.repository.TournamentRepository;
-import com.example.backend.service.TournamentService;
+import com.example.backend.dto.EventDTO;
+import com.example.backend.tournament.dto.CreateTournamentRequest;
+import com.example.backend.tournament.dto.TournamentDTO;
+import com.example.backend.tournament.dto.UpdateTournamentRequest;
+import com.example.backend.tournament.entity.Tournament;
+import com.example.backend.tournament.mapper.TournamentMapper;
+import com.example.backend.tournament.repository.TournamentRepository;
+import com.example.backend.tournament.service.TournamentService;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +25,14 @@ public class TournamentServiceImpl implements TournamentService {
     private final TournamentRepository tournamentRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final TournamentMapper tournamentMapper;
 
     @Override
     public List<TournamentDTO> getAllTournaments(String username) {
         User owner = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return tournamentRepository.findByOwner(owner).stream()
-                .map(this::convertToDTO)
+                .map(tournamentMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -36,7 +40,7 @@ public class TournamentServiceImpl implements TournamentService {
     public TournamentDTO getTournamentById(UUID id) {
         Tournament tournament = tournamentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
-        return convertToDTO(tournament);
+        return tournamentMapper.toDto(tournament);
     }
 
     @Override
@@ -46,7 +50,7 @@ public class TournamentServiceImpl implements TournamentService {
         Tournament tournament = modelMapper.map(request, Tournament.class);
         tournament.setOwner(owner);
         Tournament savedTournament = tournamentRepository.save(tournament);
-        return convertToDTO(savedTournament);
+        return tournamentMapper.toDto(savedTournament);
     }
 
     @Override
@@ -65,7 +69,7 @@ public class TournamentServiceImpl implements TournamentService {
             tournament.setEndDate(request.getEndDate());
 
         Tournament updatedTournament = tournamentRepository.save(tournament);
-        return convertToDTO(updatedTournament);
+        return tournamentMapper.toDto(updatedTournament);
     }
 
     @Override
@@ -89,15 +93,5 @@ public class TournamentServiceImpl implements TournamentService {
         if (tournament.getOwner() == null || !tournament.getOwner().getUsername().equals(username)) {
             throw new RuntimeException("You do not have permission to modify this tournament");
         }
-    }
-
-    private TournamentDTO convertToDTO(Tournament tournament) {
-        TournamentDTO dto = modelMapper.map(tournament, TournamentDTO.class);
-        if (tournament.getEvents() != null) {
-            dto.setEventIds(tournament.getEvents().stream()
-                    .map(Event::getId)
-                    .collect(Collectors.toList()));
-        }
-        return dto;
     }
 }

@@ -1,4 +1,4 @@
-package com.example.backend.dto;
+package com.example.backend.tournament.dto;
 
 import lombok.Data;
 import java.time.LocalDate;

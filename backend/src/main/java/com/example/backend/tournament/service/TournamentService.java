@@ -1,6 +1,9 @@
-package com.example.backend.service;
+package com.example.backend.tournament.service;
 
-import com.example.backend.dto.*;
+import com.example.backend.dto.EventDTO;
+import com.example.backend.tournament.dto.CreateTournamentRequest;
+import com.example.backend.tournament.dto.TournamentDTO;
+import com.example.backend.tournament.dto.UpdateTournamentRequest;
 
 import java.util.List;
 import java.util.UUID;

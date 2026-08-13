@@ -1,5 +1,6 @@
-package com.example.backend.entity;
+package com.example.backend.tournament.entity;
 
+import com.example.backend.entity.Event;
 import com.example.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;

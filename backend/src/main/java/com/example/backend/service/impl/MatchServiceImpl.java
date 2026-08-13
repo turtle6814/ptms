@@ -14,6 +14,7 @@ import com.example.backend.enums.MatchType;
 import com.example.backend.exception.ValidationException;
 import com.example.backend.repository.*;
 import com.example.backend.service.MatchService;
+import com.example.backend.tournament.entity.Tournament;
 import com.example.backend.utils.StandingsCalculator;
 import com.example.backend.validation.ScoreRules;
 import lombok.RequiredArgsConstructor;

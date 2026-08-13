@@ -1,10 +1,10 @@
-package com.example.backend.dto;
+package com.example.backend.tournament.dto;
 
 import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class CreateTournamentRequest {
+public class UpdateTournamentRequest {
     private String name;
     private String description;
     private LocalDate startDate;

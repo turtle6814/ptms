@@ -2,6 +2,7 @@ package com.example.backend.entity;
 
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
+import com.example.backend.tournament.entity.Tournament;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
