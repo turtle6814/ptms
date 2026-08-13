@@ -2,8 +2,8 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.ApiResponse;
 import com.example.backend.dto.AuthDtos.*;
-import com.example.backend.dto.UserDTO;
 import com.example.backend.service.AuthService;
+import com.example.backend.user.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

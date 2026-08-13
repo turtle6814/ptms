@@ -10,6 +10,8 @@ import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;
 import com.example.backend.repository.*;
 import com.example.backend.service.EventService;
+import com.example.backend.user.entity.User;
+import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;

@@ -1,13 +1,13 @@
 package com.example.backend.service.impl;
 
 import com.example.backend.dto.AuthDtos.*;
-import com.example.backend.dto.UserDTO;
-import com.example.backend.entity.User;
-import com.example.backend.repository.UserRepository;
 import com.example.backend.security.JwtUtils;
 import com.example.backend.service.AuthService;
+import com.example.backend.user.dto.UserDTO;
+import com.example.backend.user.entity.User;
+import com.example.backend.user.mapper.UserMapper;
+import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,7 +26,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
-    private final ModelMapper modelMapper;
+    private final UserMapper userMapper;
 
     @Override
     public AuthResponse signup(SignupRequest request) {
@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
             String jwt = jwtUtils.generateJwtToken(authentication);
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+            UserDTO userDTO = userMapper.toDto(user);
 
             AuthResponse response = new AuthResponse();
             response.setToken(jwt);
@@ -113,6 +113,6 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return modelMapper.map(user, UserDTO.class);
+        return userMapper.toDto(user);
     }
 }

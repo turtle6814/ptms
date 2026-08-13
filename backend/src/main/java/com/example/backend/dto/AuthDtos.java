@@ -1,5 +1,6 @@
 package com.example.backend.dto;
 
+import com.example.backend.user.dto.UserDTO;
 import lombok.Data;
 
 public class AuthDtos {
