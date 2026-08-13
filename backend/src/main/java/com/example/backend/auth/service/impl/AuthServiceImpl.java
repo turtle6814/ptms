@@ -1,6 +1,8 @@
 package com.example.backend.auth.service.impl;
 
-import com.example.backend.auth.dto.AuthDtos.*;
+import com.example.backend.auth.dto.AuthResponse;
+import com.example.backend.auth.dto.LoginRequest;
+import com.example.backend.auth.dto.SignupRequest;
 import com.example.backend.auth.service.AuthService;
 import com.example.backend.security.JwtUtils;
 import com.example.backend.user.dto.UserDTO;
@@ -45,12 +47,9 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Password must be at least 6 characters");
         }
 
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username is already taken");
-        }
-
-        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            throw new RuntimeException("Phone number is already in use");
+        if (userRepository.existsByUsername(request.getUsername())
+                || userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new RuntimeException("Username or phone number is already registered");
         }
 
         User user = new User();

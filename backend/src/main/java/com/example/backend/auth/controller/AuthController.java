@@ -1,9 +1,13 @@
 package com.example.backend.auth.controller;
 
-import com.example.backend.auth.dto.AuthDtos.*;
+import com.example.backend.auth.dto.AuthResponse;
+import com.example.backend.auth.dto.LoginRequest;
+import com.example.backend.auth.dto.SignupRequest;
 import com.example.backend.auth.service.AuthService;
 import com.example.backend.dto.ApiResponse;
+import com.example.backend.security.RateLimiter;
 import com.example.backend.user.dto.UserDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,15 +19,20 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final RateLimiter rateLimiter;
 
     @PostMapping(value = {"/signup", "/register"})
-    public ResponseEntity<ApiResponse<AuthResponse>> signup(@RequestBody SignupRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> signup(@RequestBody SignupRequest request,
+            HttpServletRequest httpRequest) {
+        rateLimiter.allowOrThrow(httpRequest.getRemoteAddr());
         AuthResponse response = authService.signup(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     @PostMapping(value = {"/signin", "/login"})
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request,
+            HttpServletRequest httpRequest) {
+        rateLimiter.allowOrThrow(httpRequest.getRemoteAddr());
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }

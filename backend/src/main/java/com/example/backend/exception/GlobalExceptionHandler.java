@@ -24,8 +24,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException ex) {
+        // Only bare `new RuntimeException(msg)` throws are app-intentional, user-safe messages.
+        // Subclasses (NullPointerException, IllegalStateException, Hibernate exceptions, ...) are
+        // unexpected bugs and must not leak internal details to the client.
+        String message = ex.getClass() == RuntimeException.class ? ex.getMessage() : "An unexpected error occurred";
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponse.error(message));
     }
 
     @ExceptionHandler(Exception.class)
