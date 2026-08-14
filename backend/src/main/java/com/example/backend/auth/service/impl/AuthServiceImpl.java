@@ -4,16 +4,21 @@ import com.example.backend.auth.dto.AuthResponse;
 import com.example.backend.auth.dto.LoginRequest;
 import com.example.backend.auth.dto.SignupRequest;
 import com.example.backend.auth.service.AuthService;
+import com.example.backend.exception.UnauthorizedException;
+import com.example.backend.exception.UserAlreadyExistsException;
 import com.example.backend.security.JwtUtils;
 import com.example.backend.user.dto.UserDTO;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.mapper.UserMapper;
 import com.example.backend.user.repository.UserRepository;
+import com.example.backend.utils.PhoneNumberNormalizer;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,87 +36,70 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapper userMapper;
 
     @Override
+    @Transactional
     public AuthResponse signup(SignupRequest request) {
-        // Backend validation
-        if (request.getUsername() == null || request.getUsername().trim().length() < 3) {
-            throw new RuntimeException("Username must be at least 3 characters");
-        }
+        String username = request.getUsername().trim();
+        String phoneNumber = PhoneNumberNormalizer.normalize(request.getPhoneNumber());
 
-        String digitsOnly = request.getPhoneNumber() == null ? ""
-                : request.getPhoneNumber().replaceAll("\\D", "");
-        if (digitsOnly.length() < 10) {
-            throw new RuntimeException("Phone number must have at least 10 digits");
-        }
-
-        if (request.getPassword() == null || request.getPassword().length() < 6) {
-            throw new RuntimeException("Password must be at least 6 characters");
-        }
-
-        if (userRepository.existsByUsername(request.getUsername())
-                || userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            throw new RuntimeException("Username or phone number is already registered");
+        if (userRepository.existsByUsername(username)
+                || userRepository.existsByPhoneNumber(phoneNumber)) {
+            throw new UserAlreadyExistsException("Username or phone number is already registered");
         }
 
         User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setUsername(username);
+        user.setPhoneNumber(phoneNumber);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        userRepository.save(user);
+        try {
+            userRepository.saveAndFlush(user);
+        } catch (DataIntegrityViolationException ex) {
+            throw new UserAlreadyExistsException("Username or phone number is already registered");
+        }
 
-        // Auto-login after signup
-        return login(new LoginRequest() {
-            {
-                setPhoneNumber(request.getPhoneNumber());
-                setPassword(request.getPassword());
-            }
-        });
+        return authenticate(user, request.getPassword());
     }
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        // Find user by phone number first because AuthenticationManager uses username
-        User user = userRepository.findByPhoneNumber(request.getPhoneNumber())
+        String phoneNumber = PhoneNumberNormalizer.normalize(request.getPhoneNumber());
+
+        // Phone-number lookup first because AuthenticationManager authenticates by username
+        User user = userRepository.findByPhoneNumber(phoneNumber)
                 .orElseThrow(() -> new BadCredentialsException("Invalid phone number or password"));
 
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(user.getUsername(), request.getPassword()));
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtUtils.generateJwtToken(authentication);
-
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            UserDTO userDTO = userMapper.toDto(user);
-
-            AuthResponse response = new AuthResponse();
-            response.setToken(jwt);
-            response.setUser(userDTO);
-
-            return response;
-        } catch (BadCredentialsException ex) {
-            throw new BadCredentialsException("Invalid phone number or password");
-        }
+        return authenticate(user, request.getPassword());
     }
 
     @Override
     public UserDTO getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof UserDetails userDetails)) {
+            throw new UnauthorizedException("Invalid authentication");
         }
 
-        Object principal = authentication.getPrincipal();
-        String username;
-        if (principal instanceof UserDetails) {
-            username = ((UserDetails) principal).getUsername();
-        } else {
-            username = principal.toString();
-        }
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
 
         return userMapper.toDto(user);
+    }
+
+    private AuthResponse authenticate(User user, String rawPassword) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), rawPassword));
+
+            String jwt = jwtUtils.generateJwtToken(authentication);
+
+            AuthResponse response = new AuthResponse();
+            response.setToken(jwt);
+            response.setUser(userMapper.toDto(user));
+
+            return response;
+        } catch (AuthenticationException ex) {
+            throw new BadCredentialsException("Invalid phone number or password");
+        }
     }
 }

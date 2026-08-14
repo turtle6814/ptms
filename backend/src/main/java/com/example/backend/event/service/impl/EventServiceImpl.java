@@ -1,5 +1,6 @@
 package com.example.backend.event.service.impl;
 
+import com.example.backend.base.BaseService;
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
@@ -27,7 +28,6 @@ import com.example.backend.user.repository.UserRepository;
 import com.example.backend.utils.BracketGenerator;
 import com.example.backend.utils.DoubleElimBracketGenerator;
 import com.example.backend.utils.SeriesAbBracketGenerator;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,8 +37,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-public class EventServiceImpl implements EventService {
+public class EventServiceImpl extends BaseService<Event, UUID> implements EventService {
 
     private final EventRepository eventRepository;
     private final TournamentRepository tournamentRepository;
@@ -47,6 +46,20 @@ public class EventServiceImpl implements EventService {
     private final TeamRepository teamRepository;
     private final MatchRepository matchRepository;
     private final EventMapper eventMapper;
+
+    public EventServiceImpl(EventRepository eventRepository, TournamentRepository tournamentRepository,
+                             UserRepository userRepository, PoolRepository poolRepository,
+                             TeamRepository teamRepository, MatchRepository matchRepository,
+                             EventMapper eventMapper) {
+        super(eventRepository);
+        this.eventRepository = eventRepository;
+        this.tournamentRepository = tournamentRepository;
+        this.userRepository = userRepository;
+        this.poolRepository = poolRepository;
+        this.teamRepository = teamRepository;
+        this.matchRepository = matchRepository;
+        this.eventMapper = eventMapper;
+    }
 
     @Override
     public List<EventDTO> getAllEvents(String username) {
@@ -60,7 +73,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDTO getEventById(UUID id) {
-        Event event = eventRepository.findById(id)
+        Event event = findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
         return eventMapper.toDto(event);
     }
@@ -217,10 +230,10 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public void deleteEvent(UUID id, String username) {
-        Event event = eventRepository.findById(id)
+        Event event = findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
         verifyOwnership(event.getTournament(), username);
-        eventRepository.deleteById(id);
+        deleteById(id);
     }
 
     private void verifyOwnership(Tournament tournament, String username) {

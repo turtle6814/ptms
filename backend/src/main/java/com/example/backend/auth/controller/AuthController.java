@@ -8,6 +8,7 @@ import com.example.backend.dto.ApiResponse;
 import com.example.backend.security.RateLimiter;
 import com.example.backend.user.dto.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class AuthController {
     private final RateLimiter rateLimiter;
 
     @PostMapping(value = {"/signup", "/register"})
-    public ResponseEntity<ApiResponse<AuthResponse>> signup(@RequestBody SignupRequest request,
+    public ResponseEntity<ApiResponse<AuthResponse>> signup(@Valid @RequestBody SignupRequest request,
             HttpServletRequest httpRequest) {
         rateLimiter.allowOrThrow(httpRequest.getRemoteAddr());
         AuthResponse response = authService.signup(request);
@@ -30,7 +31,7 @@ public class AuthController {
     }
 
     @PostMapping(value = {"/signin", "/login"})
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request,
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
         rateLimiter.allowOrThrow(httpRequest.getRemoteAddr());
         AuthResponse response = authService.login(request);

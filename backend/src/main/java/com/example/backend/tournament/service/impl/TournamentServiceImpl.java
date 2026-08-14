@@ -1,5 +1,6 @@
 package com.example.backend.tournament.service.impl;
 
+import com.example.backend.base.BaseService;
 import com.example.backend.event.dto.EventDTO;
 import com.example.backend.tournament.dto.CreateTournamentRequest;
 import com.example.backend.tournament.dto.TournamentDTO;
@@ -10,7 +11,6 @@ import com.example.backend.tournament.repository.TournamentRepository;
 import com.example.backend.tournament.service.TournamentService;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -19,13 +19,21 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-public class TournamentServiceImpl implements TournamentService {
+public class TournamentServiceImpl extends BaseService<Tournament, UUID> implements TournamentService {
 
     private final TournamentRepository tournamentRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final TournamentMapper tournamentMapper;
+
+    public TournamentServiceImpl(TournamentRepository tournamentRepository, UserRepository userRepository,
+                                  ModelMapper modelMapper, TournamentMapper tournamentMapper) {
+        super(tournamentRepository);
+        this.tournamentRepository = tournamentRepository;
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+        this.tournamentMapper = tournamentMapper;
+    }
 
     @Override
     public List<TournamentDTO> getAllTournaments(String username) {
@@ -38,7 +46,7 @@ public class TournamentServiceImpl implements TournamentService {
 
     @Override
     public TournamentDTO getTournamentById(UUID id) {
-        Tournament tournament = tournamentRepository.findById(id)
+        Tournament tournament = findById(id)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
         return tournamentMapper.toDto(tournament);
     }
@@ -49,13 +57,13 @@ public class TournamentServiceImpl implements TournamentService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Tournament tournament = modelMapper.map(request, Tournament.class);
         tournament.setOwner(owner);
-        Tournament savedTournament = tournamentRepository.save(tournament);
+        Tournament savedTournament = save(tournament);
         return tournamentMapper.toDto(savedTournament);
     }
 
     @Override
     public TournamentDTO updateTournament(UUID id, UpdateTournamentRequest request, String username) {
-        Tournament tournament = tournamentRepository.findById(id)
+        Tournament tournament = findById(id)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
         verifyOwnership(tournament, username);
 
@@ -68,21 +76,21 @@ public class TournamentServiceImpl implements TournamentService {
         if (request.getEndDate() != null)
             tournament.setEndDate(request.getEndDate());
 
-        Tournament updatedTournament = tournamentRepository.save(tournament);
+        Tournament updatedTournament = save(tournament);
         return tournamentMapper.toDto(updatedTournament);
     }
 
     @Override
     public void deleteTournament(UUID id, String username) {
-        Tournament tournament = tournamentRepository.findById(id)
+        Tournament tournament = findById(id)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
         verifyOwnership(tournament, username);
-        tournamentRepository.deleteById(id);
+        deleteById(id);
     }
 
     @Override
     public List<EventDTO> getEvents(UUID tournamentId) {
-        Tournament tournament = tournamentRepository.findById(tournamentId)
+        Tournament tournament = findById(tournamentId)
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
         return tournament.getEvents().stream()
                 .map(e -> modelMapper.map(e, EventDTO.class))

@@ -1,5 +1,6 @@
 package com.example.backend.match.service.impl;
 
+import com.example.backend.base.BaseService;
 import com.example.backend.enums.BracketSlot;
 import com.example.backend.enums.BracketType;
 import com.example.backend.enums.EventFormat;
@@ -27,7 +28,6 @@ import com.example.backend.match.service.MatchService;
 import com.example.backend.tournament.entity.Tournament;
 import com.example.backend.utils.StandingsCalculator;
 import com.example.backend.validation.ScoreRules;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,8 +39,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-public class MatchServiceImpl implements MatchService {
+public class MatchServiceImpl extends BaseService<Match, UUID> implements MatchService {
 
     private final MatchRepository matchRepository;
     private final PoolRepository poolRepository;
@@ -48,10 +47,21 @@ public class MatchServiceImpl implements MatchService {
     private final BracketSlotSourceRepository bracketSlotSourceRepository;
     private final MatchMapper matchMapper;
 
+    public MatchServiceImpl(MatchRepository matchRepository, PoolRepository poolRepository,
+                             EventRepository eventRepository, BracketSlotSourceRepository bracketSlotSourceRepository,
+                             MatchMapper matchMapper) {
+        super(matchRepository);
+        this.matchRepository = matchRepository;
+        this.poolRepository = poolRepository;
+        this.eventRepository = eventRepository;
+        this.bracketSlotSourceRepository = bracketSlotSourceRepository;
+        this.matchMapper = matchMapper;
+    }
+
     @Override
     @Transactional
     public MatchDTO updateScore(UUID matchId, ScoreUpdateRequest request, String username) {
-        Match match = matchRepository.findById(matchId)
+        Match match = findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found"));
 
         verifyOwnership(match.getEvent(), username);
@@ -75,7 +85,7 @@ public class MatchServiceImpl implements MatchService {
     @Override
     @Transactional
     public MatchDTO updateRules(UUID matchId, ScoreRulesDTO request, String username) {
-        Match match = matchRepository.findById(matchId)
+        Match match = findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found"));
 
         verifyOwnership(match.getEvent(), username);
@@ -101,7 +111,7 @@ public class MatchServiceImpl implements MatchService {
     @Override
     @Transactional
     public MatchDTO recordForfeit(UUID matchId, ForfeitRequest request, String username) {
-        Match match = matchRepository.findById(matchId)
+        Match match = findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found"));
 
         verifyOwnership(match.getEvent(), username);
