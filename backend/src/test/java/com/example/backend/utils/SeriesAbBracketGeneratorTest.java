@@ -14,6 +14,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Plain unit test - no Spring context, no database. Verifies the consolation (LOSERS) bracket is
@@ -59,7 +60,14 @@ class SeriesAbBracketGeneratorTest {
         Match wR1p2 = match(result.matches(), BracketType.WINNERS, 1, 2);
         Match bFinal = match(result.matches(), BracketType.LOSERS, 1, 1);
 
-        assertEquals(5, result.matches().size()); // 4 winners matches + 1 consolation match
+        // 3 winners matches (round 1 + final) + 1 consolation match. The winners 3rd-place
+        // match is dropped: round 1 IS the semifinal round here, so its losers all feed the
+        // B bracket and a 3rd-place match would have no incoming edges (never completes).
+        assertEquals(4, result.matches().size());
+        assertTrue(result.matches().stream()
+                .noneMatch(m -> m.getBracketType() == BracketType.WINNERS
+                        && m.getBracketRound() == 2 && m.getBracketPosition() == 2));
+
         assertEquals(bFinal, wR1p1.getLoserNextMatch());
         assertEquals(BracketSlot.TEAM1, wR1p1.getLoserNextSlot());
         assertEquals(bFinal, wR1p2.getLoserNextMatch());

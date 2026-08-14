@@ -608,6 +608,59 @@ class BracketAdvancementTest {
     }
 
     @Test
+    void seriesAbTwoRoundBracketDropsOrphanedThirdPlaceAndCompletes() throws Exception {
+        String token = signup("seriesab1", "+19990000112");
+        UUID tournamentId = createTournament(token, "Series AB Tournament");
+        UUID eventId = UUID.fromString(createEvent(token, tournamentId, "Series AB",
+                List.of(pool("Pool A", "A1", "A2", "A3", "A4")), 4, EventFormat.POOL_TO_SERIES_AB)
+                .path("id").asText());
+        JsonNode created = getEvent(eventId);
+
+        String a1 = teamId(created, "A1");
+        String a2 = teamId(created, "A2");
+        String a3 = teamId(created, "A3");
+        String a4 = teamId(created, "A4");
+
+        // Standings: A1 3-0, A2 2-1, A3 1-2, A4 0-3.
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a2, 5);
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a3, 4);
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a4, 3);
+        submitScoreBetween(token, eventId, created, "Pool A", a2, 15, a3, 5);
+        submitScoreBetween(token, eventId, created, "Pool A", a2, 15, a4, 4);
+        submitScoreBetween(token, eventId, created, "Pool A", a3, 15, a4, 5);
+
+        // advancementPerPool=4 with 1 pool: WB Round-1 pos1=(rank1,rank4), pos2=(rank2,rank3).
+        JsonNode seeded = getEvent(eventId);
+        assertTeams(bracketMatch(seeded, 1, 1), a1, a4);
+        assertTeams(bracketMatch(seeded, 1, 2), a2, a3);
+
+        // No 3rd-place match: the winners bracket has only 2 rounds, so its round-1 losers all
+        // feed the B bracket and a generated 3rd-place match would have no incoming edges.
+        assertTrue(seeded.path("eliminationBracket").path("thirdPlaceMatch").isNull());
+
+        UUID wR1p1 = UUID.fromString(bracketMatch(seeded, 1, 1).path("id").asText());
+        UUID wR1p2 = UUID.fromString(bracketMatch(seeded, 1, 2).path("id").asText());
+        submitScore(token, eventId, wR1p1, 15, 10); // A1 beats A4
+        submitScore(token, eventId, wR1p2, 15, 10); // A2 beats A3
+
+        // Round-1 losers (A4, A3) drop into the single B-bracket match.
+        JsonNode afterR1 = getEvent(eventId);
+        assertTeams(bracketMatch(afterR1, 2, 1), a1, a2); // A final
+        assertTeams(consolationMatch(afterR1, 1, 1), a4, a3);
+
+        UUID bMatch = UUID.fromString(consolationMatch(afterR1, 1, 1).path("id").asText());
+        submitScore(token, eventId, bMatch, 15, 10); // A4 takes the B bracket
+
+        UUID aFinal = UUID.fromString(bracketMatch(afterR1, 2, 1).path("id").asText());
+        submitScore(token, eventId, aFinal, 15, 10); // A1 champion
+
+        JsonNode finalState = getEvent(eventId);
+        assertEquals(a1, finalState.path("eliminationBracket").path("champion").asText());
+        assertEquals(a4, finalState.path("eliminationBracket").path("consolationBracket").path("champion").asText());
+        assertEquals("COMPLETED", finalState.path("status").asText());
+    }
+
+    @Test
     void doubleElimLosersChampionForcesReset() throws Exception {
         String token = signup("doubleelim2", "+19990000111");
         UUID tournamentId = createTournament(token, "Double Elim Reset Tournament");
