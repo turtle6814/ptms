@@ -237,7 +237,7 @@
     color: #94a3b8;
 }
 
-.status-badge.status-pool_play {
+.status-badge.status-pool {
     background: rgba(59, 130, 246, 0.2);
     color: var(--info);
 }

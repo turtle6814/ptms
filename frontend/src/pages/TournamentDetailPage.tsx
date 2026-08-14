@@ -6,6 +6,7 @@ import { getTournamentById, updateTournament, getTournamentEvents, deleteEvent, 
 import { Header } from '../components/Header';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
+import { getStatusLabel, getStatusColor } from '../utils/eventStatus';
 import './TournamentDetailPage.css';
 
 export function TournamentDetailPage() {
@@ -75,15 +76,6 @@ export function TournamentDetailPage() {
         const result = await deleteTournament(tournamentId);
         if (result.success) {
             navigate('/tournaments');
-        }
-    };
-
-    const getStatusColor = (status: Event['status']) => {
-        switch (status) {
-            case 'POOL_PLAY': return 'status-pool';
-            case 'ELIMINATION': return 'status-elimination';
-            case 'COMPLETED': return 'status-completed';
-            default: return 'status-setup';
         }
     };
 
@@ -212,7 +204,7 @@ export function TournamentDetailPage() {
                                             <h3>{event.name}</h3>
                                             <div className="tournament-meta">
                                                 <span className={`status-badge ${getStatusColor(event.status)}`}>
-                                                    {event.status.replace('_', ' ')}
+                                                    {getStatusLabel(event.status)}
                                                 </span>
                                                 <span className="team-count">
                                                     {event.teams.length} teams

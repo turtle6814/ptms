@@ -17,6 +17,7 @@ import {
 } from '../api';
 import { Event, Tournament } from '../api/types';
 import { useEventSubscription } from '../hooks/useEventSubscription';
+import { getStatusLabel, getStatusColor } from '../utils/eventStatus';
 import { Share2, RefreshCw, ChevronDown, Calendar } from 'lucide-react';
 import './AdminDashboard.css';
 
@@ -106,16 +107,6 @@ export function AdminDashboard() {
         window.history.replaceState({}, '', `/admin?id=${id}`);
     };
 
-    const getStatusLabel = (status: Event['status']) => {
-        switch (status) {
-            case 'SETUP': return 'Setup';
-            case 'POOL_PLAY': return 'Pool Play';
-            case 'ELIMINATION': return 'Playoffs';
-            case 'COMPLETED': return 'Complete';
-            default: return status;
-        }
-    };
-
     const toggleTournamentExpand = (tournamentId: string) => {
         setExpandedTournaments(prev => {
             const next = new Set(prev);
@@ -199,8 +190,8 @@ export function AdminDashboard() {
                                                             onClick={() => handleSelectEvent(e.id)}
                                                         >
                                                             <span className="tournament-name">{e.name}</span>
-                                                            <span className={`tournament-status status-${e.status}`}>
-                                                                {getStatusLabel(e.status)}
+<span className={`tournament-status ${getStatusColor(e.status)}`}>
+                                                            {getStatusLabel(e.status)}
                                                             </span>
                                                         </button>
                                                     </li>
@@ -232,7 +223,7 @@ export function AdminDashboard() {
                             <div className="detail-header">
                                 <div className="header-info">
                                     <h1>{selectedEvent.name}</h1>
-                                    <span className={`status-badge status-${selectedEvent.status}`}>
+                                    <span className={`status-badge ${getStatusColor(selectedEvent.status)}`}>
                                         {getStatusLabel(selectedEvent.status)}
                                     </span>
                                 </div>

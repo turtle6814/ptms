@@ -10,6 +10,7 @@ import { Event, Tournament } from '../api/types';
 import { useEventSubscription } from '../hooks/useEventSubscription';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
+import { getStatusLabel, getStatusColor } from '../utils/eventStatus';
 import { Wifi, ChevronDown, Trophy } from 'lucide-react';
 import './TournamentViewerPage.css';
 
@@ -89,16 +90,6 @@ export function TournamentViewerPage() {
         }
     };
 
-    const getStatusLabel = (status: Event['status']) => {
-        switch (status) {
-            case 'SETUP': return 'Setting Up';
-            case 'POOL_PLAY': return 'Pool Play';
-            case 'ELIMINATION': return 'Playoffs';
-            case 'COMPLETED': return 'Complete';
-            default: return status;
-        }
-    };
-
     if (loading) {
         return (
             <div className="event-viewer-page">
@@ -143,7 +134,7 @@ export function TournamentViewerPage() {
                                     <Trophy size={16} />
                                     <span>{selectedEvent?.name || 'Select Event'}</span>
                                     {selectedEvent && (
-                                        <span className={`status-badge status-${selectedEvent.status}`}>
+                                        <span className={`status-badge ${getStatusColor(selectedEvent.status)}`}>
                                             {getStatusLabel(selectedEvent.status)}
                                         </span>
                                     )}
@@ -159,7 +150,7 @@ export function TournamentViewerPage() {
                                                     onClick={() => handleSelectEvent(e)}
                                                 >
                                                     <span className="tournament-name">{e.name}</span>
-                                                    <span className={`status-badge status-${e.status}`}>
+                                                    <span className={`status-badge ${getStatusColor(e.status)}`}>
                                                         {getStatusLabel(e.status)}
                                                     </span>
                                                 </button>

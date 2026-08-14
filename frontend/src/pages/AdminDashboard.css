@@ -302,7 +302,7 @@
     border-radius: 5px;
 }
 
-.status-pool_play {
+.status-pool {
     background: rgba(59, 130, 246, 0.15);
     color: var(--info);
 }
