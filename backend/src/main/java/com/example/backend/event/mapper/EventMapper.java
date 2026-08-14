@@ -1,6 +1,7 @@
 package com.example.backend.event.mapper;
 
 import com.example.backend.enums.BracketType;
+import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;
 import com.example.backend.event.dto.BracketRoundDTO;
 import com.example.backend.event.dto.EliminationBracketDTO;
@@ -88,6 +89,22 @@ public class EventMapper {
                     .collect(Collectors.toList());
             if (!consolationMatches.isEmpty()) {
                 bracketDTO.setConsolationBracket(buildBracketDto(event.getId(), consolationMatches));
+            }
+
+            // Double elimination's true champion comes from the grand final, not the winners
+            // bracket's own final (whose winner might still lose the reset game) - override the
+            // champion buildBracketDto derived from the WINNERS-only match list above.
+            List<Match> finalMatches = allBracketMatches.stream()
+                    .filter(m -> m.getBracketType() == BracketType.FINAL)
+                    .collect(Collectors.toList());
+            if (!finalMatches.isEmpty()) {
+                Match game1 = finalMatches.stream().filter(m -> m.getBracketRound() == 1).findFirst().orElseThrow();
+                Match game2 = finalMatches.stream().filter(m -> m.getBracketRound() == 2).findFirst().orElseThrow();
+                bracketDTO.setGrandFinalGame1(modelMapper.map(game1, MatchDTO.class));
+                bracketDTO.setGrandFinalGame2(modelMapper.map(game2, MatchDTO.class));
+
+                Match decider = game2.getStatus() == MatchStatus.COMPLETED ? game2 : game1;
+                bracketDTO.setChampion(decider.getWinner() != null ? decider.getWinner().getId() : null);
             }
 
             dto.setEliminationBracket(bracketDTO);

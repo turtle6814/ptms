@@ -1,6 +1,7 @@
 package com.example.backend.match.service.impl;
 
 import com.example.backend.enums.BracketSlot;
+import com.example.backend.enums.BracketType;
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
@@ -255,8 +256,32 @@ public class MatchServiceImpl implements MatchService {
         if (match.getWinner() == null)
             return;
 
+        if (match.getBracketType() == BracketType.FINAL && match.getBracketRound() == 1) {
+            // Grand-final game 1 has no winnerNextMatch/loserNextMatch - it either decides the
+            // event outright (winners' champion sweeps) or forces game 2 (reset).
+            resolveGrandFinalGame1(match);
+            return;
+        }
+
         route(match.getWinnerNextMatch(), match.getWinnerNextSlot(), match.getWinner(), true);
         route(match.getLoserNextMatch(), match.getLoserNextSlot(), computeLoser(match), false);
+    }
+
+    // team1 in the grand final is always the winners'-bracket champion (BracketGenerator wires
+    // winnerNextSlot=TEAM1 for the WB final, TEAM2 for the LB final) - if that side also wins
+    // game 1, the losers' finalist is eliminated on their 2nd loss and no reset is needed.
+    private void resolveGrandFinalGame1(Match game1) {
+        Match game2 = matchRepository
+                .findByEventIdAndBracketTypeAndBracketRound(game1.getEvent().getId(), BracketType.FINAL, 2)
+                .orElseThrow();
+
+        if (game1.getWinner().getId().equals(game1.getTeam1().getId())) {
+            game2.setStatus(MatchStatus.SKIPPED);
+        } else {
+            game2.setTeam1(game1.getTeam1());
+            game2.setTeam2(game1.getTeam2());
+        }
+        matchRepository.save(game2);
     }
 
     private Team computeLoser(Match match) {

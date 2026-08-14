@@ -1,6 +1,7 @@
 package com.example.backend;
 
 import com.example.backend.auth.dto.SignupRequest;
+import com.example.backend.enums.EventFormat;
 import com.example.backend.event.dto.CreateEventRequest;
 import com.example.backend.tournament.dto.CreateTournamentRequest;
 import com.example.backend.event.dto.PoolConfigDTO;
@@ -115,6 +116,25 @@ class BracketAdvancementTest {
         return objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
     }
 
+    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigDTO> pools,
+            int advancementPerPool, EventFormat format) throws Exception {
+        CreateEventRequest request = new CreateEventRequest();
+        request.setName(name);
+        request.setTournamentId(tournamentId);
+        request.setPools(pools);
+        request.setAdvancementPerPool(advancementPerPool);
+        request.setFormat(format);
+
+        MvcResult result = mockMvc.perform(post("/api/v1/events")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        return objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
+    }
+
     private JsonNode getEvent(UUID eventId) throws Exception {
         MvcResult result = mockMvc.perform(get("/api/v1/events/" + eventId))
                 .andExpect(status().isOk())
@@ -173,6 +193,25 @@ class BracketAdvancementTest {
             }
         }
         throw new IllegalStateException("Bracket match not found: round " + round + " position " + position);
+    }
+
+    private static JsonNode consolationMatch(JsonNode event, int round, int position) {
+        JsonNode rounds = event.path("eliminationBracket").path("consolationBracket").path("rounds");
+        for (JsonNode roundNode : rounds) {
+            if (roundNode.path("roundNumber").asInt() != round) {
+                continue;
+            }
+            for (JsonNode match : roundNode.path("matches")) {
+                if (match.path("bracketPosition").asInt() == position) {
+                    return match;
+                }
+            }
+        }
+        throw new IllegalStateException("Consolation match not found: round " + round + " position " + position);
+    }
+
+    private static JsonNode grandFinalGame(JsonNode event, int game) {
+        return event.path("eliminationBracket").path(game == 1 ? "grandFinalGame1" : "grandFinalGame2");
     }
 
     private static void assertTeams(JsonNode match, String expectedTeam1Id, String expectedTeam2Id) {
@@ -504,5 +543,122 @@ class BracketAdvancementTest {
         JsonNode afterPoolB = getEvent(eventId);
         assertTeams(bracketMatch(afterPoolB, 1, 1), a1, b1);
         assertTeams(bracketMatch(afterPoolB, 1, 2), a2, b2);
+    }
+
+    @Test
+    void doubleElimWinnersChampionSweepsGrandFinal() throws Exception {
+        String token = signup("doubleelim1", "+19990000110");
+        UUID tournamentId = createTournament(token, "Double Elim Sweep Tournament");
+        UUID eventId = UUID.fromString(createEvent(token, tournamentId, "Double Elim Sweep",
+                List.of(pool("Pool A", "A1", "A2", "A3", "A4")), 4, EventFormat.POOL_TO_DOUBLE_ELIM)
+                .path("id").asText());
+        JsonNode created = getEvent(eventId);
+
+        String a1 = teamId(created, "A1");
+        String a2 = teamId(created, "A2");
+        String a3 = teamId(created, "A3");
+        String a4 = teamId(created, "A4");
+
+        // Standings: A1 3-0, A2 2-1, A3 1-2, A4 0-3 -> rank1=A1, rank2=A2, rank3=A3, rank4=A4.
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a2, 5);
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a3, 4);
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a4, 3);
+        submitScoreBetween(token, eventId, created, "Pool A", a2, 15, a3, 5);
+        submitScoreBetween(token, eventId, created, "Pool A", a2, 15, a4, 4);
+        submitScoreBetween(token, eventId, created, "Pool A", a3, 15, a4, 5);
+
+        // advancementPerPool=4 with 1 pool: tier-pair layer gives WB Round-1 pos1=(rank1,rank4),
+        // pos2=(rank2,rank3) -> a power-of-two Round-1 (m=2, k=1).
+        JsonNode seeded = getEvent(eventId);
+        assertTeams(bracketMatch(seeded, 1, 1), a1, a4);
+        assertTeams(bracketMatch(seeded, 1, 2), a2, a3);
+
+        UUID wR1p1 = UUID.fromString(bracketMatch(seeded, 1, 1).path("id").asText());
+        UUID wR1p2 = UUID.fromString(bracketMatch(seeded, 1, 2).path("id").asText());
+        submitScore(token, eventId, wR1p1, 15, 10); // A1 beats A4
+        submitScore(token, eventId, wR1p2, 15, 10); // A2 beats A3
+
+        JsonNode afterWbR1 = getEvent(eventId);
+        assertTeams(bracketMatch(afterWbR1, 2, 1), a1, a2); // WB final
+        assertTeams(consolationMatch(afterWbR1, 1, 1), a4, a3); // LB round1: WB R1 losers
+
+        UUID lbR1 = UUID.fromString(consolationMatch(afterWbR1, 1, 1).path("id").asText());
+        submitScore(token, eventId, lbR1, 15, 10); // A4 beats A3
+
+        UUID wFinal = UUID.fromString(bracketMatch(afterWbR1, 2, 1).path("id").asText());
+        submitScore(token, eventId, wFinal, 15, 10); // A1 beats A2 -> WB champ A1, A2 drops to LB
+
+        JsonNode afterWbFinal = getEvent(eventId);
+        assertTeams(consolationMatch(afterWbFinal, 2, 1), a4, a2); // LB final: LB survivor vs WB-final loser
+
+        UUID lbFinal = UUID.fromString(consolationMatch(afterWbFinal, 2, 1).path("id").asText());
+        submitScore(token, eventId, lbFinal, 15, 10); // A4 beats A2 -> LB champion A4
+
+        JsonNode beforeGrandFinal = getEvent(eventId);
+        assertTeams(grandFinalGame(beforeGrandFinal, 1), a1, a4); // team1=WB champ, team2=LB champ
+        assertEquals("PENDING", grandFinalGame(beforeGrandFinal, 2).path("status").asText());
+
+        UUID game1Id = UUID.fromString(grandFinalGame(beforeGrandFinal, 1).path("id").asText());
+        submitScore(token, eventId, game1Id, 15, 10); // A1 (WB champion, team1) sweeps
+
+        JsonNode finalState = getEvent(eventId);
+        assertEquals("SKIPPED", grandFinalGame(finalState, 2).path("status").asText());
+        assertEquals(a1, finalState.path("eliminationBracket").path("champion").asText());
+        assertEquals("COMPLETED", finalState.path("status").asText());
+    }
+
+    @Test
+    void doubleElimLosersChampionForcesReset() throws Exception {
+        String token = signup("doubleelim2", "+19990000111");
+        UUID tournamentId = createTournament(token, "Double Elim Reset Tournament");
+        UUID eventId = UUID.fromString(createEvent(token, tournamentId, "Double Elim Reset",
+                List.of(pool("Pool A", "A1", "A2", "A3", "A4")), 4, EventFormat.POOL_TO_DOUBLE_ELIM)
+                .path("id").asText());
+        JsonNode created = getEvent(eventId);
+
+        String a1 = teamId(created, "A1");
+        String a2 = teamId(created, "A2");
+        String a3 = teamId(created, "A3");
+        String a4 = teamId(created, "A4");
+
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a2, 5);
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a3, 4);
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a4, 3);
+        submitScoreBetween(token, eventId, created, "Pool A", a2, 15, a3, 5);
+        submitScoreBetween(token, eventId, created, "Pool A", a2, 15, a4, 4);
+        submitScoreBetween(token, eventId, created, "Pool A", a3, 15, a4, 5);
+
+        JsonNode seeded = getEvent(eventId);
+        UUID wR1p1 = UUID.fromString(bracketMatch(seeded, 1, 1).path("id").asText()); // A1 vs A4
+        UUID wR1p2 = UUID.fromString(bracketMatch(seeded, 1, 2).path("id").asText()); // A2 vs A3
+        submitScore(token, eventId, wR1p1, 15, 10); // A1 beats A4
+        submitScore(token, eventId, wR1p2, 15, 10); // A2 beats A3
+
+        JsonNode afterWbR1 = getEvent(eventId);
+        UUID lbR1 = UUID.fromString(consolationMatch(afterWbR1, 1, 1).path("id").asText());
+        submitScore(token, eventId, lbR1, 15, 10); // A4 beats A3
+
+        UUID wFinal = UUID.fromString(bracketMatch(afterWbR1, 2, 1).path("id").asText());
+        submitScore(token, eventId, wFinal, 15, 10); // A1 beats A2
+
+        JsonNode afterWbFinal = getEvent(eventId);
+        UUID lbFinal = UUID.fromString(consolationMatch(afterWbFinal, 2, 1).path("id").asText());
+        submitScore(token, eventId, lbFinal, 15, 10); // A4 beats A2 -> LB champion A4
+
+        JsonNode beforeGrandFinal = getEvent(eventId);
+        UUID game1Id = UUID.fromString(grandFinalGame(beforeGrandFinal, 1).path("id").asText());
+        submitScore(token, eventId, game1Id, 10, 15); // A4 (LB champion, team2) upsets A1 in game 1
+
+        JsonNode afterGame1 = getEvent(eventId);
+        assertEquals("PENDING", grandFinalGame(afterGame1, 2).path("status").asText());
+        assertTeams(grandFinalGame(afterGame1, 2), a1, a4); // reset game: same two teams as game 1
+        assertEquals("ELIMINATION", afterGame1.path("status").asText()); // not done until game 2 plays
+
+        UUID game2Id = UUID.fromString(grandFinalGame(afterGame1, 2).path("id").asText());
+        submitScore(token, eventId, game2Id, 8, 15); // A4 wins the reset -> overall champion
+
+        JsonNode finalState = getEvent(eventId);
+        assertEquals(a4, finalState.path("eliminationBracket").path("champion").asText());
+        assertEquals("COMPLETED", finalState.path("status").asText());
     }
 }

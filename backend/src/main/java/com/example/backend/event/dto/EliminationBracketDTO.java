@@ -16,4 +16,9 @@ public class EliminationBracketDTO {
     // deciding a "B champion" (this.champion on the nested DTO). Never has its own
     // consolationBracket/thirdPlaceMatch.
     private EliminationBracketDTO consolationBracket;
+    // Only populated for POOL_TO_DOUBLE_ELIM events - the 2-game grand final (winners' champion
+    // vs losers' champion). grandFinalGame2 is SKIPPED (no score) unless the losers' champion won
+    // game 1 and forced a reset. this.champion reflects the true overall winner either way.
+    private MatchDTO grandFinalGame1;
+    private MatchDTO grandFinalGame2;
 }

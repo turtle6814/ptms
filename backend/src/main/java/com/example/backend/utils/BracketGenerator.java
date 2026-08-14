@@ -29,7 +29,24 @@ public final class BracketGenerator {
     }
 
     public static Result generate(Event event, List<Pool> pools, ScoreRulesDTO rules) {
-        List<Match> allMatches = new ArrayList<>();
+        Round1 round1 = buildRound1(event, pools, rules);
+        if (round1 == null) {
+            return new Result(new ArrayList<>(), new ArrayList<>());
+        }
+
+        List<Match> allMatches = new ArrayList<>(round1.matches());
+        allMatches.addAll(completeSingleElim(event, round1.matches(), BracketType.WINNERS, rules, true));
+
+        return new Result(allMatches, round1.slotSources());
+    }
+
+    record Round1(List<Match> matches, List<BracketSlotSource> slotSources) {
+    }
+
+    // Builds Round 1 only: direct pool-rank cross-seeding plus wildcard pairing, with no
+    // downstream rounds wired yet. Shared by generate() above and DoubleElimBracketGenerator,
+    // whose winners bracket starts from the exact same Round 1 topology.
+    static Round1 buildRound1(Event event, List<Pool> pools, ScoreRulesDTO rules) {
         List<BracketSlotSource> slotSources = new ArrayList<>();
 
         int numPools = pools.size();
@@ -37,7 +54,7 @@ public final class BracketGenerator {
         int wildcardCount = event.getWildcardCount();
         int totalQualifiers = numPools * advancementPerPool + wildcardCount;
         if (numPools < 1 || totalQualifiers < 2) {
-            return new Result(allMatches, slotSources);
+            return null;
         }
         if (advancementPerPool % 2 != 0 && numPools % 2 != 0) {
             // ponytail: an odd advancement count with an odd pool count leaves one qualifier with
@@ -92,10 +109,7 @@ public final class BracketGenerator {
             slotSources.add(newWildcardSlotSource(match, BracketSlot.TEAM2, i + 2));
         }
 
-        allMatches.addAll(currentRound);
-        allMatches.addAll(completeSingleElim(event, currentRound, BracketType.WINNERS, rules, true));
-
-        return new Result(allMatches, slotSources);
+        return new Round1(currentRound, slotSources);
     }
 
     // Builds every round after firstRound via halving pairs (wiring winnerNextMatch/

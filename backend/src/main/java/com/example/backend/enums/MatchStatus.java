@@ -4,9 +4,12 @@ public enum MatchStatus {
     PENDING, IN_PROGRESS,
     COMPLETED,
     FORFEIT,
-    WALKOVER;
+    WALKOVER,
+    // Grand-final reset game (double elim), marked done with no score when the winners'-bracket
+    // champion sweeps game one - no second game needed.
+    SKIPPED;
 
     public boolean isFinished() {
-        return this == COMPLETED || this == FORFEIT || this == WALKOVER;
+        return this == COMPLETED || this == FORFEIT || this == WALKOVER || this == SKIPPED;
     }
 }
