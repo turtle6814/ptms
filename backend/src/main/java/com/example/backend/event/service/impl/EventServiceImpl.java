@@ -74,6 +74,7 @@ public class EventServiceImpl implements EventService {
         event.setName(request.getName());
         event.setStatus(EventStatus.POOL_PLAY);
         event.setFormat(request.getFormat() != null ? request.getFormat() : EventFormat.POOL_TO_ELIM);
+        event.setAdvancementPerPool(request.getAdvancementPerPool() > 0 ? request.getAdvancementPerPool() : 2);
         event.setTournament(tournament);
 
         List<Pool> pools = new ArrayList<>();

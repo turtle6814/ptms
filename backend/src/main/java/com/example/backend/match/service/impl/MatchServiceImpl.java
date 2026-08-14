@@ -174,9 +174,9 @@ public class MatchServiceImpl implements MatchService {
         if (standings.isEmpty())
             return;
 
-        seedBracketSlot(pool, 1, resolveTeam(teams, standings.get(0).getTeamId()));
-        if (standings.size() > 1) {
-            seedBracketSlot(pool, 2, resolveTeam(teams, standings.get(1).getTeamId()));
+        int advancementPerPool = pool.getEvent().getAdvancementPerPool();
+        for (int rank = 1; rank <= advancementPerPool && rank <= standings.size(); rank++) {
+            seedBracketSlot(pool, rank, resolveTeam(teams, standings.get(rank - 1).getTeamId()));
         }
     }
 

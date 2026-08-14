@@ -31,8 +31,17 @@ public final class BracketGenerator {
         List<BracketSlotSource> slotSources = new ArrayList<>();
 
         int numPools = pools.size();
-        if (numPools < 1) {
+        int advancementPerPool = event.getAdvancementPerPool();
+        int totalQualifiers = numPools * advancementPerPool;
+        if (numPools < 1 || totalQualifiers < 2) {
             return new Result(allMatches, slotSources);
+        }
+        if (advancementPerPool % 2 != 0 && numPools % 2 != 0) {
+            // ponytail: an odd advancement count with an odd pool count leaves one qualifier with
+            // no Round-1 opponent, which needs a genuine round-1 bye slot - not built yet. Use an
+            // even pool count or an even advancementPerPool until that's added.
+            throw new IllegalStateException("advancementPerPool=" + advancementPerPool
+                    + " with an odd pool count (" + numPools + ") needs a round-1 bye, which isn't supported yet");
         }
 
         List<Pool> sortedPools = new ArrayList<>(pools);
@@ -40,32 +49,34 @@ public final class BracketGenerator {
 
         List<Match> currentRound = new ArrayList<>();
         int roundNumber = 1;
+        int position = 0;
 
-        if (numPools == 1) {
-            currentRound.add(newBracketMatch(event, 1, 1, rules));
-        } else {
-            for (int i = 0; i < numPools; i++) {
-                currentRound.add(newBracketMatch(event, 1, i + 1, rules));
+        // Tier-pair layers: rank r plays rank (advancementPerPool + 1 - r) across neighboring
+        // pools - the generalized form of the original rank-1-vs-rank-2 cross-seed formula (pool
+        // p's own slot gets its own top rank, the previous pool's slot gets its bottom rank).
+        for (int r = 1; r * 2 <= advancementPerPool; r++) {
+            int topRank = r;
+            int bottomRank = advancementPerPool + 1 - r;
+            for (int poolIndex = 0; poolIndex < numPools; poolIndex++) {
+                Match match = newBracketMatch(event, 1, ++position, rules);
+                currentRound.add(match);
+                slotSources.add(newSlotSource(match, BracketSlot.TEAM1, sortedPools.get(poolIndex), topRank));
+                int neighborIndex = (poolIndex + 1) % numPools;
+                slotSources.add(newSlotSource(match, BracketSlot.TEAM2, sortedPools.get(neighborIndex), bottomRank));
+            }
+        }
+        // Middle rank when advancementPerPool is odd: paired straight across consecutive pools
+        // (the check above guarantees numPools is even here, so nobody is left over).
+        if (advancementPerPool % 2 != 0) {
+            int middleRank = advancementPerPool / 2 + 1;
+            for (int poolIndex = 0; poolIndex < numPools; poolIndex += 2) {
+                Match match = newBracketMatch(event, 1, ++position, rules);
+                currentRound.add(match);
+                slotSources.add(newSlotSource(match, BracketSlot.TEAM1, sortedPools.get(poolIndex), middleRank));
+                slotSources.add(newSlotSource(match, BracketSlot.TEAM2, sortedPools.get(poolIndex + 1), middleRank));
             }
         }
         allMatches.addAll(currentRound);
-
-        // Seeding sources: pool i's rank-1 seed goes to its own Round-1 slot; rank-2 goes to the
-        // previous pool's Round-1 slot (today's cross-seed formula, expressed as data instead of
-        // runtime arithmetic). With a single pool, both ranks target that one match.
-        for (int poolIndex = 0; poolIndex < numPools; poolIndex++) {
-            Pool pool = sortedPools.get(poolIndex);
-            Match ownSlot = currentRound.get(poolIndex);
-            slotSources.add(newSlotSource(ownSlot, BracketSlot.TEAM1, pool, 1));
-
-            if (numPools > 1) {
-                int previousPoolIndex = (poolIndex - 1 + numPools) % numPools;
-                Match previousPoolOwnSlot = currentRound.get(previousPoolIndex);
-                slotSources.add(newSlotSource(previousPoolOwnSlot, BracketSlot.TEAM2, pool, 2));
-            } else {
-                slotSources.add(newSlotSource(ownSlot, BracketSlot.TEAM2, pool, 2));
-            }
-        }
 
         List<Match> semifinalRound = null;
         int matchCount = currentRound.size();
@@ -82,10 +93,10 @@ public final class BracketGenerator {
 
             for (int i = 0; i < currentRound.size(); i++) {
                 Match match = currentRound.get(i);
-                int position = i + 1;
-                Match target = nextRound.get((position - 1) / 2);
+                int matchPosition = i + 1;
+                Match target = nextRound.get((matchPosition - 1) / 2);
                 match.setWinnerNextMatch(target);
-                match.setWinnerNextSlot(position % 2 != 0 ? BracketSlot.TEAM1 : BracketSlot.TEAM2);
+                match.setWinnerNextSlot(matchPosition % 2 != 0 ? BracketSlot.TEAM1 : BracketSlot.TEAM2);
             }
 
             semifinalRound = currentRound;

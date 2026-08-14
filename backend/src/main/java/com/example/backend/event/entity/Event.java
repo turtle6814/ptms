@@ -37,6 +37,12 @@ public class Event {
     @Column(nullable = false)
     private EventFormat format = EventFormat.POOL_TO_ELIM;
 
+    @Column(name = "advancement_per_pool", nullable = false)
+    private int advancementPerPool = 2;
+
+    @Column(name = "wildcard_count", nullable = false)
+    private int wildcardCount = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tournament_id", nullable = false)
     private Tournament tournament;

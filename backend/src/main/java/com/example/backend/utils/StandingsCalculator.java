@@ -56,6 +56,9 @@ public final class StandingsCalculator {
         standings.sort((s1, s2) -> {
             if (s2.getWins() != s1.getWins())
                 return s2.getWins() - s1.getWins();
+            int headToHead = compareHeadToHead(s1.getTeamId(), s2.getTeamId(), poolMatches);
+            if (headToHead != 0)
+                return headToHead;
             if (s2.getPointDifferential() != s1.getPointDifferential())
                 return s2.getPointDifferential() - s1.getPointDifferential();
             if (s2.getPointsFor() != s1.getPointsFor())
@@ -63,6 +66,43 @@ public final class StandingsCalculator {
             return s1.getTeamName().compareTo(s2.getTeamName());
         });
         return standings;
+    }
+
+    // Negative when team1 should rank above team2, i.e. team1 won their head-to-head match(es).
+    private static int compareHeadToHead(UUID team1Id, UUID team2Id, List<Match> poolMatches) {
+        int team1Wins = 0;
+        int team2Wins = 0;
+        for (Match match : poolMatches) {
+            if (!match.getStatus().isFinished() || match.getTeam1() == null || match.getTeam2() == null) {
+                continue;
+            }
+            UUID matchTeam1 = match.getTeam1().getId();
+            UUID matchTeam2 = match.getTeam2().getId();
+            boolean isBetweenThem = (matchTeam1.equals(team1Id) && matchTeam2.equals(team2Id))
+                    || (matchTeam1.equals(team2Id) && matchTeam2.equals(team1Id));
+            if (!isBetweenThem) {
+                continue;
+            }
+            UUID winnerId = headToHeadWinnerId(match);
+            if (team1Id.equals(winnerId)) {
+                team1Wins++;
+            } else if (team2Id.equals(winnerId)) {
+                team2Wins++;
+            }
+        }
+        return team2Wins - team1Wins;
+    }
+
+    private static UUID headToHeadWinnerId(Match match) {
+        if (match.getStatus() == MatchStatus.FORFEIT || match.getStatus() == MatchStatus.WALKOVER) {
+            return match.getWinner() != null ? match.getWinner().getId() : null;
+        }
+        int team1Score = match.getTeam1Score() != null ? match.getTeam1Score() : 0;
+        int team2Score = match.getTeam2Score() != null ? match.getTeam2Score() : 0;
+        if (team1Score == team2Score) {
+            return null;
+        }
+        return team1Score > team2Score ? match.getTeam1().getId() : match.getTeam2().getId();
     }
 
     private static void addWinLoss(Map<UUID, PoolStandingDTO> standingsByTeamId, UUID teamId, boolean won) {

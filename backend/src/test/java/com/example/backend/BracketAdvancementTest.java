@@ -75,10 +75,16 @@ class BracketAdvancementTest {
 
     private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigDTO> pools)
             throws Exception {
+        return createEvent(token, tournamentId, name, pools, 2);
+    }
+
+    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigDTO> pools,
+            int advancementPerPool) throws Exception {
         CreateEventRequest request = new CreateEventRequest();
         request.setName(name);
         request.setTournamentId(tournamentId);
         request.setPools(pools);
+        request.setAdvancementPerPool(advancementPerPool);
 
         MvcResult result = mockMvc.perform(post("/api/v1/events")
                 .header("Authorization", "Bearer " + token)
@@ -153,6 +159,30 @@ class BracketAdvancementTest {
     private static void assertTeams(JsonNode match, String expectedTeam1Id, String expectedTeam2Id) {
         assertEquals(expectedTeam1Id, match.path("team1Id").asText());
         assertEquals(expectedTeam2Id, match.path("team2Id").asText());
+    }
+
+    private static JsonNode poolMatchBetween(JsonNode event, String poolName, String teamAId, String teamBId) {
+        for (JsonNode pool : event.path("pools")) {
+            if (!pool.path("name").asText().equals(poolName)) {
+                continue;
+            }
+            for (JsonNode match : pool.path("matches")) {
+                String t1 = match.path("team1Id").asText();
+                String t2 = match.path("team2Id").asText();
+                if ((t1.equals(teamAId) && t2.equals(teamBId)) || (t1.equals(teamBId) && t2.equals(teamAId))) {
+                    return match;
+                }
+            }
+        }
+        throw new IllegalStateException("Pool match not found between " + teamAId + " and " + teamBId);
+    }
+
+    private void submitScoreBetween(String token, UUID eventId, JsonNode event, String poolName,
+            String teamAId, int teamAScore, String teamBId, int teamBScore) throws Exception {
+        JsonNode match = poolMatchBetween(event, poolName, teamAId, teamBId);
+        UUID matchId = UUID.fromString(match.path("id").asText());
+        boolean aIsTeam1 = match.path("team1Id").asText().equals(teamAId);
+        submitScore(token, eventId, matchId, aIsTeam1 ? teamAScore : teamBScore, aIsTeam1 ? teamBScore : teamAScore);
     }
 
     @Test
@@ -354,5 +384,68 @@ class BracketAdvancementTest {
         JsonNode finalState = getEvent(eventId);
         assertEquals(a1, finalState.path("eliminationBracket").path("champion").asText());
         assertEquals(b1, finalState.path("eliminationBracket").path("thirdPlaceTeamId").asText());
+    }
+
+    @Test
+    void twoPoolsTopThreeAdvanceGeneralizesCrossSeed() throws Exception {
+        String token = signup("bracketk3b", "+19990000105");
+        UUID tournamentId = createTournament(token, "Bracket Advancement-3 Tournament");
+        UUID eventId = UUID.fromString(createEvent(token, tournamentId, "K3 Event",
+                List.of(pool("Pool A", "A1", "A2", "A3"), pool("Pool B", "B1", "B2", "B3")), 3)
+                .path("id").asText());
+        JsonNode created = getEvent(eventId);
+
+        String a1 = teamId(created, "A1");
+        String a2 = teamId(created, "A2");
+        String a3 = teamId(created, "A3");
+        String b1 = teamId(created, "B1");
+        String b2 = teamId(created, "B2");
+        String b3 = teamId(created, "B3");
+
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a2, 5);
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a3, 3);
+        submitScoreBetween(token, eventId, created, "Pool A", a2, 15, a3, 5);
+        submitScoreBetween(token, eventId, created, "Pool B", b1, 15, b2, 5);
+        submitScoreBetween(token, eventId, created, "Pool B", b1, 15, b3, 3);
+        submitScoreBetween(token, eventId, created, "Pool B", b2, 15, b3, 5);
+
+        // advancementPerPool=3 with 2 pools: tier-pair layer (rank1 vs rank3) cross-seeds like
+        // the rank1/rank2 case always has, plus a middle-rank (rank2 vs rank2) layer.
+        JsonNode seeded = getEvent(eventId);
+        assertTeams(bracketMatch(seeded, 1, 1), a1, b3);
+        assertTeams(bracketMatch(seeded, 1, 2), b1, a3);
+        assertTeams(bracketMatch(seeded, 1, 3), a2, b2);
+    }
+
+    @Test
+    void headToHeadBreaksTieAheadOfPointDifferential() throws Exception {
+        String token = signup("h2htestb", "+19990000106");
+        UUID tournamentId = createTournament(token, "Head To Head Tournament");
+        UUID eventId = UUID.fromString(createEvent(token, tournamentId, "H2H Event",
+                List.of(pool("Pool A", "T1", "T2", "T3", "T4"))).path("id").asText());
+        JsonNode created = getEvent(eventId);
+
+        String t1 = teamId(created, "T1");
+        String t2 = teamId(created, "T2");
+        String t3 = teamId(created, "T3");
+        String t4 = teamId(created, "T4");
+
+        submitScoreBetween(token, eventId, created, "Pool A", t1, 15, t2, 14); // T1 over T2, close
+        submitScoreBetween(token, eventId, created, "Pool A", t1, 15, t3, 5);
+        submitScoreBetween(token, eventId, created, "Pool A", t4, 15, t1, 5); // T4 over T1
+        submitScoreBetween(token, eventId, created, "Pool A", t2, 15, t3, 2);
+        submitScoreBetween(token, eventId, created, "Pool A", t2, 15, t4, 2);
+        submitScoreBetween(token, eventId, created, "Pool A", t3, 15, t4, 10); // T3 over T4
+
+        JsonNode standings = getEvent(eventId).path("pools").get(0).path("standings");
+
+        // T1 and T2 are both 2-1; T1 won their head-to-head match despite a far worse point
+        // differential (+1 vs +25), so T1 must still rank above T2.
+        assertEquals(t1, standings.get(0).path("teamId").asText());
+        assertEquals(t2, standings.get(1).path("teamId").asText());
+        // T3 and T4 are both 1-2; T3 won their head-to-head match despite a worse point
+        // differential (-18 vs -8), so T3 must still rank above T4.
+        assertEquals(t3, standings.get(2).path("teamId").asText());
+        assertEquals(t4, standings.get(3).path("teamId").asText());
     }
 }

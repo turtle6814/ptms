@@ -87,17 +87,41 @@ class StandingsCalculatorTest {
         Team b = team("B");
         Team c = team("C");
 
-        // a beats b 11-9 (a: 1W +2diff, b: 1L -2diff)
-        // b beats c 11-2 (b: 1W +9diff, c: 1L -9diff)
-        // b: 1W-1L, diff +7 total; a: 1W-0L, diff +2; c: 0W-1L, diff -9
+        // a and b never play each other, so this stays a pure point-differential tiebreak
+        // (head-to-head is checked first but has nothing to compare for this pair). Both beat
+        // c instead, by different margins.
+        // a beats c 11-9 (a: 1W +2diff)
+        // b beats c 11-2 (b: 1W +9diff)
+        // c: 0W-2L, diff -11 total
         List<Match> matches = List.of(
-                completedMatch(a, b, 11, 9),
+                completedMatch(a, c, 11, 9),
                 completedMatch(b, c, 11, 2));
 
         List<PoolStandingDTO> standings = StandingsCalculator.compute(List.of(a, b, c), matches);
 
         assertEquals(b.getId(), standings.get(0).getTeamId());
         assertEquals(a.getId(), standings.get(1).getTeamId());
+        assertEquals(c.getId(), standings.get(2).getTeamId());
+    }
+
+    @Test
+    void headToHeadBreaksWinsTieBeforePointDifferential() {
+        Team a = team("A");
+        Team b = team("B");
+        Team c = team("C");
+
+        // a beats b directly, but b has the better point differential overall - head-to-head
+        // must still put a first.
+        // a beats b 11-9 (a: 1W +2diff, b: 1L -2diff)
+        // b beats c 11-2 (b: 1W +9diff total, c: 0W -9diff)
+        List<Match> matches = List.of(
+                completedMatch(a, b, 11, 9),
+                completedMatch(b, c, 11, 2));
+
+        List<PoolStandingDTO> standings = StandingsCalculator.compute(List.of(a, b, c), matches);
+
+        assertEquals(a.getId(), standings.get(0).getTeamId());
+        assertEquals(b.getId(), standings.get(1).getTeamId());
         assertEquals(c.getId(), standings.get(2).getTeamId());
     }
 
