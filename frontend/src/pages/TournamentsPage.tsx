@@ -5,6 +5,7 @@ import { Tournament } from '../api/types';
 import { getAllTournaments, createTournament } from '../api';
 import { Header } from '../components/Header';
 import { LoadingState } from '../components/LoadingState';
+import { EmptyState } from '../components/EmptyState';
 import './TournamentsPage.css';
 
 export function TournamentsPage() {
@@ -92,17 +93,20 @@ export function TournamentsPage() {
                 </div>
 
                 {tournaments.length === 0 ? (
-                    <div className="empty-state">
-                        <Calendar size={64} />
-                        <h2>No Tournaments Yet</h2>
-                        <p>Create your first tournament to organize multiple events together.</p>
-                        <button
-                            className="create-event-btn-large"
-                            onClick={() => setShowCreateModal(true)}
-                        >
-                            Create Your First Tournament
-                        </button>
-                    </div>
+                    <EmptyState
+                        className="empty-state--full"
+                        icon={<Calendar size={64} />}
+                        title="No Tournaments Yet"
+                        description="Create your first tournament to organize multiple events together."
+                        action={
+                            <button
+                                className="create-event-btn-large"
+                                onClick={() => setShowCreateModal(true)}
+                            >
+                                Create Your First Tournament
+                            </button>
+                        }
+                    />
                 ) : (
                     <>
                         {/* Tournaments List */}

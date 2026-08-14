@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { LoadingState } from '../components/LoadingState';
+import { EmptyState } from '../components/EmptyState';
 import { PoolStandings } from '../components/PoolStandings';
 import { MatchCard } from '../components/MatchCard';
 import { EliminationBracket } from '../components/EliminationBracket';
@@ -156,10 +157,13 @@ export function AdminDashboard() {
                     </div>
 
                     {tournaments.length === 0 ? (
-                        <div className="empty-state">
-                            <p>No tournaments yet</p>
-                            <Link to="/tournaments" className="create-link">Create your first tournament</Link>
-                        </div>
+                        <EmptyState
+                            className="empty-state--compact"
+                            description="No tournaments yet"
+                            action={
+                                <Link to="/tournaments" className="create-link">Create your first tournament</Link>
+                            }
+                        />
                     ) : (
                         <ul className="event-list">
                             {tournaments.map(tournament => (
@@ -212,14 +216,17 @@ export function AdminDashboard() {
 
                 <div className="tournament-detail">
                     {!selectedEvent ? (
-                        <div className="no-selection">
-                            <h2>Select an event</h2>
-                            <p>Choose an event from the sidebar or go to Tournaments to create one</p>
-                            <Link to="/tournaments" className="create-btn-large">
-                                <Calendar size={20} />
-                                Go to Tournaments
-                            </Link>
-                        </div>
+                        <EmptyState
+                            className="empty-state--fill"
+                            title="Select an event"
+                            description="Choose an event from the sidebar or go to Tournaments to create one"
+                            action={
+                                <Link to="/tournaments" className="create-btn-large">
+                                    <Calendar size={20} />
+                                    Go to Tournaments
+                                </Link>
+                            }
+                        />
                     ) : (
                         <>
                             <div className="detail-header">

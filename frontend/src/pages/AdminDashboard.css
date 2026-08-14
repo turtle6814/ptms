@@ -346,17 +346,6 @@
     color: #f87171;
 }
 
-.empty-state {
-    text-align: center;
-    padding: 3rem 1.5rem;
-    color: #64748b;
-}
-
-.empty-state p {
-    margin: 0 0 1rem;
-    font-size: 0.9rem;
-}
-
 .create-link {
     color: #a78bfa;
     text-decoration: none;
@@ -375,27 +364,6 @@
     padding: 2.5rem 3rem;
     overflow-y: auto;
     background: transparent;
-}
-
-.no-selection {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    text-align: center;
-    color: #94a3b8;
-}
-
-.no-selection h2 {
-    margin: 0 0 0.5rem;
-    font-size: 1.5rem;
-    color: var(--text-primary);
-}
-
-.no-selection p {
-    margin: 0 0 2rem;
-    color: #64748b;
 }
 
 .create-btn-large {

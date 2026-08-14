@@ -5,6 +5,7 @@ import { Tournament, Event } from '../api/types';
 import { getTournamentById, updateTournament, getTournamentEvents, deleteEvent, deleteTournament } from '../api';
 import { Header } from '../components/Header';
 import { LoadingState } from '../components/LoadingState';
+import { EmptyState } from '../components/EmptyState';
 import './TournamentDetailPage.css';
 
 export function TournamentDetailPage() {
@@ -191,14 +192,17 @@ export function TournamentDetailPage() {
                     </div>
 
                     {events.length === 0 ? (
-                        <div className="empty-tournaments">
-                            <Trophy size={48} />
-                            <h3>No Events Yet</h3>
-                            <p>Create your first event for this tournament</p>
-                            <Link to={`/setup?tournamentId=${tournamentId}`} className="create-tournament-btn">
-                                Create Event
-                            </Link>
-                        </div>
+                        <EmptyState
+                            className="empty-state--card"
+                            icon={<Trophy size={48} />}
+                            title="No Events Yet"
+                            description="Create your first event for this tournament"
+                            action={
+                                <Link to={`/setup?tournamentId=${tournamentId}`} className="create-tournament-btn">
+                                    Create Event
+                                </Link>
+                            }
+                        />
                     ) : (
                         <div className="tournaments-grid">
                             {events.map(event => (

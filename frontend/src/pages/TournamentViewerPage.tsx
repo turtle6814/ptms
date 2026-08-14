@@ -9,6 +9,7 @@ import { getTournamentById, getTournamentEvents, pollEvent } from '../api';
 import { Event, Tournament } from '../api/types';
 import { useEventSubscription } from '../hooks/useEventSubscription';
 import { LoadingState } from '../components/LoadingState';
+import { EmptyState } from '../components/EmptyState';
 import { Wifi, ChevronDown, Trophy } from 'lucide-react';
 import './TournamentViewerPage.css';
 
@@ -187,11 +188,12 @@ export function TournamentViewerPage() {
                 </div>
 
                 {!selectedEvent ? (
-                    <div className="no-tournaments">
-                        <Trophy size={48} />
-                        <h2>No Events</h2>
-                        <p>This tournament doesn't have any events yet.</p>
-                    </div>
+                    <EmptyState
+                        className="empty-state--viewer"
+                        icon={<Trophy size={48} />}
+                        title="No Events"
+                        description="This tournament doesn't have any events yet."
+                    />
                 ) : (
                     <TournamentTabs
                         hasPoolPlay={selectedEvent.pools.length > 0}
