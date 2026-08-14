@@ -19,18 +19,17 @@ export function TournamentsPage() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        loadData();
+        const init = async () => {
+            setIsLoading(true);
+            const tournamentsRes = await getAllTournaments();
+
+            if (tournamentsRes.success && tournamentsRes.data) {
+                setTournaments(tournamentsRes.data);
+            }
+            setIsLoading(false);
+        };
+        init();
     }, []);
-
-    const loadData = async () => {
-        setIsLoading(true);
-        const tournamentsRes = await getAllTournaments();
-
-        if (tournamentsRes.success && tournamentsRes.data) {
-            setTournaments(tournamentsRes.data);
-        }
-        setIsLoading(false);
-    };
 
     const handleCreateTournament = async (e: React.FormEvent) => {
         e.preventDefault();

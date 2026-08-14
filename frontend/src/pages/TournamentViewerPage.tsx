@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { PoolStandings } from '../components/PoolStandings';
@@ -24,49 +24,48 @@ export function TournamentViewerPage() {
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
-    const loadTournament = useCallback(async () => {
-        if (!tournamentId) {
-            setError('No tournament ID provided');
-            setLoading(false);
-            return;
-        }
-
-        const [tournamentRes, eventsRes] = await Promise.all([
-            getTournamentById(tournamentId),
-            getTournamentEvents(tournamentId)
-        ]);
-
-        if (tournamentRes.success) {
-            setTournament(tournamentRes.data);
-            setError('');
-        } else {
-            setError(tournamentRes.error || 'Tournament not found');
-            setLoading(false);
-            return;
-        }
-
-        if (eventsRes.success) {
-            setEvents(eventsRes.data);
-            // Auto-select first event and fetch full data
-            if (eventsRes.data.length > 0) {
-                const firstEvent = eventsRes.data[0];
-                setSelectedEvent(firstEvent);
-
-                // Immediately fetch full event data (pools, bracket, etc.)
-                const fullData = await pollEvent(firstEvent.id);
-                if (fullData.success) {
-                    setSelectedEvent(fullData.data);
-                    setEvents(prev => prev.map(e => e.id === fullData.data.id ? fullData.data : e));
-                }
-            }
-            setLastUpdated(new Date());
-        }
-        setLoading(false);
-    }, [tournamentId]);
-
     useEffect(() => {
-        loadTournament();
-    }, [loadTournament]);
+        const init = async () => {
+            if (!tournamentId) {
+                setError('No tournament ID provided');
+                setLoading(false);
+                return;
+            }
+
+            const [tournamentRes, eventsRes] = await Promise.all([
+                getTournamentById(tournamentId),
+                getTournamentEvents(tournamentId)
+            ]);
+
+            if (tournamentRes.success) {
+                setTournament(tournamentRes.data);
+                setError('');
+            } else {
+                setError(tournamentRes.error || 'Tournament not found');
+                setLoading(false);
+                return;
+            }
+
+            if (eventsRes.success) {
+                setEvents(eventsRes.data);
+                // Auto-select first event and fetch full data
+                if (eventsRes.data.length > 0) {
+                    const firstEvent = eventsRes.data[0];
+                    setSelectedEvent(firstEvent);
+
+                    // Immediately fetch full event data (pools, bracket, etc.)
+                    const fullData = await pollEvent(firstEvent.id);
+                    if (fullData.success) {
+                        setSelectedEvent(fullData.data);
+                        setEvents(prev => prev.map(e => e.id === fullData.data.id ? fullData.data : e));
+                    }
+                }
+                setLastUpdated(new Date());
+            }
+            setLoading(false);
+        };
+        init();
+    }, [tournamentId]);
 
     // Subscribe to live updates for selected event
     useEventSubscription(selectedEvent, (updated) => {

@@ -21,30 +21,27 @@ export function TournamentDetailPage() {
     const [editDescription, setEditDescription] = useState('');
 
     useEffect(() => {
-        if (tournamentId) {
-            loadTournamentData();
-        }
+        const init = async () => {
+            if (!tournamentId) return;
+
+            setIsLoading(true);
+            const [tournamentRes, eventsRes] = await Promise.all([
+                getTournamentById(tournamentId),
+                getTournamentEvents(tournamentId)
+            ]);
+
+            if (tournamentRes.success && tournamentRes.data) {
+                setTournament(tournamentRes.data);
+                setEditName(tournamentRes.data.name);
+                setEditDescription(tournamentRes.data.description || '');
+            }
+            if (eventsRes.success && eventsRes.data) {
+                setEvents(eventsRes.data);
+            }
+            setIsLoading(false);
+        };
+        init();
     }, [tournamentId]);
-
-    const loadTournamentData = async () => {
-        if (!tournamentId) return;
-
-        setIsLoading(true);
-        const [tournamentRes, eventsRes] = await Promise.all([
-            getTournamentById(tournamentId),
-            getTournamentEvents(tournamentId)
-        ]);
-
-        if (tournamentRes.success && tournamentRes.data) {
-            setTournament(tournamentRes.data);
-            setEditName(tournamentRes.data.name);
-            setEditDescription(tournamentRes.data.description || '');
-        }
-        if (eventsRes.success && eventsRes.data) {
-            setEvents(eventsRes.data);
-        }
-        setIsLoading(false);
-    };
 
     const handleSaveEdit = async () => {
         if (!tournamentId || !editName.trim()) return;

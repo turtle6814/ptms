@@ -3,12 +3,7 @@ import { Trophy, Settings, Eye, LogIn, LogOut, User, Calendar } from 'lucide-rea
 import { useAuth } from '../context/useAuth';
 import './Header.css';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface HeaderProps {
-    // Props removed: tournamentName, isAdmin (badges removed)
-}
-
-export function Header(_props?: HeaderProps) {
+export function Header() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, isAuthenticated, logout } = useAuth();
