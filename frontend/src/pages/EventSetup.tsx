@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { createEvent } from '../api';
-import { ScoreRules } from '../api/types';
+import { EventFormat, ScoreRules } from '../api/types';
 import { ChevronLeft, Plus, Trash2, Users } from 'lucide-react';
 import './EventSetup.css';
 
@@ -11,7 +11,9 @@ export function EventSetup() {
     const tournamentId = searchParams.get('tournamentId');
 
     const [eventName, setEventName] = useState('');
-    const [format, setFormat] = useState<'POOL_TO_ELIM' | 'ROUND_ROBIN_ONLY'>('POOL_TO_ELIM');
+    const [format, setFormat] = useState<EventFormat>('POOL_TO_ELIM');
+    const [advancementPerPool, setAdvancementPerPool] = useState(2);
+    const [wildcardCount, setWildcardCount] = useState(0);
 
     const [poolRules, setPoolRules] = useState<ScoreRules>({ targetScore: 11, winByTwo: true, scoreCap: 15 });
     const [playoffRules, setPlayoffRules] = useState<ScoreRules>({ targetScore: 15, winByTwo: true, scoreCap: 21 });
@@ -91,6 +93,16 @@ export function EventSetup() {
             }
         }
 
+        if (!Number.isInteger(advancementPerPool) || advancementPerPool < 1 || advancementPerPool > 100) {
+            setError('Teams advancing per pool must be a whole number between 1 and 100');
+            return;
+        }
+
+        if (!Number.isInteger(wildcardCount) || wildcardCount < 0 || wildcardCount > 100) {
+            setError('Wildcard slots must be a whole number between 0 and 100');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -102,8 +114,10 @@ export function EventSetup() {
                     name: pool.name,
                     teamNames: pool.teams.filter(t => t.trim())
                 })),
+                advancementPerPool,
+                wildcardCount,
                 poolStageRules: poolRules,
-                ...(format === 'POOL_TO_ELIM' ? { playoffStageRules: playoffRules } : {}),
+                ...(format !== 'ROUND_ROBIN_ONLY' ? { playoffStageRules: playoffRules } : {}),
             });
 
             if (response.success) {
@@ -177,12 +191,38 @@ export function EventSetup() {
                             <select
                                 id="format"
                                 value={format}
-                                onChange={(e) => setFormat(e.target.value as 'POOL_TO_ELIM' | 'ROUND_ROBIN_ONLY')}
+                                onChange={(e) => setFormat(e.target.value as EventFormat)}
                                 disabled={loading}
                             >
                                 <option value="POOL_TO_ELIM">Pool Play + Playoffs</option>
                                 <option value="ROUND_ROBIN_ONLY">Round Robin Only</option>
+                                <option value="POOL_TO_SERIES_AB">Pool Play + Series A/B</option>
+                                <option value="POOL_TO_DOUBLE_ELIM">Pool Play + Double Elimination</option>
                             </select>
+                        </div>
+
+                        <div className="input-group">
+                            <label htmlFor="advancementPerPool">Teams Advancing Per Pool</label>
+                            <input
+                                type="number"
+                                id="advancementPerPool"
+                                min="1"
+                                value={advancementPerPool}
+                                onChange={(e) => setAdvancementPerPool(parseInt(e.target.value) || 1)}
+                                disabled={loading}
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <label htmlFor="wildcardCount">Wildcard Slots</label>
+                            <input
+                                type="number"
+                                id="wildcardCount"
+                                min="0"
+                                value={wildcardCount}
+                                onChange={(e) => setWildcardCount(parseInt(e.target.value) || 0)}
+                                disabled={loading}
+                            />
                         </div>
                     </div>
 
@@ -192,7 +232,7 @@ export function EventSetup() {
                         </div>
                         <div className="pools-grid">
                             <ScoreRulesGroup title="Pool Play" rules={poolRules} onChange={setPoolRules} disabled={loading} />
-                            {format === 'POOL_TO_ELIM' && (
+                            {format !== 'ROUND_ROBIN_ONLY' && (
                                 <ScoreRulesGroup title="Playoffs" rules={playoffRules} onChange={setPlayoffRules} disabled={loading} />
                             )}
                         </div>

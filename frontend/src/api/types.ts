@@ -83,7 +83,7 @@ export interface Match {
   team1Score?: number | null;
   team2Score?: number | null;
   winnerId?: string | null; // uuid
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FORFEIT' | 'WALKOVER';
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FORFEIT' | 'WALKOVER' | 'SKIPPED';
   targetScore: number;
   winByTwo: boolean;
   scoreCap: number;
@@ -123,14 +123,21 @@ export interface EliminationBracket {
   champion?: string | null; // uuid
   thirdPlaceMatch?: Match | null;
   thirdPlaceTeamId?: string | null; // uuid
+  consolationBracket?: EliminationBracket | null;
+  grandFinalGame1?: Match | null;
+  grandFinalGame2?: Match | null;
 }
+
+export type EventFormat = 'POOL_TO_ELIM' | 'ROUND_ROBIN_ONLY' | 'POOL_TO_SERIES_AB' | 'POOL_TO_DOUBLE_ELIM';
 
 export interface Event {
   id: string; // uuid
   tournamentId: string; // uuid — required
   name: string;
   status: 'SETUP' | 'POOL_PLAY' | 'ELIMINATION' | 'COMPLETED';
-  format: 'POOL_TO_ELIM' | 'ROUND_ROBIN_ONLY';
+  format: EventFormat;
+  advancementPerPool: number;
+  wildcardCount: number;
   teams: Team[];
   pools: Pool[];
   eliminationBracket?: EliminationBracket | null;
@@ -147,7 +154,9 @@ export interface CreateEventRequest {
   name: string;
   tournamentId: string; // required
   pools: PoolConfig[];
-  format?: 'POOL_TO_ELIM' | 'ROUND_ROBIN_ONLY';
+  format?: EventFormat;
+  advancementPerPool?: number;
+  wildcardCount?: number;
   poolStageRules?: ScoreRules;
   playoffStageRules?: ScoreRules;
 }

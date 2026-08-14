@@ -296,7 +296,7 @@ export function subscribeEvent(eventId: string, callback: (data: Event) => void)
     };
 }
 
-// Deprecated: No longer needed with real WebSockets, but kept for compatibility if needed
+// One-shot full refresh (pools, standings, bracket) — used alongside the WebSocket stream
 export async function pollEvent(id: string): Promise<ApiResponse<Event>> {
     return getEventById(id);
 }
