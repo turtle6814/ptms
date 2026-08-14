@@ -13,6 +13,7 @@ public class CreateEventRequest {
     private List<PoolConfigDTO> pools;
     private EventFormat format = EventFormat.POOL_TO_ELIM;
     private int advancementPerPool = 2;
+    private int wildcardCount = 0;
     private ScoreRulesDTO poolStageRules;
     private ScoreRulesDTO playoffStageRules;
 }

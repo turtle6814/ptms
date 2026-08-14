@@ -12,6 +12,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -62,6 +64,11 @@ public class Match {
     @Enumerated(EnumType.STRING)
     @Column(name = "loser_next_slot")
     private BracketSlot loserNextSlot;
+
+    // Only populated for wildcard-sourced slots (no sourcePool to cascade-persist through) -
+    // pool-sourced slots still cascade via Pool.bracketSlotSources, unchanged.
+    @OneToMany(mappedBy = "bracketMatch", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BracketSlotSource> bracketSlotSources = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team1_id")

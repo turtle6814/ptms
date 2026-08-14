@@ -8,6 +8,7 @@ import com.example.backend.match.entity.Match;
 import com.example.backend.enums.BracketSlot;
 import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;
+import com.example.backend.enums.SourceType;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -32,7 +33,8 @@ public final class BracketGenerator {
 
         int numPools = pools.size();
         int advancementPerPool = event.getAdvancementPerPool();
-        int totalQualifiers = numPools * advancementPerPool;
+        int wildcardCount = event.getWildcardCount();
+        int totalQualifiers = numPools * advancementPerPool + wildcardCount;
         if (numPools < 1 || totalQualifiers < 2) {
             return new Result(allMatches, slotSources);
         }
@@ -42,6 +44,11 @@ public final class BracketGenerator {
             // even pool count or an even advancementPerPool until that's added.
             throw new IllegalStateException("advancementPerPool=" + advancementPerPool
                     + " with an odd pool count (" + numPools + ") needs a round-1 bye, which isn't supported yet");
+        }
+        if (wildcardCount % 2 != 0) {
+            // ponytail: same round-1-bye gap as above, for an odd number of wildcards.
+            throw new IllegalStateException("wildcardCount=" + wildcardCount
+                    + " is odd, which needs a round-1 bye, which isn't supported yet");
         }
 
         List<Pool> sortedPools = new ArrayList<>(pools);
@@ -76,6 +83,15 @@ public final class BracketGenerator {
                 slotSources.add(newSlotSource(match, BracketSlot.TEAM2, sortedPools.get(poolIndex + 1), middleRank));
             }
         }
+        // Wildcards have no "own pool" to cross-seed against, so they simply pair off against
+        // each other (rank 1 vs rank 2, etc.) in extra Round-1 matches.
+        for (int i = 0; i < wildcardCount; i += 2) {
+            Match match = newBracketMatch(event, 1, ++position, rules);
+            currentRound.add(match);
+            slotSources.add(newWildcardSlotSource(match, BracketSlot.TEAM1, i + 1));
+            slotSources.add(newWildcardSlotSource(match, BracketSlot.TEAM2, i + 2));
+        }
+
         allMatches.addAll(currentRound);
 
         List<Match> semifinalRound = null;
@@ -142,6 +158,18 @@ public final class BracketGenerator {
         source.setSlot(slot);
         source.setSourcePool(sourcePool);
         source.setSourceRank(sourceRank);
+        return source;
+    }
+
+    private static BracketSlotSource newWildcardSlotSource(Match bracketMatch, BracketSlot slot, int wildcardRank) {
+        BracketSlotSource source = new BracketSlotSource();
+        source.setBracketMatch(bracketMatch);
+        source.setSlot(slot);
+        source.setSourceType(SourceType.WILDCARD);
+        source.setWildcardRank(wildcardRank);
+        // source_rank stays NOT NULL in the DB even for wildcard rows (V10 only dropped
+        // source_pool_id's constraint) - reuse the wildcard rank so the column is satisfied.
+        source.setSourceRank(wildcardRank);
         return source;
     }
 }

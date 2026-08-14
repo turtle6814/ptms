@@ -75,6 +75,7 @@ public class EventServiceImpl implements EventService {
         event.setStatus(EventStatus.POOL_PLAY);
         event.setFormat(request.getFormat() != null ? request.getFormat() : EventFormat.POOL_TO_ELIM);
         event.setAdvancementPerPool(request.getAdvancementPerPool() > 0 ? request.getAdvancementPerPool() : 2);
+        event.setWildcardCount(request.getWildcardCount());
         event.setTournament(tournament);
 
         List<Pool> pools = new ArrayList<>();
@@ -125,7 +126,13 @@ public class EventServiceImpl implements EventService {
             // can wire pointers before anything is persisted), which would make a direct
             // repository.save() incorrectly attempt an UPDATE instead of an INSERT.
             for (BracketSlotSource source : bracket.bracketSlotSources()) {
-                source.getSourcePool().getBracketSlotSources().add(source);
+                if (source.getSourcePool() != null) {
+                    source.getSourcePool().getBracketSlotSources().add(source);
+                } else {
+                    // Wildcard-sourced slots have no pool to cascade through - cascade via the
+                    // bracket match instead.
+                    source.getBracketMatch().getBracketSlotSources().add(source);
+                }
             }
         }
 

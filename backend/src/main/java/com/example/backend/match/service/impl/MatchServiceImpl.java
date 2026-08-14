@@ -30,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -171,12 +173,59 @@ public class MatchServiceImpl implements MatchService {
         List<Team> teams = teamsInPool(pool);
         List<PoolStandingDTO> standings = StandingsCalculator.compute(teams, poolMatches);
 
-        if (standings.isEmpty())
-            return;
-
-        int advancementPerPool = pool.getEvent().getAdvancementPerPool();
+        Event event = pool.getEvent();
+        int advancementPerPool = event.getAdvancementPerPool();
         for (int rank = 1; rank <= advancementPerPool && rank <= standings.size(); rank++) {
             seedBracketSlot(pool, rank, resolveTeam(teams, standings.get(rank - 1).getTeamId()));
+        }
+
+        if (event.getWildcardCount() > 0
+                && poolRepository.findByEventId(event.getId()).stream().allMatch(Pool::isComplete)) {
+            resolveWildcardSlots(event);
+        }
+    }
+
+    // Ranks every pool's non-advancing finishers globally to fill the WILDCARD-typed bracket
+    // slots BracketGenerator pre-created. Only called once the last pool completes, since which
+    // pools' runners-up qualify isn't knowable until every pool has finished.
+    private void resolveWildcardSlots(Event event) {
+        record Candidate(Team team, PoolStandingDTO standing) {
+        }
+
+        int advancementPerPool = event.getAdvancementPerPool();
+        List<Candidate> candidates = new ArrayList<>();
+        for (Pool otherPool : poolRepository.findByEventId(event.getId())) {
+            List<Team> teams = teamsInPool(otherPool);
+            List<PoolStandingDTO> standings = StandingsCalculator.compute(teams, matchRepository.findByPoolId(otherPool.getId()));
+            for (int i = advancementPerPool; i < standings.size(); i++) {
+                candidates.add(new Candidate(resolveTeam(teams, standings.get(i).getTeamId()), standings.get(i)));
+            }
+        }
+
+        // ponytail: cross-pool ranking skips head-to-head since pools rarely share opponents -
+        // wins, then point differential, then points-for, same as StandingsCalculator's other tiers.
+        candidates.sort(Comparator
+                .comparingInt((Candidate c) -> -c.standing().getWins())
+                .thenComparingInt(c -> -c.standing().getPointDifferential())
+                .thenComparingInt(c -> -c.standing().getPointsFor()));
+
+        int wildcardCount = event.getWildcardCount();
+        for (int rank = 1; rank <= wildcardCount && rank <= candidates.size(); rank++) {
+            seedWildcardSlot(event, rank, candidates.get(rank - 1).team());
+        }
+    }
+
+    private void seedWildcardSlot(Event event, int wildcardRank, Team seedTeam) {
+        List<BracketSlotSource> sources = bracketSlotSourceRepository
+                .findByBracketMatch_Event_IdAndWildcardRank(event.getId(), wildcardRank);
+        for (BracketSlotSource source : sources) {
+            Match match = source.getBracketMatch();
+            if (source.getSlot() == BracketSlot.TEAM1) {
+                match.setTeam1(seedTeam);
+            } else {
+                match.setTeam2(seedTeam);
+            }
+            matchRepository.save(match);
         }
     }
 

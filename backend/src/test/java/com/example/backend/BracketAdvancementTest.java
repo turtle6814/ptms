@@ -96,6 +96,25 @@ class BracketAdvancementTest {
         return objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
     }
 
+    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigDTO> pools,
+            int advancementPerPool, int wildcardCount) throws Exception {
+        CreateEventRequest request = new CreateEventRequest();
+        request.setName(name);
+        request.setTournamentId(tournamentId);
+        request.setPools(pools);
+        request.setAdvancementPerPool(advancementPerPool);
+        request.setWildcardCount(wildcardCount);
+
+        MvcResult result = mockMvc.perform(post("/api/v1/events")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        return objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
+    }
+
     private JsonNode getEvent(UUID eventId) throws Exception {
         MvcResult result = mockMvc.perform(get("/api/v1/events/" + eventId))
                 .andExpect(status().isOk())
@@ -447,5 +466,43 @@ class BracketAdvancementTest {
         // differential (-18 vs -8), so T3 must still rank above T4.
         assertEquals(t3, standings.get(2).path("teamId").asText());
         assertEquals(t4, standings.get(3).path("teamId").asText());
+    }
+
+    @Test
+    void wildcardSlotsResolveGloballyOnceLastPoolCompletes() throws Exception {
+        String token = signup("wildcardtest3", "+19990000109");
+        UUID tournamentId = createTournament(token, "Wildcard Tournament");
+        UUID eventId = UUID.fromString(createEvent(token, tournamentId, "Wildcard Event",
+                List.of(pool("Pool A", "A1", "A2", "A3"), pool("Pool B", "B1", "B2", "B3")), 1, 2)
+                .path("id").asText());
+        JsonNode created = getEvent(eventId);
+
+        String a1 = teamId(created, "A1");
+        String a2 = teamId(created, "A2");
+        String a3 = teamId(created, "A3");
+        String b1 = teamId(created, "B1");
+        String b2 = teamId(created, "B2");
+        String b3 = teamId(created, "B3");
+
+        // Only rank 1 advances directly per pool (advancementPerPool=1); A2/A3/B2/B3 are all
+        // wildcard candidates, ranked globally by wins then point differential.
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a2, 5);
+        submitScoreBetween(token, eventId, created, "Pool A", a1, 15, a3, 3);
+        submitScoreBetween(token, eventId, created, "Pool A", a2, 15, a3, 2); // A2: 1-1, diff +3
+
+        // Pool A alone is complete but Pool B isn't - wildcard slots must stay unresolved.
+        JsonNode afterPoolA = getEvent(eventId);
+        assertTrue(bracketMatch(afterPoolA, 1, 2).path("team1Id").isNull());
+        assertTrue(bracketMatch(afterPoolA, 1, 2).path("team2Id").isNull());
+
+        submitScoreBetween(token, eventId, created, "Pool B", b1, 15, b2, 5);
+        submitScoreBetween(token, eventId, created, "Pool B", b1, 15, b3, 3);
+        submitScoreBetween(token, eventId, created, "Pool B", b2, 15, b3, 14); // B2: 1-1, diff -9
+
+        // Last pool (B) completing triggers global wildcard resolution: A2 (diff +3) outranks
+        // B2 (diff -9) among the tied 1-1 candidates, so A2 is wildcard rank 1, B2 is rank 2.
+        JsonNode afterPoolB = getEvent(eventId);
+        assertTeams(bracketMatch(afterPoolB, 1, 1), a1, b1);
+        assertTeams(bracketMatch(afterPoolB, 1, 2), a2, b2);
     }
 }

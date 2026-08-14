@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface BracketSlotSourceRepository extends JpaRepository<BracketSlotSource, UUID> {
     List<BracketSlotSource> findBySourcePoolIdAndSourceRank(UUID sourcePoolId, int sourceRank);
+
+    List<BracketSlotSource> findByBracketMatch_Event_IdAndWildcardRank(UUID eventId, Integer wildcardRank);
 }
