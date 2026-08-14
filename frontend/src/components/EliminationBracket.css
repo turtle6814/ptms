@@ -283,6 +283,26 @@
     letter-spacing: 0.05em;
 }
 
+.grand-final-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed rgba(168, 85, 247, 0.3);
+    max-width: 320px;
+}
+
+.grand-final-note {
+    padding: 0.75rem 1rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+.elimination-bracket .elimination-bracket {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(168, 85, 247, 0.3);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
     .elimination-bracket {

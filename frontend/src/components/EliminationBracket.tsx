@@ -1,5 +1,5 @@
 import React from 'react';
-import { EliminationBracket as BracketType, Team } from '../api/types';
+import { EliminationBracket as BracketType, Match, Team } from '../api/types';
 import { MatchCard } from './MatchCard';
 import { Trophy, Medal } from 'lucide-react';
 import './EliminationBracket.css';
@@ -7,6 +7,7 @@ import './EliminationBracket.css';
 interface EliminationBracketProps {
     bracket: BracketType;
     teams: Team[];
+    title?: string;
     isAdmin?: boolean;
     showPlaceholders?: boolean;
     hasThirdPlaceMatch?: boolean;
@@ -15,9 +16,32 @@ interface EliminationBracketProps {
     onForfeit?: (matchId: string, winnerId: string, status: 'FORFEIT' | 'WALKOVER') => void;
 }
 
+function getDecidingMatch(bracket: BracketType): Match | null {
+    if (bracket.grandFinalGame1) {
+        return bracket.grandFinalGame2?.status === 'COMPLETED'
+            ? bracket.grandFinalGame2
+            : bracket.grandFinalGame1;
+    }
+    const finalsRound = bracket.rounds.find(r => r.name === 'Finals');
+    return finalsRound?.matches[0] ?? null;
+}
+
+function buildPlaceholderMatch(match: Match): Match {
+    return {
+        ...match,
+        team1Id: '',
+        team2Id: '',
+        team1Score: null,
+        team2Score: null,
+        winnerId: null,
+        status: 'PENDING',
+    };
+}
+
 export function EliminationBracket({
     bracket,
     teams,
+    title = 'Elimination Bracket',
     isAdmin = false,
     showPlaceholders = false,
     hasThirdPlaceMatch = false,
@@ -81,15 +105,25 @@ export function EliminationBracket({
         ? teams.find(t => t.id === thirdPlaceData.match?.winnerId)
         : null;
 
+    const runnerUp = React.useMemo(() => {
+        if (!bracket.champion) return null;
+        const decidingMatch = getDecidingMatch(bracket);
+        if (!decidingMatch || decidingMatch.status !== 'COMPLETED') return null;
+        const runnerUpId = decidingMatch.team1Id === bracket.champion
+            ? decidingMatch.team2Id
+            : decidingMatch.team1Id;
+        return teams.find(t => t.id === runnerUpId) || null;
+    }, [bracket, teams]);
+
     return (
         <div className="elimination-bracket">
             <div className="bracket-header">
                 <h2 className="bracket-title">
                     <Trophy size={24} />
-                    Elimination Bracket
+                    {title}
                 </h2>
 
-                {isAdmin && onThirdPlaceToggle && (
+                {isAdmin && onThirdPlaceToggle && !bracket.grandFinalGame1 && (
                     <label className="third-place-toggle">
                         <input
                             type="checkbox"
@@ -112,26 +146,15 @@ export function EliminationBracket({
             )}
 
             {/* Show 2nd place banner - the finals loser */}
-            {(() => {
-                if (!bracket.champion) return null;
-                const finalsRound = bracket.rounds.find(r => r.name === 'Finals');
-                const finalsMatch = finalsRound?.matches[0];
-                if (!finalsMatch || finalsMatch.status !== 'COMPLETED') return null;
-                const runnerUpId = finalsMatch.team1Id === bracket.champion
-                    ? finalsMatch.team2Id
-                    : finalsMatch.team1Id;
-                const runnerUp = teams.find(t => t.id === runnerUpId);
-                if (!runnerUp) return null;
-                return (
-                    <div className="runner-up-banner">
-                        <div className="runner-up-medal">🥈</div>
-                        <div className="runner-up-text">
-                            <span className="runner-up-label">2nd Place</span>
-                            <span className="runner-up-name">{runnerUp.name}</span>
-                        </div>
+            {runnerUp && (
+                <div className="runner-up-banner">
+                    <div className="runner-up-medal">🥈</div>
+                    <div className="runner-up-text">
+                        <span className="runner-up-label">2nd Place</span>
+                        <span className="runner-up-name">{runnerUp.name}</span>
                     </div>
-                );
-            })()}
+                </div>
+            )}
 
             {/* Show 3rd place banner if applicable */}
             {hasThirdPlaceMatch && (thirdPlaceWinner || thirdPlaceData.autoThirdTeam) && (
@@ -157,7 +180,7 @@ export function EliminationBracket({
                             {round.matches.map((match) => (
                                 <div key={match.id} className="bracket-match-wrapper">
                                     <MatchCard
-                                        match={showPlaceholders ? { ...match, team1Id: '', team2Id: '', team1Score: null, team2Score: null, winnerId: null, status: 'PENDING' } : match}
+                                        match={showPlaceholders ? buildPlaceholderMatch(match) : match}
                                         teams={teams}
                                         isAdmin={isAdmin && !showPlaceholders}
                                         onScoreUpdate={onScoreUpdate}
@@ -188,6 +211,51 @@ export function EliminationBracket({
                     </div>
                 ))}
             </div>
+
+            {bracket.grandFinalGame1 && (
+                <div className="grand-final-section">
+                    <h3 className="round-title">Grand Final</h3>
+                    <div className="bracket-match-wrapper">
+                        <MatchCard
+                            match={bracket.grandFinalGame1}
+                            teams={teams}
+                            isAdmin={isAdmin}
+                            onScoreUpdate={onScoreUpdate}
+                            onForfeit={onForfeit}
+                        />
+                    </div>
+                    {bracket.grandFinalGame2 && (
+                        bracket.grandFinalGame2.status === 'SKIPPED' ? (
+                            <div className="grand-final-note">
+                                Not needed — {champion?.name ?? 'the winners’ bracket champion'} won Game 1.
+                            </div>
+                        ) : (
+                            <div className="bracket-match-wrapper">
+                                <MatchCard
+                                    match={bracket.grandFinalGame2}
+                                    teams={teams}
+                                    isAdmin={isAdmin}
+                                    onScoreUpdate={onScoreUpdate}
+                                    onForfeit={onForfeit}
+                                />
+                            </div>
+                        )
+                    )}
+                </div>
+            )}
+
+            {bracket.consolationBracket && (
+                // hasThirdPlaceMatch/onThirdPlaceToggle intentionally omitted: the consolation bracket has no third-place match
+                <EliminationBracket
+                    bracket={bracket.consolationBracket}
+                    teams={teams}
+                    title="Consolation Bracket (B Bracket)"
+                    isAdmin={isAdmin}
+                    showPlaceholders={showPlaceholders}
+                    onScoreUpdate={onScoreUpdate}
+                    onForfeit={onForfeit}
+                />
+            )}
         </div>
     );
 }
