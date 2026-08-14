@@ -43,8 +43,8 @@ export function TournamentsPage() {
             description: newTournamentDescription.trim() || undefined,
         });
 
-        if (result.success && result.data) {
-            setTournaments(prev => [...prev, result.data!]);
+        if (result.success) {
+            setTournaments(prev => [...prev, result.data]);
             setShowCreateModal(false);
             setNewTournamentName('');
             setNewTournamentDescription('');

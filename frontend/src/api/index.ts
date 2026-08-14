@@ -74,7 +74,7 @@ export async function getCurrentUser(): Promise<ApiResponse<User>> {
 
 export async function logout(): Promise<ApiResponse<void>> {
     // Client-side logout only since JWT is stateless (unless we had a blacklist)
-    return { success: true };
+    return { success: true, data: undefined };
 }
 
 // ================================

@@ -32,7 +32,7 @@ export function TournamentViewerPage() {
             getTournamentEvents(tournamentId)
         ]);
 
-        if (tournamentRes.success && tournamentRes.data) {
+        if (tournamentRes.success) {
             setTournament(tournamentRes.data);
             setError('');
         } else {
@@ -41,7 +41,7 @@ export function TournamentViewerPage() {
             return;
         }
 
-        if (eventsRes.success && eventsRes.data) {
+        if (eventsRes.success) {
             setEvents(eventsRes.data);
             // Auto-select first event and fetch full data
             if (eventsRes.data.length > 0) {
@@ -50,9 +50,9 @@ export function TournamentViewerPage() {
 
                 // Immediately fetch full event data (pools, bracket, etc.)
                 const fullData = await pollEvent(firstEvent.id);
-                if (fullData.success && fullData.data) {
+                if (fullData.success) {
                     setSelectedEvent(fullData.data);
-                    setEvents(prev => prev.map(e => e.id === fullData.data!.id ? fullData.data! : e));
+                    setEvents(prev => prev.map(e => e.id === fullData.data.id ? fullData.data : e));
                 }
             }
             setLastUpdated(new Date());
@@ -84,9 +84,9 @@ export function TournamentViewerPage() {
 
         // Immediately fetch full event data (don't wait for next poll)
         const response = await pollEvent(event.id);
-        if (response.success && response.data) {
+        if (response.success) {
             setSelectedEvent(response.data);
-            setEvents(prev => prev.map(e => e.id === response.data!.id ? response.data! : e));
+            setEvents(prev => prev.map(e => e.id === response.data.id ? response.data : e));
             setLastUpdated(new Date());
         }
     };

@@ -82,11 +82,11 @@ export function AdminDashboard() {
             team2Score,
         });
 
-        if (response.success && response.data) {
+        if (response.success) {
             setSelectedEvent(response.data);
             // Also update the events list
             setEvents(prev =>
-                prev.map(e => e.id === response.data!.id ? response.data! : e)
+                prev.map(e => e.id === response.data.id ? response.data : e)
             );
         }
     };
@@ -96,10 +96,10 @@ export function AdminDashboard() {
 
         const response = await recordForfeit(selectedEvent.id, matchId, { winnerId, status });
 
-        if (response.success && response.data) {
+        if (response.success) {
             setSelectedEvent(response.data);
             setEvents(prev =>
-                prev.map(e => e.id === response.data!.id ? response.data! : e)
+                prev.map(e => e.id === response.data.id ? response.data : e)
             );
         }
     };

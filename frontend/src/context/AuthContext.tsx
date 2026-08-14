@@ -40,7 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const login = async (phoneNumber: string, password: string) => {
         const response = await api.login({ phoneNumber, password });
-        if (response.success && response.data) {
+        if (response.success) {
             setUser(response.data.user);
             localStorage.setItem('pickleball_auth_token', response.data.token);
             return { success: true };
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const signup = async (username: string, phoneNumber: string, password: string) => {
         const response = await api.signup({ username, phoneNumber, password });
-        if (response.success && response.data) {
+        if (response.success) {
             setUser(response.data.user);
             localStorage.setItem('pickleball_auth_token', response.data.token);
             return { success: true };
