@@ -11,10 +11,10 @@ import {
     getAllEvents,
     updateMatchScore,
     recordForfeit,
-    subscribeEvent,
     getAllTournaments,
 } from '../api';
 import { Event, Tournament } from '../api/types';
+import { useEventSubscription } from '../hooks/useEventSubscription';
 import { Share2, RefreshCw, ChevronDown, Calendar } from 'lucide-react';
 import './AdminDashboard.css';
 
@@ -64,14 +64,9 @@ export function AdminDashboard() {
     }, [eventId, loadSidebarData, loadSelectedEvent]);
 
     // Subscribe to live updates
-    useEffect(() => {
-        if (selectedEvent) {
-            const unsubscribe = subscribeEvent(selectedEvent.id, (updated) => {
-                setSelectedEvent(updated);
-            });
-            return unsubscribe;
-        }
-    }, [selectedEvent?.id]);
+    useEventSubscription(selectedEvent, (updated) => {
+        setSelectedEvent(updated);
+    });
 
     const handleScoreUpdate = async (matchId: string, team1Score: number, team2Score: number) => {
         if (!selectedEvent) return;

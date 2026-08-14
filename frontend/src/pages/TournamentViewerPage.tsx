@@ -5,8 +5,9 @@ import { PoolStandings } from '../components/PoolStandings';
 import { MatchCard } from '../components/MatchCard';
 import { EliminationBracket } from '../components/EliminationBracket';
 import { TournamentTabs } from '../components/TournamentTabs';
-import { getTournamentById, getTournamentEvents, subscribeEvent, pollEvent } from '../api';
+import { getTournamentById, getTournamentEvents, pollEvent } from '../api';
 import { Event, Tournament } from '../api/types';
+import { useEventSubscription } from '../hooks/useEventSubscription';
 import { RefreshCw, Wifi, ChevronDown, Trophy } from 'lucide-react';
 import './TournamentViewerPage.css';
 
@@ -65,16 +66,11 @@ export function TournamentViewerPage() {
     }, [loadTournament]);
 
     // Subscribe to live updates for selected event
-    useEffect(() => {
-        if (selectedEvent) {
-            const unsubscribe = subscribeEvent(selectedEvent.id, (updated) => {
-                setSelectedEvent(updated);
-                setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
-                setLastUpdated(new Date());
-            });
-            return unsubscribe;
-        }
-    }, [selectedEvent?.id]);
+    useEventSubscription(selectedEvent, (updated) => {
+        setSelectedEvent(updated);
+        setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
+        setLastUpdated(new Date());
+    });
 
     // Poll removed — using WebSocket (subscribeEvent) for real-time updates
 
