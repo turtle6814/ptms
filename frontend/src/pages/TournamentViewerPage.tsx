@@ -8,7 +8,8 @@ import { TournamentTabs } from '../components/TournamentTabs';
 import { getTournamentById, getTournamentEvents, pollEvent } from '../api';
 import { Event, Tournament } from '../api/types';
 import { useEventSubscription } from '../hooks/useEventSubscription';
-import { RefreshCw, Wifi, ChevronDown, Trophy } from 'lucide-react';
+import { LoadingState } from '../components/LoadingState';
+import { Wifi, ChevronDown, Trophy } from 'lucide-react';
 import './TournamentViewerPage.css';
 
 export function TournamentViewerPage() {
@@ -102,10 +103,7 @@ export function TournamentViewerPage() {
             <div className="event-viewer-page">
                 <Header />
                 <main className="viewer-content">
-                    <div className="loading-state">
-                        <RefreshCw className="spin" size={32} />
-                        <p>Loading tournament...</p>
-                    </div>
+                    <LoadingState message="Loading tournament..." />
                 </main>
             </div>
         );

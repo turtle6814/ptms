@@ -9,7 +9,6 @@
     padding: 2rem;
 }
 
-.loading-state,
 .error-state {
     display: flex;
     flex-direction: column;

@@ -547,16 +547,6 @@
     gap: 1rem;
 }
 
-/* ========== LOADING ========== */
-.loading-state {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #64748b;
-    font-size: 1rem;
-}
-
 /* ========== MODAL ========== */
 .modal-overlay {
     position: fixed;

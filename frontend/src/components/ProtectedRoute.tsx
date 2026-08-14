@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
+import { LoadingState } from './LoadingState';
 
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -12,11 +13,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
     // Show loading state while checking auth
     if (isLoading) {
-        return (
-            <div className="auth-loading">
-                <div className="loading-spinner"></div>
-            </div>
-        );
+        return <LoadingState message="Checking session..." />;
     }
 
     // Redirect to login if not authenticated

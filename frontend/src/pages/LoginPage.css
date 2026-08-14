@@ -208,16 +208,6 @@
     animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 .login-footer {
     margin-top: 1.5rem;
     padding-top: 1.5rem;

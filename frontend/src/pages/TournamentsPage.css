@@ -47,16 +47,6 @@
     box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
 }
 
-/* Loading State */
-.loading-state {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 50vh;
-    color: #94a3b8;
-    font-size: 1.125rem;
-}
-
 /* Empty State */
 .empty-state {
     display: flex;

@@ -217,6 +217,16 @@ input[type="number"] {
   }
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .skeleton {
   background: linear-gradient(90deg,
       var(--bg-secondary) 25%,

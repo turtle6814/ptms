@@ -4,6 +4,7 @@ import { Calendar, Plus, Trophy } from 'lucide-react';
 import { Tournament } from '../api/types';
 import { getAllTournaments, createTournament } from '../api';
 import { Header } from '../components/Header';
+import { LoadingState } from '../components/LoadingState';
 import './TournamentsPage.css';
 
 export function TournamentsPage() {
@@ -66,7 +67,7 @@ export function TournamentsPage() {
         return (
             <div className="events-page">
                 <Header />
-                <div className="loading-state">Loading tournaments...</div>
+                <LoadingState message="Loading tournaments..." />
             </div>
         );
     }

@@ -1,0 +1,14 @@
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    color: var(--text-subtle, #94a3b8);
+    gap: 1rem;
+    text-align: center;
+}
+
+.loading-state__spinner {
+    animation: spin 1s linear infinite;
+}

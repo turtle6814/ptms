@@ -4,6 +4,7 @@ import { ArrowLeft, Calendar, Trophy, Plus, Trash2, Edit2, X, Check } from 'luci
 import { Tournament, Event } from '../api/types';
 import { getTournamentById, updateTournament, getTournamentEvents, deleteEvent, deleteTournament } from '../api';
 import { Header } from '../components/Header';
+import { LoadingState } from '../components/LoadingState';
 import './TournamentDetailPage.css';
 
 export function TournamentDetailPage() {
@@ -89,7 +90,7 @@ export function TournamentDetailPage() {
         return (
             <div className="event-detail-page">
                 <Header />
-                <div className="loading-state">Loading tournament...</div>
+                <LoadingState message="Loading tournament..." />
             </div>
         );
     }

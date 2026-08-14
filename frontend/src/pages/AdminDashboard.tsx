@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Header } from '../components/Header';
+import { LoadingState } from '../components/LoadingState';
 import { PoolStandings } from '../components/PoolStandings';
 import { MatchCard } from '../components/MatchCard';
 import { EliminationBracket } from '../components/EliminationBracket';
@@ -135,7 +136,7 @@ export function AdminDashboard() {
             <div className="admin-page">
                 <Header />
                 <main className="admin-content">
-                    <div className="loading-state">Loading tournaments...</div>
+                    <LoadingState message="Loading tournaments..." />
                 </main>
             </div>
         );
