@@ -25,6 +25,7 @@ import com.example.backend.tournament.repository.TournamentRepository;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
 import com.example.backend.utils.BracketGenerator;
+import com.example.backend.utils.SeriesAbBracketGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -119,7 +120,9 @@ public class EventServiceImpl implements EventService {
         // Generate placeholder elimination bracket (Semis and Finals), unless the event skips
         // playoffs entirely
         if (savedEvent.getFormat() != EventFormat.ROUND_ROBIN_ONLY) {
-            BracketGenerator.Result bracket = BracketGenerator.generate(savedEvent, savedEvent.getPools(), playoffRules);
+            BracketGenerator.Result bracket = savedEvent.getFormat() == EventFormat.POOL_TO_SERIES_AB
+                    ? SeriesAbBracketGenerator.generate(savedEvent, savedEvent.getPools(), playoffRules)
+                    : BracketGenerator.generate(savedEvent, savedEvent.getPools(), playoffRules);
             allMatches.addAll(bracket.matches());
             // Cascade-persisted via Pool (like matches are via Event) rather than saved directly:
             // these BracketSlotSource rows have client-assigned UUIDs (needed so the generator

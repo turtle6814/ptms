@@ -1,5 +1,6 @@
 package com.example.backend.event.mapper;
 
+import com.example.backend.enums.BracketType;
 import com.example.backend.enums.MatchType;
 import com.example.backend.event.dto.BracketRoundDTO;
 import com.example.backend.event.dto.EliminationBracketDTO;
@@ -68,79 +69,98 @@ public class EventMapper {
             }
         }
 
-        // Populate Elimination Bracket DTO
-        List<Match> bracketMatches = event.getMatches().stream()
+        // Populate Elimination Bracket DTO. WINNERS and LOSERS (Series A/B consolation) matches
+        // are built into separate DTOs - each bracket's rounds restart at 1, and mixing them into
+        // one match list would make the structural champion/3rd-place detection below ambiguous
+        // (both brackets' finals look identical: terminal, not a loser-edge target).
+        List<Match> allBracketMatches = event.getMatches().stream()
                 .filter(m -> m.getMatchType() == MatchType.BRACKET)
                 .collect(Collectors.toList());
+        List<Match> winnersMatches = allBracketMatches.stream()
+                .filter(m -> m.getBracketType() == BracketType.WINNERS)
+                .collect(Collectors.toList());
 
-        if (!bracketMatches.isEmpty()) {
-            EliminationBracketDTO bracketDTO = new EliminationBracketDTO();
-            bracketDTO.setEventId(event.getId());
+        if (!winnersMatches.isEmpty()) {
+            EliminationBracketDTO bracketDTO = buildBracketDto(event.getId(), winnersMatches);
 
-            // Find max round number to identify Finals
-            int maxRound = bracketMatches.stream()
-                    .mapToInt(Match::getBracketRound)
-                    .max().orElse(0);
-
-            // Champion/3rd-place logic: identify structurally via the winner/loser pointer graph
-            // instead of a (maxRound, position) convention. The final is the terminal match
-            // (nothing to advance to) that no other match's loser routes into; the 3rd-place
-            // match (if any) is the terminal match that IS a loser-edge target.
-            java.util.Set<UUID> loserEdgeTargetIds = bracketMatches.stream()
-                    .map(Match::getLoserNextMatch)
-                    .filter(m -> m != null)
-                    .map(Match::getId)
-                    .collect(Collectors.toSet());
-
-            Match finalMatch = bracketMatches.stream()
-                    .filter(m -> m.getWinnerNextMatch() == null && !loserEdgeTargetIds.contains(m.getId()))
-                    .findFirst().orElse(null);
-
-            if (finalMatch != null && finalMatch.getWinner() != null) {
-                bracketDTO.setChampion(finalMatch.getWinner().getId());
+            List<Match> consolationMatches = allBracketMatches.stream()
+                    .filter(m -> m.getBracketType() == BracketType.LOSERS)
+                    .collect(Collectors.toList());
+            if (!consolationMatches.isEmpty()) {
+                bracketDTO.setConsolationBracket(buildBracketDto(event.getId(), consolationMatches));
             }
 
-            Match thirdPlaceMatch = bracketMatches.stream()
-                    .filter(m -> m.getWinnerNextMatch() == null && loserEdgeTargetIds.contains(m.getId()))
-                    .findFirst().orElse(null);
-            if (thirdPlaceMatch != null) {
-                bracketDTO.setThirdPlaceMatch(modelMapper.map(thirdPlaceMatch, MatchDTO.class));
-                if (thirdPlaceMatch.getWinner() != null) {
-                    bracketDTO.setThirdPlaceTeamId(thirdPlaceMatch.getWinner().getId());
-                }
-            }
-
-            // Group matches into rounds
-            List<BracketRoundDTO> roundDTOs = new ArrayList<>();
-
-            for (int r = 1; r <= maxRound; r++) {
-                int currentRound = r;
-                List<Match> roundMatches = bracketMatches.stream()
-                        .filter(m -> m.getBracketRound() == currentRound)
-                        .sorted(java.util.Comparator.comparing(Match::getBracketPosition))
-                        .collect(Collectors.toList());
-
-                // For the final round, exclude the 3rd place match from the main list
-                if (currentRound == maxRound && thirdPlaceMatch != null) {
-                    roundMatches.removeIf(m -> m.getId().equals(thirdPlaceMatch.getId()));
-                }
-
-                if (!roundMatches.isEmpty()) {
-                    BracketRoundDTO roundDTO = new BracketRoundDTO();
-                    roundDTO.setRoundNumber(currentRound);
-                    roundDTO.setName(getRoundName(currentRound, maxRound));
-                    roundDTO.setMatches(roundMatches.stream()
-                            .map(m -> modelMapper.map(m, MatchDTO.class))
-                            .collect(Collectors.toList()));
-                    roundDTOs.add(roundDTO);
-                }
-            }
-
-            bracketDTO.setRounds(roundDTOs);
             dto.setEliminationBracket(bracketDTO);
         }
 
         return dto;
+    }
+
+    private EliminationBracketDTO buildBracketDto(UUID eventId, List<Match> bracketMatches) {
+        EliminationBracketDTO bracketDTO = new EliminationBracketDTO();
+        bracketDTO.setEventId(eventId);
+
+        // Find max round number to identify Finals
+        int maxRound = bracketMatches.stream()
+                .mapToInt(Match::getBracketRound)
+                .max().orElse(0);
+
+        // Champion/3rd-place logic: identify structurally via the winner/loser pointer graph
+        // instead of a (maxRound, position) convention. The final is the terminal match
+        // (nothing to advance to) that no other match's loser routes into; the 3rd-place
+        // match (if any) is the terminal match that IS a loser-edge target.
+        java.util.Set<UUID> loserEdgeTargetIds = bracketMatches.stream()
+                .map(Match::getLoserNextMatch)
+                .filter(m -> m != null)
+                .map(Match::getId)
+                .collect(Collectors.toSet());
+
+        Match finalMatch = bracketMatches.stream()
+                .filter(m -> m.getWinnerNextMatch() == null && !loserEdgeTargetIds.contains(m.getId()))
+                .findFirst().orElse(null);
+
+        if (finalMatch != null && finalMatch.getWinner() != null) {
+            bracketDTO.setChampion(finalMatch.getWinner().getId());
+        }
+
+        Match thirdPlaceMatch = bracketMatches.stream()
+                .filter(m -> m.getWinnerNextMatch() == null && loserEdgeTargetIds.contains(m.getId()))
+                .findFirst().orElse(null);
+        if (thirdPlaceMatch != null) {
+            bracketDTO.setThirdPlaceMatch(modelMapper.map(thirdPlaceMatch, MatchDTO.class));
+            if (thirdPlaceMatch.getWinner() != null) {
+                bracketDTO.setThirdPlaceTeamId(thirdPlaceMatch.getWinner().getId());
+            }
+        }
+
+        // Group matches into rounds
+        List<BracketRoundDTO> roundDTOs = new ArrayList<>();
+
+        for (int r = 1; r <= maxRound; r++) {
+            int currentRound = r;
+            List<Match> roundMatches = bracketMatches.stream()
+                    .filter(m -> m.getBracketRound() == currentRound)
+                    .sorted(java.util.Comparator.comparing(Match::getBracketPosition))
+                    .collect(Collectors.toList());
+
+            // For the final round, exclude the 3rd place match from the main list
+            if (currentRound == maxRound && thirdPlaceMatch != null) {
+                roundMatches.removeIf(m -> m.getId().equals(thirdPlaceMatch.getId()));
+            }
+
+            if (!roundMatches.isEmpty()) {
+                BracketRoundDTO roundDTO = new BracketRoundDTO();
+                roundDTO.setRoundNumber(currentRound);
+                roundDTO.setName(getRoundName(currentRound, maxRound));
+                roundDTO.setMatches(roundMatches.stream()
+                        .map(m -> modelMapper.map(m, MatchDTO.class))
+                        .collect(Collectors.toList()));
+                roundDTOs.add(roundDTO);
+            }
+        }
+
+        bracketDTO.setRounds(roundDTOs);
+        return bracketDTO;
     }
 
     private List<Team> teamsInPool(Pool pool) {

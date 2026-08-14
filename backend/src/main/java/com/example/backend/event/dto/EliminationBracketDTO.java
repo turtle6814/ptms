@@ -12,4 +12,8 @@ public class EliminationBracketDTO {
     private UUID champion;
     private MatchDTO thirdPlaceMatch;
     private UUID thirdPlaceTeamId;
+    // Only populated for POOL_TO_SERIES_AB events - the round-1-losers-only consolation bracket
+    // deciding a "B champion" (this.champion on the nested DTO). Never has its own
+    // consolationBracket/thirdPlaceMatch.
+    private EliminationBracketDTO consolationBracket;
 }

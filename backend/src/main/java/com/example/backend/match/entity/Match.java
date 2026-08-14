@@ -1,6 +1,7 @@
 package com.example.backend.match.entity;
 
 import com.example.backend.enums.BracketSlot;
+import com.example.backend.enums.BracketType;
 import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;
 import com.example.backend.event.entity.Event;
@@ -64,6 +65,12 @@ public class Match {
     @Enumerated(EnumType.STRING)
     @Column(name = "loser_next_slot")
     private BracketSlot loserNextSlot;
+
+    // Which bracket this match belongs to; only set for MatchType.BRACKET. WINNERS is the (only)
+    // bracket for POOL_TO_ELIM; POOL_TO_SERIES_AB also has a LOSERS (consolation) bracket.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "bracket_type")
+    private BracketType bracketType;
 
     // Only populated for wildcard-sourced slots (no sourcePool to cascade-persist through) -
     // pool-sourced slots still cascade via Pool.bracketSlotSources, unchanged.

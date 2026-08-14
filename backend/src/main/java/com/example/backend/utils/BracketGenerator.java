@@ -6,6 +6,7 @@ import com.example.backend.match.dto.ScoreRulesDTO;
 import com.example.backend.match.entity.BracketSlotSource;
 import com.example.backend.match.entity.Match;
 import com.example.backend.enums.BracketSlot;
+import com.example.backend.enums.BracketType;
 import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;
 import com.example.backend.enums.SourceType;
@@ -55,7 +56,6 @@ public final class BracketGenerator {
         sortedPools.sort(Comparator.comparing(Pool::getName));
 
         List<Match> currentRound = new ArrayList<>();
-        int roundNumber = 1;
         int position = 0;
 
         // Tier-pair layers: rank r plays rank (advancementPerPool + 1 - r) across neighboring
@@ -65,7 +65,7 @@ public final class BracketGenerator {
             int topRank = r;
             int bottomRank = advancementPerPool + 1 - r;
             for (int poolIndex = 0; poolIndex < numPools; poolIndex++) {
-                Match match = newBracketMatch(event, 1, ++position, rules);
+                Match match = newBracketMatch(event, BracketType.WINNERS, 1, ++position, rules);
                 currentRound.add(match);
                 slotSources.add(newSlotSource(match, BracketSlot.TEAM1, sortedPools.get(poolIndex), topRank));
                 int neighborIndex = (poolIndex + 1) % numPools;
@@ -77,7 +77,7 @@ public final class BracketGenerator {
         if (advancementPerPool % 2 != 0) {
             int middleRank = advancementPerPool / 2 + 1;
             for (int poolIndex = 0; poolIndex < numPools; poolIndex += 2) {
-                Match match = newBracketMatch(event, 1, ++position, rules);
+                Match match = newBracketMatch(event, BracketType.WINNERS, 1, ++position, rules);
                 currentRound.add(match);
                 slotSources.add(newSlotSource(match, BracketSlot.TEAM1, sortedPools.get(poolIndex), middleRank));
                 slotSources.add(newSlotSource(match, BracketSlot.TEAM2, sortedPools.get(poolIndex + 1), middleRank));
@@ -86,16 +86,30 @@ public final class BracketGenerator {
         // Wildcards have no "own pool" to cross-seed against, so they simply pair off against
         // each other (rank 1 vs rank 2, etc.) in extra Round-1 matches.
         for (int i = 0; i < wildcardCount; i += 2) {
-            Match match = newBracketMatch(event, 1, ++position, rules);
+            Match match = newBracketMatch(event, BracketType.WINNERS, 1, ++position, rules);
             currentRound.add(match);
             slotSources.add(newWildcardSlotSource(match, BracketSlot.TEAM1, i + 1));
             slotSources.add(newWildcardSlotSource(match, BracketSlot.TEAM2, i + 2));
         }
 
         allMatches.addAll(currentRound);
+        allMatches.addAll(completeSingleElim(event, currentRound, BracketType.WINNERS, rules, true));
 
+        return new Result(allMatches, slotSources);
+    }
+
+    // Builds every round after firstRound via halving pairs (wiring winnerNextMatch/
+    // winnerNextSlot on firstRound and each subsequent round), plus optionally a 3rd-place match
+    // fed by the semifinal round's losers. Shared by the winners bracket above and the
+    // consolation (LOSERS) bracket in SeriesAbBracketGenerator, which reuses this on its own
+    // already-built first round.
+    static List<Match> completeSingleElim(Event event, List<Match> firstRound, BracketType bracketType,
+            ScoreRulesDTO rules, boolean withThirdPlace) {
+        List<Match> generatedMatches = new ArrayList<>();
+        List<Match> currentRound = firstRound;
         List<Match> semifinalRound = null;
         int matchCount = currentRound.size();
+        int roundNumber = 1;
 
         while (matchCount > 1) {
             roundNumber++;
@@ -103,9 +117,9 @@ public final class BracketGenerator {
 
             List<Match> nextRound = new ArrayList<>();
             for (int i = 0; i < nextRoundMatchCount; i++) {
-                nextRound.add(newBracketMatch(event, roundNumber, i + 1, rules));
+                nextRound.add(newBracketMatch(event, bracketType, roundNumber, i + 1, rules));
             }
-            allMatches.addAll(nextRound);
+            generatedMatches.addAll(nextRound);
 
             for (int i = 0; i < currentRound.size(); i++) {
                 Match match = currentRound.get(i);
@@ -124,9 +138,9 @@ public final class BracketGenerator {
         // before the final always has exactly 2 matches (invariant of this halving algorithm:
         // the loop only stops once a round reaches size 1, so the round before it must have had
         // ceil(n/2) == 1, i.e. n was 1 or 2 - and 1 would have already stopped the loop earlier).
-        if (roundNumber >= 2) {
-            Match thirdPlace = newBracketMatch(event, roundNumber, 2, rules);
-            allMatches.add(thirdPlace);
+        if (withThirdPlace && roundNumber >= 2) {
+            Match thirdPlace = newBracketMatch(event, bracketType, roundNumber, 2, rules);
+            generatedMatches.add(thirdPlace);
 
             for (int i = 0; i < semifinalRound.size(); i++) {
                 Match match = semifinalRound.get(i);
@@ -135,13 +149,14 @@ public final class BracketGenerator {
             }
         }
 
-        return new Result(allMatches, slotSources);
+        return generatedMatches;
     }
 
-    private static Match newBracketMatch(Event event, int round, int position, ScoreRulesDTO rules) {
+    static Match newBracketMatch(Event event, BracketType bracketType, int round, int position, ScoreRulesDTO rules) {
         Match match = new Match();
         match.setEvent(event);
         match.setMatchType(MatchType.BRACKET);
+        match.setBracketType(bracketType);
         match.setBracketRound(round);
         match.setBracketPosition(position);
         match.setStatus(MatchStatus.PENDING);
