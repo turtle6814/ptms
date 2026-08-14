@@ -15,7 +15,7 @@
     align-items: center;
     justify-content: center;
     min-height: 50vh;
-    color: #94a3b8;
+    color: #a99c88;
     text-align: center;
 }
 
@@ -25,7 +25,7 @@
 }
 
 .back-link {
-    color: #8b5cf6;
+    color: #3c8267;
     text-decoration: none;
 }
 
@@ -39,7 +39,7 @@
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
-    color: #94a3b8;
+    color: #a99c88;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s ease;
@@ -54,8 +54,8 @@
     display: flex;
     gap: 1.5rem;
     padding: 2rem;
-    background: rgba(241, 245, 249, 0.8);
-    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(240, 231, 211, 0.8);
+    border: 1px solid rgba(169, 156, 136, 0.25);
     border-radius: 20px;
     margin-bottom: 2rem;
 }
@@ -66,9 +66,9 @@
     justify-content: center;
     width: 72px;
     height: 72px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.1));
+    background: linear-gradient(135deg, rgba(47, 107, 82, 0.2), rgba(30, 70, 53, 0.1));
     border-radius: 16px;
-    color: #8b5cf6;
+    color: #3c8267;
     flex-shrink: 0;
 }
 
@@ -86,7 +86,7 @@
 
 .event-header-content .event-description {
     margin: 0.5rem 0 0;
-    color: #94a3b8;
+    color: #a99c88;
     line-height: 1.5;
 }
 
@@ -101,7 +101,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #64748b;
+    color: #7c6c58;
     font-size: 0.875rem;
 }
 
@@ -117,43 +117,43 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    background: rgba(148, 163, 184, 0.1);
-    border: 1px solid rgba(148, 163, 184, 0.15);
+    background: rgba(169, 156, 136, 0.1);
+    border: 1px solid rgba(169, 156, 136, 0.15);
     border-radius: 10px;
-    color: #94a3b8;
+    color: #a99c88;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-icon:hover {
-    background: rgba(148, 163, 184, 0.15);
+    background: rgba(169, 156, 136, 0.15);
     color: var(--text-primary);
 }
 
 .btn-icon.btn-danger {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+    background: rgba(193, 85, 59, 0.1);
+    border-color: rgba(193, 85, 59, 0.2);
+    color: #c1553b;
 }
 
 .btn-icon.btn-danger:hover {
-    background: rgba(239, 68, 68, 0.2);
+    background: rgba(193, 85, 59, 0.2);
 }
 
 .btn-icon.btn-save {
-    background: rgba(34, 197, 94, 0.1);
-    border-color: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
+    background: rgba(47, 107, 82, 0.1);
+    border-color: rgba(47, 107, 82, 0.2);
+    color: #2f6b52;
 }
 
 .btn-icon.btn-save:hover {
-    background: rgba(34, 197, 94, 0.2);
+    background: rgba(47, 107, 82, 0.2);
 }
 
 .btn-icon.btn-cancel {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+    background: rgba(193, 85, 59, 0.1);
+    border-color: rgba(193, 85, 59, 0.2);
+    color: #c1553b;
 }
 
 /* Edit Form */
@@ -165,8 +165,8 @@
 
 .edit-name-input {
     padding: 0.75rem 1rem;
-    background: rgba(241, 245, 249, 0.8);
-    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(240, 231, 211, 0.8);
+    border: 1px solid rgba(169, 156, 136, 0.2);
     border-radius: 10px;
     color: var(--text-primary);
     font-size: 1.25rem;
@@ -175,8 +175,8 @@
 
 .edit-description-input {
     padding: 0.75rem 1rem;
-    background: rgba(241, 245, 249, 0.8);
-    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(240, 231, 211, 0.8);
+    border: 1px solid rgba(169, 156, 136, 0.2);
     border-radius: 10px;
     color: var(--text-primary);
     font-size: 1rem;
@@ -186,7 +186,7 @@
 .edit-name-input:focus,
 .edit-description-input:focus {
     outline: none;
-    border-color: #8b5cf6;
+    border-color: #3c8267;
 }
 
 .edit-actions {
@@ -196,8 +196,8 @@
 
 /* Tournaments Section */
 .tournaments-section {
-    background: rgba(241, 245, 249, 0.6);
-    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(240, 231, 211, 0.6);
+    border: 1px solid rgba(169, 156, 136, 0.25);
     border-radius: 20px;
     padding: 1.5rem;
 }
@@ -224,7 +224,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1rem;
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: linear-gradient(135deg, #3c8267, #2f6b52);
     color: white;
     text-decoration: none;
     border-radius: 10px;
@@ -235,7 +235,7 @@
 
 .add-tournament-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 4px 12px rgba(47, 107, 82, 0.4);
 }
 
 .create-tournament-btn {
@@ -243,7 +243,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.875rem 1.5rem;
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: linear-gradient(135deg, #3c8267, #2f6b52);
     color: white;
     text-decoration: none;
     border-radius: 12px;
@@ -253,7 +253,7 @@
 
 .create-tournament-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 6px 20px rgba(47, 107, 82, 0.4);
 }
 
 /* Tournaments Grid */
@@ -265,16 +265,16 @@
 
 .tournament-card {
     position: relative;
-    background: rgba(241, 245, 249, 0.6);
-    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(240, 231, 211, 0.6);
+    border: 1px solid rgba(169, 156, 136, 0.25);
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.2s ease;
 }
 
 .tournament-card:hover {
-    background: rgba(226, 232, 240, 0.6);
-    border-color: rgba(148, 163, 184, 0.15);
+    background: rgba(240, 231, 211, 0.6);
+    border-color: rgba(169, 156, 136, 0.15);
 }
 
 .tournament-card-content {
@@ -308,33 +308,33 @@
 }
 
 .status-setup {
-    background: rgba(100, 116, 139, 0.2);
-    color: #94a3b8;
+    background: rgba(124, 108, 88, 0.2);
+    color: #a99c88;
 }
 
 .status-pool {
-    background: rgba(59, 130, 246, 0.2);
+    background: rgba(63, 125, 130, 0.2);
     color: var(--info);
 }
 
 .status-elimination {
-    background: rgba(139, 92, 246, 0.2);
-    color: #a78bfa;
+    background: rgba(47, 107, 82, 0.2);
+    color: #3c8267;
 }
 
 .status-completed {
-    background: rgba(34, 197, 94, 0.2);
-    color: #4ade80;
+    background: rgba(47, 107, 82, 0.2);
+    color: #1e4635;
 }
 
 .team-count,
 .pool-count {
-    color: #64748b;
+    color: #7c6c58;
     font-size: 0.8125rem;
 }
 
 .external-icon {
-    color: #64748b;
+    color: #7c6c58;
 }
 
 .remove-tournament-btn {
@@ -343,16 +343,16 @@
     right: 0.75rem;
     transform: translateY(-50%);
     padding: 0.5rem;
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(193, 85, 59, 0.1);
     border: none;
     border-radius: 8px;
-    color: #ef4444;
+    color: #c1553b;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .remove-tournament-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
+    background: rgba(193, 85, 59, 0.2);
 }
 
 /* Responsive */

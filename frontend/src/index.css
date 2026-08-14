@@ -1,9 +1,11 @@
 /* ================================
-   Global Styles - Pickleball Tournament Manager
+   Global Styles - HaPiPickleball
+   "Courtside" design system: warm courtside palette, scoreboard-slat
+   signature, Fraunces/Public Sans/Space Mono type system.
    ================================ */
 
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Public+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
 /* CSS Reset & Base Styles */
 *,
@@ -15,31 +17,41 @@
 }
 
 :root {
-  /* Color Palette - Light Mode (Default) */
+  /* Color Palette - Courtside (Light) */
   color-scheme: light;
-  --bg-primary: #f8fafc;
-  --bg-secondary: #ffffff;
-  --bg-card: #ffffff;
-  --bg-elevated: #f1f5f9;
+  --bg-primary: #f7f1e4;
+  --bg-secondary: #fffdf8;
+  --bg-card: #fffdf8;
+  --bg-elevated: #f0e7d3;
+  --line: #e2d5b8;
 
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --text-subtle: #94a3b8;
+  --text-primary: #2a2420;
+  --text-secondary: #4a3d30;
+  --text-muted: #7c6c58;
+  --text-subtle: #a99c88;
 
-  --accent-purple: #7c3aed;
-  --accent-purple-bright: #8b5cf6;
-  --accent-purple-dark: #6d28d9;
+  /* Brand accent: outdoor court-surface green */
+  --accent-court: #2f6b52;
+  --accent-court-bright: #3c8267;
+  --accent-court-dark: #1e4635;
 
-  --accent-gold: #d97706;
-  --accent-gold-dark: #b45309;
+  /* Secondary accent: optic-yellow ball color */
+  --accent-yellow: #e4c93a;
+  --accent-yellow-dark: #8a6d1b;
 
-  --success: #16a34a;
-  --success-dark: #15803d;
+  /* Primary CTA / urgent: kitchen-line clay */
+  --accent-clay: #c1553b;
+  --accent-clay-dark: #9b4029;
 
-  --warning: #d97706;
-  --error: #dc2626;
-  --info: #2563eb;
+  /* Match-live status green, kept distinct from the brand accent */
+  --live: #2f9e5c;
+  --live-bright: #4ade94;
+
+  --success: #2f6b52;
+  --success-dark: #1e4635;
+  --warning: #b8752e;
+  --error: #9b4029;
+  --info: #3f7d82;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -55,15 +67,16 @@
   --radius-lg: 16px;
   --radius-xl: 20px;
 
-  /* Shadows - Adjusted for Light Mode */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0 0 15px rgba(124, 58, 237, 0.2);
+  /* Shadows - warm, ink-tinted */
+  --shadow-sm: 0 1px 3px rgba(42, 36, 32, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(42, 36, 32, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(42, 36, 32, 0.12);
+  --shadow-glow: 0 0 15px rgba(47, 107, 82, 0.22);
 
   /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'Roboto Mono', monospace;
+  --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-mono: 'Space Mono', 'Roboto Mono', monospace;
 }
 
 html {
@@ -117,13 +130,13 @@ h4 {
 
 /* Links */
 a {
-  color: var(--accent-purple);
+  color: var(--accent-court);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 a:hover {
-  color: var(--accent-purple-bright);
+  color: var(--accent-court-bright);
 }
 
 /* Buttons - Base Reset */
@@ -136,7 +149,7 @@ button {
 }
 
 button:focus-visible {
-  outline: 2px solid var(--accent-purple);
+  outline: 2px solid var(--accent-court);
   outline-offset: 2px;
 }
 
@@ -152,7 +165,7 @@ select {
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--accent-purple);
+  outline: 2px solid var(--accent-court);
   outline-offset: 2px;
 }
 
@@ -189,7 +202,7 @@ input[type="number"] {
 
 /* Selection */
 ::selection {
-  background: rgba(167, 139, 250, 0.3);
+  background: rgba(60, 130, 103, 0.3);
   color: var(--text-primary);
 }
 
@@ -252,4 +265,17 @@ input[type="number"] {
 
 .fade-in {
   animation: fadeIn 0.3s ease-out;
+}
+
+/* Scoreboard slat - signature element for match/game scores.
+   Reused wherever a score is shown: MatchCard, bracket, hero. */
+.slat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--radius-sm);
 }

@@ -1,15 +1,17 @@
 .pool-standings {
   background: var(--bg-card);
-  border-radius: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .pool-title {
   margin: 0 0 1rem;
-  font-size: 1.25rem;
+  font-family: var(--font-display);
   font-weight: 600;
-  color: var(--accent-purple-dark);
+  font-size: 1.25rem;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -22,6 +24,7 @@
 .standings-table {
   width: 100%;
   border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
 }
 
 .standings-table th,
@@ -31,12 +34,12 @@
 }
 
 .standings-table th {
-  color: #94a3b8;
-  font-size: 0.75rem;
-  font-weight: 500;
+  color: var(--text-subtle);
+  font-size: 0.72rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--line);
 }
 
 .standings-table td {
@@ -49,15 +52,15 @@
 }
 
 .standings-table tbody tr:hover {
-  background: rgba(167, 139, 250, 0.1);
+  background: rgba(42, 36, 32, 0.04);
 }
 
 .standings-table tbody tr.qualified {
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(228, 201, 58, 0.08);
 }
 
 .standings-table tbody tr.qualified:hover {
-  background: rgba(34, 197, 94, 0.15);
+  background: rgba(228, 201, 58, 0.14);
 }
 
 .rank-col {
@@ -67,7 +70,7 @@
 
 .team-col {
   text-align: left !important;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .record-col {
@@ -76,20 +79,20 @@
 }
 
 .pts-col {
-  color: #94a3b8 !important;
+  color: var(--text-subtle) !important;
   font-size: 0.875rem !important;
 }
 
 .diff-col {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .diff-col.positive {
-  color: #22c55e !important;
+  color: var(--accent-court-dark) !important;
 }
 
 .diff-col.negative {
-  color: #ef4444 !important;
+  color: var(--accent-clay-dark) !important;
 }
 
 .qualify-badge {
@@ -99,8 +102,8 @@
   width: 18px;
   height: 18px;
   margin-left: 0.5rem;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: white;
+  background: var(--accent-yellow);
+  color: var(--accent-yellow-dark);
   border-radius: 50%;
   font-size: 0.625rem;
   font-weight: 700;

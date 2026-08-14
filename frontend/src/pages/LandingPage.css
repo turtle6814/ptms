@@ -11,10 +11,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 4rem;
-    padding: 4rem 6rem 6rem;
-    background:
-        radial-gradient(ellipse at top left, rgba(167, 139, 250, 0.5) 0%, transparent 60%),
-        radial-gradient(ellipse at bottom right, rgba(251, 191, 36, 0.4) 0%, transparent 60%);
+    padding: 4rem 6rem 5rem;
 }
 
 .hero-content {
@@ -22,37 +19,30 @@
     max-width: 600px;
 }
 
-.hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: rgba(167, 139, 250, 0.15);
-    border: 1px solid rgba(167, 139, 250, 0.3);
-    border-radius: 20px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--accent-purple-bright);
-    margin-bottom: 1.5rem;
-}
-
-.hero-badge svg {
-    color: var(--accent-gold);
+.hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-court-dark);
+    margin-bottom: 1rem;
 }
 
 .hero-content h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
     font-size: 3.25rem;
-    font-weight: 700;
-    line-height: 1.15;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
     color: var(--text-primary);
     margin-bottom: 1.5rem;
+    text-wrap: balance;
 }
 
-.gradient-text {
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-gold));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+.hero-content h1 em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--accent-court);
 }
 
 .hero-description {
@@ -60,6 +50,7 @@
     color: var(--text-muted);
     line-height: 1.7;
     margin-bottom: 2rem;
+    max-width: 46ch;
 }
 
 .hero-actions {
@@ -72,19 +63,20 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.875rem 1.5rem;
-    background: linear-gradient(135deg, var(--accent-purple-dark), var(--accent-purple));
+    background: var(--accent-clay);
     color: white;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     border-radius: var(--radius-md);
     text-decoration: none;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 4px 16px rgba(193, 85, 59, 0.28);
 }
 
 .btn-primary:hover {
+    background: var(--accent-clay-dark);
     transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 6px 22px rgba(193, 85, 59, 0.38);
     color: white;
 }
 
@@ -93,37 +85,20 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.875rem 1.75rem;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(99, 102, 241, 0.06));
-    border: 1.5px solid rgba(139, 92, 246, 0.25);
-    color: #4c1d95;
+    background: transparent;
+    border: 1.5px solid var(--accent-court);
+    color: var(--accent-court-dark);
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     border-radius: var(--radius-md);
     text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(8px);
-}
-
-.btn-secondary::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.15));
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-    border-color: rgba(139, 92, 246, 0.5);
-    color: #4c1d95;
+    background: rgba(47, 107, 82, 0.08);
+    color: var(--accent-court-dark);
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2), 0 0 0 1px rgba(139, 92, 246, 0.1);
-}
-
-.btn-secondary:hover::before {
-    opacity: 1;
 }
 
 .btn-secondary:active {
@@ -135,7 +110,7 @@
     font-size: 1.125rem;
 }
 
-/* Hero Visual */
+/* Hero Visual - scoreboard slat, the signature element */
 .hero-visual {
     flex: 1;
     display: flex;
@@ -143,55 +118,67 @@
     align-items: center;
 }
 
-.bracket-preview {
-    position: relative;
-    width: 320px;
-    height: 320px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.bracket-preview::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(251, 191, 36, 0.1));
-    border-radius: 50%;
-    filter: blur(60px);
-}
-
-.preview-card {
-    position: relative;
+.hero-scoreboard {
+    padding: 1.8rem 2.2rem;
     display: flex;
     flex-direction: column;
+    gap: 0.75rem;
+    min-width: 300px;
+    box-shadow: 0 20px 50px -18px rgba(42, 36, 32, 0.5);
+}
+
+.hero-scoreboard-tag {
+    display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 3rem;
-    background: var(--bg-card);
-    border: 1px solid rgba(148, 163, 184, 0.1);
-    border-radius: var(--radius-xl);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    gap: 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.07em;
+    color: var(--live-bright);
 }
 
-.preview-icon {
-    color: var(--accent-gold);
+.hero-scoreboard-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--live-bright);
 }
 
-.preview-card span {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: var(--text-primary);
+@media (prefers-reduced-motion: no-preference) {
+    .hero-scoreboard-dot {
+        animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}
+
+.hero-scoreboard-score {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.hero-scoreboard-teams {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--text-subtle);
 }
 
 /* Features Section */
 .features-section {
     padding: 5rem 6rem;
     background: var(--bg-secondary);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
 }
 
 .features-section h2 {
     text-align: center;
+    font-family: var(--font-display);
+    font-weight: 600;
     font-size: 2rem;
     color: var(--text-primary);
     margin-bottom: 3rem;
@@ -208,15 +195,23 @@
 .feature-card {
     padding: 2rem;
     background: var(--bg-card);
-    border: 1px solid rgba(47, 51, 55, 0.2);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent-court);
     border-radius: var(--radius-lg);
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:nth-child(3n+2) {
+    border-top-color: var(--accent-clay);
+}
+
+.feature-card:nth-child(3n+3) {
+    border-top-color: var(--accent-yellow);
 }
 
 .feature-card:hover {
-    border-color: rgba(167, 139, 250, 0.3);
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 24px -8px rgba(42, 36, 32, 0.18);
 }
 
 .feature-icon {
@@ -225,13 +220,13 @@
     justify-content: center;
     width: 48px;
     height: 48px;
-    background: rgba(167, 139, 250, 0.15);
+    background: var(--bg-elevated);
     border-radius: var(--radius-md);
     margin-bottom: 1rem;
 }
 
 .feature-icon svg {
-    color: var(--accent-purple);
+    color: var(--accent-court-dark);
 }
 
 .feature-card h3 {
@@ -249,8 +244,6 @@
 /* CTA Section */
 .cta-section {
     padding: 5rem 6rem;
-    background:
-        radial-gradient(ellipse at center, rgba(167, 139, 250, 0.1) 0%, transparent 70%);
 }
 
 .cta-content {
@@ -260,6 +253,8 @@
 }
 
 .cta-content h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
     font-size: 2rem;
     color: var(--text-primary);
     margin-bottom: 1rem;
@@ -274,7 +269,7 @@
 /* Footer */
 .landing-footer {
     padding: 2rem 6rem;
-    border-top: 1px solid rgba(148, 163, 184, 0.1);
+    border-top: 1px solid var(--line);
     background: var(--bg-secondary);
 }
 
@@ -288,17 +283,14 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1.125rem;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
     color: var(--text-primary);
 }
 
-.footer-brand svg {
-    color: var(--accent-gold);
-}
-
 .footer-brand .accent {
-    color: var(--accent-purple);
+    color: var(--accent-court);
 }
 
 .footer-content p {
@@ -322,12 +314,13 @@
         font-size: 2.5rem;
     }
 
-    .hero-actions {
-        justify-content: center;
+    .hero-description {
+        margin-left: auto;
+        margin-right: auto;
     }
 
-    .hero-visual {
-        display: none;
+    .hero-actions {
+        justify-content: center;
     }
 
     .features-section,

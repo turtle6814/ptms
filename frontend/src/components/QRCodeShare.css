@@ -3,7 +3,7 @@
     border-radius: 16px;
     padding: 1.5rem;
     text-align: center;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 16px rgba(42, 36, 32, 0.08);
 }
 
 .qr-header {
@@ -14,13 +14,13 @@
     margin-bottom: 1.5rem;
     font-size: 1.125rem;
     font-weight: 600;
-    color: var(--accent-purple-dark);
+    color: var(--accent-court-dark);
 }
 
 .qr-code-wrapper {
     display: inline-flex;
     padding: 1rem;
-    background: rgba(241, 245, 249, 0.8);
+    background: rgba(240, 231, 211, 0.8);
     border-radius: 12px;
     margin-bottom: 1rem;
 }
@@ -28,11 +28,11 @@
 .qr-instructions {
     margin: 0 0 1rem;
     font-size: 0.875rem;
-    color: #94a3b8;
+    color: #a99c88;
 }
 
 .share-url-box {
-    background: rgba(241, 245, 249, 0.8);
+    background: rgba(240, 231, 211, 0.8);
     padding: 0.75rem 1rem;
     border-radius: 8px;
     margin-bottom: 1rem;
@@ -41,9 +41,9 @@
 
 .url-text {
     font-size: 0.8rem;
-    color: #64748b;
+    color: var(--text-muted);
     word-break: break-all;
-    font-family: 'Roboto Mono', monospace;
+    font-family: var(--font-mono);
 }
 
 .share-actions {
@@ -68,29 +68,29 @@
 }
 
 .copy-btn {
-    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    background: linear-gradient(135deg, #3c8267, #3c8267);
     color: white;
 }
 
 .copy-btn:hover {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: linear-gradient(135deg, #3c8267, #2f6b52);
     transform: translateY(-1px);
 }
 
 .native-share-btn {
-    background: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    background: rgba(47, 107, 82, 0.2);
+    color: #2f6b52;
+    border: 1px solid rgba(47, 107, 82, 0.3);
 }
 
 .native-share-btn:hover {
-    background: rgba(34, 197, 94, 0.3);
+    background: rgba(47, 107, 82, 0.3);
 }
 
 .viewer-note {
     margin: 0;
     padding: 0.75rem;
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(63, 125, 130, 0.1);
     border-radius: 8px;
     font-size: 0.8rem;
     color: var(--info);

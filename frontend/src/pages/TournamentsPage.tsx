@@ -173,12 +173,12 @@ export function TournamentsPage() {
                         <div className="modal-actions">
                             <button
                                 type="button"
-                                className="btn-secondary"
+                                className="modal-btn-secondary"
                                 onClick={() => setShowCreateModal(false)}
                             >
                                 Cancel
                             </button>
-                            <button type="submit" className="btn-primary">
+                            <button type="submit" className="modal-btn-primary">
                                 Create Tournament
                             </button>
                         </div>

@@ -1,7 +1,22 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Trophy, Settings, Eye, LogIn, LogOut, User, Calendar } from 'lucide-react';
+import { Settings, Eye, LogIn, LogOut, User, Calendar } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import './Header.css';
+
+export function PickleballMark() {
+    return (
+        <svg className="logo-mark" width="26" height="26" viewBox="0 0 40 40" aria-hidden="true">
+            <circle cx="20" cy="20" r="19" fill="var(--accent-court)" />
+            <ellipse cx="20" cy="9.5" rx="4.4" ry="2.8" fill="var(--bg-secondary)" transform="rotate(12 20 9.5)" />
+            <ellipse cx="30.5" cy="15" rx="4" ry="2.6" fill="var(--bg-secondary)" transform="rotate(70 30.5 15)" />
+            <ellipse cx="30.5" cy="26" rx="4" ry="2.6" fill="var(--bg-secondary)" transform="rotate(115 30.5 26)" />
+            <ellipse cx="20" cy="31" rx="4.4" ry="2.8" fill="var(--bg-secondary)" transform="rotate(-8 20 31)" />
+            <ellipse cx="9.5" cy="25" rx="4" ry="2.6" fill="var(--bg-secondary)" transform="rotate(-60 9.5 25)" />
+            <ellipse cx="9.5" cy="14" rx="4" ry="2.6" fill="var(--bg-secondary)" transform="rotate(-115 9.5 14)" />
+            <circle cx="20" cy="20" r="4.6" fill="var(--bg-secondary)" />
+        </svg>
+    );
+}
 
 export function Header() {
     const location = useLocation();
@@ -16,16 +31,17 @@ export function Header() {
     };
 
     return (
+        <>
         <header className="app-header">
             <div className="header-left">
                 {isViewerPage ? (
                     <div className="logo">
-                        <Trophy size={28} />
+                        <PickleballMark />
                         <span className="logo-text">HaPi<span className="logo-accent">Pickleball</span></span>
                     </div>
                 ) : (
                     <Link to="/" className="logo">
-                        <Trophy size={28} />
+                        <PickleballMark />
                         <span className="logo-text">HaPi<span className="logo-accent">Pickleball</span></span>
                     </Link>
                 )}
@@ -82,5 +98,7 @@ export function Header() {
                 </nav>
             </div>
         </header>
+        <div className="kitchen-line" role="presentation" />
+        </>
     );
 }

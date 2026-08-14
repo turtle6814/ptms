@@ -1,10 +1,9 @@
 .match-card {
-    background: rgba(241, 245, 249, 0.8);
-    border: 1px solid rgba(148, 163, 184, 0.1);
-    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
     padding: 1rem;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(8px);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -13,10 +12,8 @@
 }
 
 .match-card:hover {
-    background: rgba(226, 232, 240, 0.6);
-    border-color: rgba(148, 163, 184, 0.2);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-md);
 }
 
 .match-header {
@@ -24,7 +21,7 @@
     justify-content: space-between;
     align-items: center;
     font-size: 0.7rem;
-    color: #94a3b8;
+    color: var(--text-subtle);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 600;
@@ -37,34 +34,36 @@
 }
 
 .match-order {
-    font-family: 'Monaco', 'Consolas', monospace;
+    font-family: var(--font-mono);
     font-size: 0.75rem;
     font-weight: 700;
-    color: #a78bfa;
-    background: rgba(139, 92, 246, 0.15);
+    color: var(--text-muted);
+    background: var(--bg-elevated);
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
 }
 
 .match-status {
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    background: rgba(100, 116, 139, 0.1);
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
     font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
 }
 
 .match-status.completed {
-    color: #22c55e;
-    background: rgba(34, 197, 94, 0.1);
+    color: var(--accent-court-dark);
+    background: rgba(47, 107, 82, 0.12);
 }
 
 .match-status.live {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+    color: white;
+    background: var(--live);
 }
 
 .match-status.pending {
-    color: #64748b;
+    color: var(--text-subtle);
+    background: var(--bg-elevated);
 }
 
 .match-actions {
@@ -74,8 +73,8 @@
 
 .match-card .error-message {
     font-size: 0.75rem;
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    background: rgba(155, 64, 41, 0.1);
     border-radius: 6px;
     padding: 0.4rem 0.6rem;
 }
@@ -83,7 +82,7 @@
 .edit-btn {
     background: transparent;
     border: none;
-    color: #64748b;
+    color: var(--text-subtle);
     cursor: pointer;
     padding: 4px;
     border-radius: 4px;
@@ -91,12 +90,12 @@
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
-    opacity: 0.7;
+    opacity: 0.8;
 }
 
 .edit-btn:hover {
-    color: #a78bfa;
-    background: rgba(167, 139, 250, 0.1);
+    color: var(--accent-court-dark);
+    background: rgba(47, 107, 82, 0.1);
     opacity: 1;
 }
 
@@ -110,55 +109,68 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.4rem 0.6rem;
-    border-radius: 6px;
-    background: rgba(241, 245, 249, 0.5);
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    background: var(--bg-elevated);
     border: 1px solid transparent;
-    min-height: 2rem;
+    min-height: 2.2rem;
 }
 
 .team-row.winner {
-    background: linear-gradient(90deg, rgba(34, 197, 94, 0.15), rgba(241, 245, 249, 0.5));
-    border-color: rgba(34, 197, 94, 0.2);
+    background: rgba(47, 107, 82, 0.1);
+    border-color: rgba(47, 107, 82, 0.2);
 }
 
 .team-name {
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-primary);
     font-size: 0.9rem;
     word-break: break-word;
     /* Allow wrapping if really long */
 }
 
-.team-name.winner {
-    color: #4ade80;
-    font-weight: 700;
+.team-row.winner .team-name {
+    color: var(--accent-court-dark);
 }
 
+.team-row.winner .team-name::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-court);
+    margin-left: 0.45rem;
+    vertical-align: middle;
+}
+
+/* Scoreboard slat - signature score treatment, shared with .slat utility */
 .team-score {
-    font-family: 'Monaco', 'Consolas', monospace;
-    font-size: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
     font-weight: 700;
-    color: var(--text-primary);
-    min-width: 28px;
-    text-align: right;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    min-width: 2.1rem;
+    text-align: center;
+    background: var(--text-primary);
+    color: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 0.22rem 0.55rem;
+    font-variant-numeric: tabular-nums;
 }
 
-.team-score.winner {
-    color: #4ade80;
+.team-row.winner .team-score {
+    background: var(--accent-court-dark);
 }
 
 .vs-divider {
     text-align: center;
     font-size: 0.65rem;
-    color: #475569;
+    color: var(--text-subtle);
     font-weight: 700;
     letter-spacing: 0.1em;
-    margin: -0.25rem 0;
+    margin: -0.15rem 0;
     position: relative;
     z-index: 1;
-    opacity: 0.5;
 }
 
 /* Edit Mode Beautification */
@@ -187,24 +199,24 @@
 .score-input {
     width: 48px;
     height: 36px;
-    background: rgba(241, 245, 249, 0.8);
-    border: 2px solid rgba(139, 92, 246, 0.3);
+    background: var(--bg-elevated);
+    border: 2px solid rgba(47, 107, 82, 0.3);
     border-radius: 8px;
     color: var(--text-primary);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-mono);
     font-size: 1.1rem;
     font-weight: 700;
     text-align: center;
     padding: 0;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 2px 4px rgba(42, 36, 32, 0.08);
 }
 
 .score-input:focus {
     outline: none;
-    border-color: #8b5cf6;
-    background: rgba(226, 232, 240, 0.9);
-    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+    border-color: var(--accent-court);
+    background: var(--bg-secondary);
+    box-shadow: 0 0 0 4px rgba(47, 107, 82, 0.15);
     transform: scale(1.05);
 }
 
@@ -221,11 +233,11 @@
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
-    padding: 0.35rem;
+    padding: 0.4rem;
     border: none;
     border-radius: 6px;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
     text-transform: uppercase;
@@ -233,33 +245,33 @@
 }
 
 .save-btn {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: var(--accent-court);
     color: white;
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 2px 6px rgba(47, 107, 82, 0.25);
 }
 
 .save-btn:hover {
-    filter: brightness(1.1);
+    background: var(--accent-court-dark);
     transform: translateY(-1px);
 }
 
 .cancel-btn {
-    background: rgba(241, 245, 249, 0.5);
+    background: var(--bg-elevated);
     color: var(--text-muted);
-    border: 1px solid rgba(148, 163, 184, 0.15);
+    border: 1px solid var(--line);
 }
 
 .cancel-btn:hover {
-    background: rgba(247, 16, 16, 0.59);
+    background: var(--accent-clay);
     color: white;
+    border-color: var(--accent-clay);
 }
 
 .tbd-message {
     text-align: center;
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--text-subtle);
     font-style: italic;
-    opacity: 0.6;
 }
 
 @media (max-width: 768px) {

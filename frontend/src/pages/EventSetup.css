@@ -4,9 +4,9 @@
     min-height: 100vh;
     background: var(--bg-primary);
     background-image:
-        radial-gradient(at 0% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 50%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
-        radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(30, 70, 53, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 50%, rgba(63, 125, 130, 0.1) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(47, 107, 82, 0.08) 0px, transparent 50%);
     padding: 2rem;
 }
 
@@ -22,7 +22,7 @@
 .setup-header h1 {
     font-size: 2rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+    background: linear-gradient(135deg, #2a2420 0%, #4a3d30 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -34,9 +34,9 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.625rem 1rem;
-    background: rgba(0, 0, 0, 0.04);
+    background: rgba(42, 36, 32, 0.04);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(148, 163, 184, 0.15);
+    border: 1px solid rgba(169, 156, 136, 0.15);
     border-radius: 10px;
     color: var(--text-muted);
     cursor: pointer;
@@ -45,7 +45,7 @@
 }
 
 .back-button:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: rgba(42, 36, 32, 0.06);
     color: var(--text-primary);
     transform: translateX(-2px);
 }
@@ -69,15 +69,15 @@
 .form-section {
     background: var(--bg-card);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(169, 156, 136, 0.1);
     border-radius: 20px;
     padding: 1.75rem;
     transition: all 0.3s ease;
 }
 
 .form-section:hover {
-    border-color: rgba(148, 163, 184, 0.15);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border-color: rgba(169, 156, 136, 0.15);
+    box-shadow: 0 8px 32px rgba(42, 36, 32, 0.2);
 }
 
 .form-section h2 {
@@ -104,7 +104,7 @@
 .input-group label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #94a3b8;
+    color: #a99c88;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -112,7 +112,7 @@
 .input-group input {
     padding: 1rem 1.25rem;
     background: var(--bg-elevated);
-    border: 1px solid rgba(148, 163, 184, 0.15);
+    border: 1px solid rgba(169, 156, 136, 0.15);
     border-radius: 12px;
     color: var(--text-primary);
     font-size: 1.05rem;
@@ -121,12 +121,12 @@
 
 .input-group input:focus {
     outline: none;
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    border-color: #3c8267;
+    box-shadow: 0 0 0 3px rgba(47, 107, 82, 0.15);
 }
 
 .input-group input::placeholder {
-    color: #64748b;
+    color: #7c6c58;
 }
 
 /* ========== POOLS GRID ========== */
@@ -150,7 +150,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #8b5cf6, #6366f1, #3b82f6);
+    background: linear-gradient(90deg, #3c8267, #2f6b52, #3f7d82);
     border-radius: 20px 20px 0 0;
 }
 
@@ -178,25 +178,25 @@
 .team-count {
     font-size: 0.8rem;
     font-weight: 600;
-    color: #a78bfa;
-    background: rgba(139, 92, 246, 0.15);
+    color: #3c8267;
+    background: rgba(47, 107, 82, 0.15);
     padding: 0.35rem 0.85rem;
     border-radius: 20px;
 }
 
 .remove-pool-btn {
     padding: 0.5rem;
-    background: rgba(239, 68, 68, 0.1);
+    background: rgba(193, 85, 59, 0.1);
     border: none;
     border-radius: 8px;
-    color: #f87171;
+    color: #c1553b;
     cursor: pointer;
     display: flex;
     transition: all 0.2s ease;
 }
 
 .remove-pool-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
+    background: rgba(193, 85, 59, 0.2);
     transform: scale(1.05);
 }
 
@@ -233,11 +233,11 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    background: rgba(139, 92, 246, 0.1);
+    background: rgba(47, 107, 82, 0.1);
     border-radius: 8px;
     font-size: 0.75rem;
     font-weight: 700;
-    color: #a78bfa;
+    color: #3c8267;
     flex-shrink: 0;
 }
 
@@ -245,7 +245,7 @@
     flex: 1;
     padding: 0.875rem 1rem;
     background: var(--bg-elevated);
-    border: 1px solid rgba(148, 163, 184, 0.12);
+    border: 1px solid rgba(169, 156, 136, 0.12);
     border-radius: 10px;
     color: var(--text-primary);
     font-size: 0.95rem;
@@ -254,21 +254,21 @@
 
 .team-input-row input:focus {
     outline: none;
-    border-color: #8b5cf6;
-    background: rgba(241, 245, 249, 0.8);
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    border-color: #3c8267;
+    background: rgba(240, 231, 211, 0.8);
+    box-shadow: 0 0 0 3px rgba(47, 107, 82, 0.1);
 }
 
 .team-input-row input::placeholder {
-    color: #64748b;
+    color: #7c6c58;
 }
 
 .remove-team-btn {
     padding: 0.5rem;
-    background: rgba(239, 68, 68, 0.08);
+    background: rgba(193, 85, 59, 0.08);
     border: none;
     border-radius: 8px;
-    color: #f87171;
+    color: #c1553b;
     cursor: pointer;
     opacity: 0.7;
     transition: all 0.2s ease;
@@ -277,7 +277,7 @@
 
 .remove-team-btn:hover {
     opacity: 1;
-    background: rgba(239, 68, 68, 0.15);
+    background: rgba(193, 85, 59, 0.15);
 }
 
 /* ========== ADD BUTTONS ========== */
@@ -288,19 +288,19 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background: rgba(139, 92, 246, 0.05);
-    border: 1px dashed rgba(139, 92, 246, 0.3);
+    background: rgba(47, 107, 82, 0.05);
+    border: 1px dashed rgba(47, 107, 82, 0.3);
     border-radius: 10px;
-    color: #a78bfa;
+    color: #3c8267;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .add-team-btn:hover {
-    background: rgba(139, 92, 246, 0.1);
-    border-color: rgba(139, 92, 246, 0.5);
-    color: var(--accent-purple);
+    background: rgba(47, 107, 82, 0.1);
+    border-color: rgba(47, 107, 82, 0.5);
+    color: var(--accent-court);
 }
 
 .add-pool-section {
@@ -315,19 +315,19 @@
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    background: rgba(139, 92, 246, 0.03);
-    border: 2px dashed rgba(139, 92, 246, 0.2);
+    background: rgba(47, 107, 82, 0.03);
+    border: 2px dashed rgba(47, 107, 82, 0.2);
     border-radius: 20px;
-    color: #64748b;
+    color: #7c6c58;
     cursor: pointer;
     transition: all 0.3s ease;
     min-height: 240px;
 }
 
 .add-pool-btn:hover {
-    background: rgba(139, 92, 246, 0.08);
-    border-color: rgba(139, 92, 246, 0.4);
-    color: #a78bfa;
+    background: rgba(47, 107, 82, 0.08);
+    border-color: rgba(47, 107, 82, 0.4);
+    color: #3c8267;
     transform: scale(1.01);
 }
 
@@ -339,10 +339,10 @@
 /* ========== ERROR MESSAGE ========== */
 .error-message {
     padding: 1rem 1.25rem;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.25);
+    background: rgba(193, 85, 59, 0.1);
+    border: 1px solid rgba(193, 85, 59, 0.25);
     border-radius: 12px;
-    color: #f87171;
+    color: #c1553b;
     font-size: 0.9rem;
     font-weight: 500;
     display: flex;
@@ -364,7 +364,7 @@
 .create-btn {
     width: 100%;
     padding: 1.125rem 2rem;
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: linear-gradient(135deg, #3c8267, #2f6b52);
     color: white;
     border: none;
     border-radius: 14px;
@@ -372,12 +372,12 @@
     font-size: 1.05rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.35);
+    box-shadow: 0 4px 20px rgba(47, 107, 82, 0.35);
 }
 
 .create-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(139, 92, 246, 0.45);
+    box-shadow: 0 8px 30px rgba(47, 107, 82, 0.45);
 }
 
 .create-btn:active {
@@ -400,13 +400,13 @@
 .info-card {
     background: var(--bg-card);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(169, 156, 136, 0.1);
     border-radius: 20px;
     padding: 1.75rem;
 }
 
 .info-card svg {
-    color: #8b5cf6;
+    color: #3c8267;
 }
 
 .info-card h3 {
@@ -420,7 +420,7 @@
 }
 
 .info-card p {
-    color: #94a3b8;
+    color: #a99c88;
     line-height: 1.7;
     margin: 0 0 1.25rem;
     font-size: 0.95rem;
@@ -435,10 +435,10 @@
 .info-card li {
     position: relative;
     padding: 0.625rem 0 0.625rem 1.5rem;
-    color: #94a3b8;
+    color: #a99c88;
     font-size: 0.9rem;
     line-height: 1.5;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    border-bottom: 1px solid rgba(169, 156, 136, 0.08);
 }
 
 .info-card li:last-child {
@@ -449,7 +449,7 @@
     content: '→';
     position: absolute;
     left: 0;
-    color: #8b5cf6;
+    color: #3c8267;
     font-weight: bold;
 }
 

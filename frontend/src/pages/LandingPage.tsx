@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Trophy, Users, BarChart3, Share2, ArrowRight, Zap, Shield, Globe } from 'lucide-react';
-import { Header } from '../components/Header';
+import { Users, BarChart3, Share2, ArrowRight, Zap, Shield, Globe } from 'lucide-react';
+import { Header, PickleballMark } from '../components/Header';
 import { useAuth } from '../context/useAuth';
 import { Navigate } from 'react-router-dom';
 import './LandingPage.css';
@@ -20,17 +20,14 @@ export function LandingPage() {
             {/* Hero Section */}
             <section className="hero-section">
                 <div className="hero-content">
-                    <div className="hero-badge">
-                        <Zap size={14} />
-                        Tournament Management Made Easy
-                    </div>
+                    <p className="hero-eyebrow">Pools &middot; brackets &middot; live scoring</p>
                     <h1>
-                        Organize <span className="gradient-text">Pickleball</span> Tournaments
-                        <br />Like a Pro
+                        Run the whole tournament <em>from the sideline.</em>
                     </h1>
                     <p className="hero-description">
-                        Create brackets, manage pools, track scores in real-time,
-                        and share live updates with spectators. All in one place.
+                        Seed pools, generate the bracket, and update scores court-side.
+                        Standings and the elimination bracket update for every spectator
+                        the moment you hit save.
                     </p>
                     <div className="hero-actions">
                         <Link to="/signup" className="btn-primary">
@@ -43,11 +40,13 @@ export function LandingPage() {
                     </div>
                 </div>
                 <div className="hero-visual">
-                    <div className="bracket-preview">
-                        <div className="preview-card">
-                            <Trophy size={48} className="preview-icon" />
-                            <span>Live Tournament</span>
-                        </div>
+                    <div className="hero-scoreboard slat">
+                        <span className="hero-scoreboard-tag">
+                            <span className="hero-scoreboard-dot" />
+                            LIVE &middot; POOL A
+                        </span>
+                        <span className="hero-scoreboard-score">4&nbsp;&middot;&nbsp;2</span>
+                        <span className="hero-scoreboard-teams">Nguyen / Tran vs. Alvarez / Reyes</span>
                     </div>
                 </div>
             </section>
@@ -117,7 +116,7 @@ export function LandingPage() {
             <footer className="landing-footer">
                 <div className="footer-content">
                     <div className="footer-brand">
-                        <Trophy size={24} />
+                        <PickleballMark />
                         <span>HaPi<span className="accent">Pickleball</span></span>
                     </div>
                     <p>© 2026 HaPiPickleball · Built with ❤️ by sdtb.tm14</p>
