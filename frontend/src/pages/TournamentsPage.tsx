@@ -6,6 +6,7 @@ import { getAllTournaments, createTournament } from '../api';
 import { Header } from '../components/Header';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
+import { Modal } from '../components/Modal';
 import './TournamentsPage.css';
 
 export function TournamentsPage() {
@@ -145,47 +146,45 @@ export function TournamentsPage() {
 
             {/* Create Tournament Modal */}
             {showCreateModal && (
-                <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <h2>Create New Tournament</h2>
-                        <form onSubmit={handleCreateTournament}>
-                            <div className="form-group">
-                                <label htmlFor="tournamentName">Tournament Name *</label>
-                                <input
-                                    id="tournamentName"
-                                    type="text"
-                                    value={newTournamentName}
-                                    onChange={e => setNewTournamentName(e.target.value)}
-                                    placeholder="e.g., Summer Pickleball Championship 2026"
-                                    autoFocus
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="tournamentDescription">Description (optional)</label>
-                                <textarea
-                                    id="tournamentDescription"
-                                    value={newTournamentDescription}
-                                    onChange={e => setNewTournamentDescription(e.target.value)}
-                                    placeholder="Describe your tournament..."
-                                    rows={3}
-                                />
-                            </div>
-                            {error && <p className="error-message">{error}</p>}
-                            <div className="modal-actions">
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    onClick={() => setShowCreateModal(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button type="submit" className="btn-primary">
-                                    Create Tournament
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <Modal onClose={() => setShowCreateModal(false)}>
+                    <h2>Create New Tournament</h2>
+                    <form onSubmit={handleCreateTournament}>
+                        <div className="form-group">
+                            <label htmlFor="tournamentName">Tournament Name *</label>
+                            <input
+                                id="tournamentName"
+                                type="text"
+                                value={newTournamentName}
+                                onChange={e => setNewTournamentName(e.target.value)}
+                                placeholder="e.g., Summer Pickleball Championship 2026"
+                                autoFocus
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="tournamentDescription">Description (optional)</label>
+                            <textarea
+                                id="tournamentDescription"
+                                value={newTournamentDescription}
+                                onChange={e => setNewTournamentDescription(e.target.value)}
+                                placeholder="Describe your tournament..."
+                                rows={3}
+                            />
+                        </div>
+                        {error && <p className="error-message">{error}</p>}
+                        <div className="modal-actions">
+                            <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={() => setShowCreateModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button type="submit" className="btn-primary">
+                                Create Tournament
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
             )}
         </div>
     );

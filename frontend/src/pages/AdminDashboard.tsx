@@ -8,6 +8,7 @@ import { MatchCard } from '../components/MatchCard';
 import { EliminationBracket } from '../components/EliminationBracket';
 import { QRCodeShare } from '../components/QRCodeShare';
 import { TournamentTabs } from '../components/TournamentTabs';
+import { Modal } from '../components/Modal';
 import {
     getEventById,
     getAllEvents,
@@ -315,15 +316,13 @@ export function AdminDashboard() {
 
             {/* Share Modal */}
             {showShareModal && shareTournamentId && (
-                <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <button className="modal-close" onClick={() => setShowShareModal(false)}>×</button>
-                        <QRCodeShare
-                            url={`${window.location.origin}/view/tournament/${shareTournamentId}`}
-                            tournamentName={tournaments.find(t => t.id === shareTournamentId)?.name || 'Tournament'}
-                        />
-                    </div>
-                </div>
+                <Modal onClose={() => setShowShareModal(false)}>
+                    <button className="modal-close" onClick={() => setShowShareModal(false)}>×</button>
+                    <QRCodeShare
+                        url={`${window.location.origin}/view/tournament/${shareTournamentId}`}
+                        tournamentName={tournaments.find(t => t.id === shareTournamentId)?.name || 'Tournament'}
+                    />
+                </Modal>
             )}
         </div>
     );
