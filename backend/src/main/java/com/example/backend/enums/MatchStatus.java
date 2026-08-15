@@ -5,8 +5,6 @@ public enum MatchStatus {
     COMPLETED,
     FORFEIT,
     WALKOVER,
-    // Grand-final reset game (double elim), marked done with no score when the winners'-bracket
-    // champion sweeps game one - no second game needed.
     SKIPPED;
 
     public boolean isFinished() {

@@ -1,11 +1,11 @@
-package com.example.backend.match.dto;
+package com.example.backend.match.dto.response;
 
 import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-public class MatchDTO {
+public class MatchResponse {
     private UUID id;
     private UUID eventId;
     private UUID poolId;

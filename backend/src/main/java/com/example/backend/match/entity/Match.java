@@ -19,7 +19,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "matches")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -27,6 +28,7 @@ public class Match {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -37,6 +39,7 @@ public class Match {
     @JoinColumn(name = "pool_id")
     private Pool pool;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "match_type", nullable = false)
     private MatchType matchType = MatchType.POOL;
@@ -66,14 +69,13 @@ public class Match {
     @Column(name = "loser_next_slot")
     private BracketSlot loserNextSlot;
 
-    // Which bracket this match belongs to; only set for MatchType.BRACKET. WINNERS is the (only)
-    // bracket for POOL_TO_ELIM; POOL_TO_SERIES_AB also has a LOSERS (consolation) bracket.
     @Enumerated(EnumType.STRING)
     @Column(name = "bracket_type")
     private BracketType bracketType;
 
     // Only populated for wildcard-sourced slots (no sourcePool to cascade-persist through) -
     // pool-sourced slots still cascade via Pool.bracketSlotSources, unchanged.
+    @Builder.Default
     @OneToMany(mappedBy = "bracketMatch", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BracketSlotSource> bracketSlotSources = new ArrayList<>();
 
@@ -92,15 +94,19 @@ public class Match {
     @JoinColumn(name = "winner_id")
     private Team winner;
 
+    @Builder.Default
     @Column(name = "target_score", nullable = false)
     private Integer targetScore = 11;
 
-    @Column(name = "win_by_two", nullable = false)
+    @Builder.Default
+    @Column(name = "win_by_two")
     private Boolean winByTwo = true;
 
+    @Builder.Default
     @Column(name = "score_cap", nullable = false)
     private Integer scoreCap = 15;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MatchStatus status = MatchStatus.PENDING;

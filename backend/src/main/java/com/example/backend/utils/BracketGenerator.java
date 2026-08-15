@@ -2,7 +2,7 @@ package com.example.backend.utils;
 
 import com.example.backend.event.entity.Event;
 import com.example.backend.event.entity.Pool;
-import com.example.backend.match.dto.ScoreRulesDTO;
+import com.example.backend.match.dto.ScoreRules;
 import com.example.backend.match.entity.BracketSlotSource;
 import com.example.backend.match.entity.Match;
 import com.example.backend.enums.BracketSlot;
@@ -28,7 +28,7 @@ public final class BracketGenerator {
     public record Result(List<Match> matches, List<BracketSlotSource> bracketSlotSources) {
     }
 
-    public static Result generate(Event event, List<Pool> pools, ScoreRulesDTO rules) {
+    public static Result generate(Event event, List<Pool> pools, ScoreRules rules) {
         Round1 round1 = buildRound1(event, pools, rules);
         if (round1 == null) {
             return new Result(new ArrayList<>(), new ArrayList<>());
@@ -46,7 +46,7 @@ public final class BracketGenerator {
     // Builds Round 1 only: direct pool-rank cross-seeding plus wildcard pairing, with no
     // downstream rounds wired yet. Shared by generate() above and DoubleElimBracketGenerator,
     // whose winners bracket starts from the exact same Round 1 topology.
-    static Round1 buildRound1(Event event, List<Pool> pools, ScoreRulesDTO rules) {
+    static Round1 buildRound1(Event event, List<Pool> pools, ScoreRules rules) {
         List<BracketSlotSource> slotSources = new ArrayList<>();
 
         int numPools = pools.size();
@@ -118,7 +118,7 @@ public final class BracketGenerator {
     // consolation (LOSERS) bracket in SeriesAbBracketGenerator, which reuses this on its own
     // already-built first round.
     static List<Match> completeSingleElim(Event event, List<Match> firstRound, BracketType bracketType,
-            ScoreRulesDTO rules, boolean withThirdPlace) {
+            ScoreRules rules, boolean withThirdPlace) {
         List<Match> generatedMatches = new ArrayList<>();
         List<Match> currentRound = firstRound;
         List<Match> semifinalRound = null;
@@ -166,7 +166,7 @@ public final class BracketGenerator {
         return generatedMatches;
     }
 
-    static Match newBracketMatch(Event event, BracketType bracketType, int round, int position, ScoreRulesDTO rules) {
+    static Match newBracketMatch(Event event, BracketType bracketType, int round, int position, ScoreRules rules) {
         Match match = new Match();
         match.setEvent(event);
         match.setMatchType(MatchType.BRACKET);

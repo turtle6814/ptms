@@ -1,10 +1,10 @@
-package com.example.backend.event.dto;
+package com.example.backend.event.dto.response;
 
 import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class PoolStandingDTO {
+public class PoolStandingResponse {
     private UUID teamId;
     private String teamName;
     private int wins;

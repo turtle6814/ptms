@@ -1,6 +1,6 @@
 package com.example.backend.utils;
 
-import com.example.backend.event.dto.PoolStandingDTO;
+import com.example.backend.event.dto.response.PoolStandingResponse;
 import com.example.backend.event.entity.Team;
 import com.example.backend.match.entity.Match;
 import com.example.backend.enums.MatchStatus;
@@ -21,10 +21,10 @@ public final class StandingsCalculator {
     private StandingsCalculator() {
     }
 
-    public static List<PoolStandingDTO> compute(List<Team> teams, List<Match> poolMatches) {
-        Map<UUID, PoolStandingDTO> standingsByTeamId = new LinkedHashMap<>();
+    public static List<PoolStandingResponse> compute(List<Team> teams, List<Match> poolMatches) {
+        Map<UUID, PoolStandingResponse> standingsByTeamId = new LinkedHashMap<>();
         for (Team team : teams) {
-            PoolStandingDTO standing = new PoolStandingDTO();
+            PoolStandingResponse standing = new PoolStandingResponse();
             standing.setTeamId(team.getId());
             standing.setTeamName(team.getName());
             standingsByTeamId.put(team.getId(), standing);
@@ -52,7 +52,7 @@ public final class StandingsCalculator {
             }
         }
 
-        List<PoolStandingDTO> standings = new ArrayList<>(standingsByTeamId.values());
+        List<PoolStandingResponse> standings = new ArrayList<>(standingsByTeamId.values());
         standings.sort((s1, s2) -> {
             if (s2.getWins() != s1.getWins())
                 return s2.getWins() - s1.getWins();
@@ -105,8 +105,8 @@ public final class StandingsCalculator {
         return team1Score > team2Score ? match.getTeam1().getId() : match.getTeam2().getId();
     }
 
-    private static void addWinLoss(Map<UUID, PoolStandingDTO> standingsByTeamId, UUID teamId, boolean won) {
-        PoolStandingDTO standing = standingsByTeamId.get(teamId);
+    private static void addWinLoss(Map<UUID, PoolStandingResponse> standingsByTeamId, UUID teamId, boolean won) {
+        PoolStandingResponse standing = standingsByTeamId.get(teamId);
         if (standing == null) {
             return;
         }
@@ -117,8 +117,8 @@ public final class StandingsCalculator {
         }
     }
 
-    private static void addResult(Map<UUID, PoolStandingDTO> standingsByTeamId, UUID teamId, int scored, int allowed) {
-        PoolStandingDTO standing = standingsByTeamId.get(teamId);
+    private static void addResult(Map<UUID, PoolStandingResponse> standingsByTeamId, UUID teamId, int scored, int allowed) {
+        PoolStandingResponse standing = standingsByTeamId.get(teamId);
         if (standing == null) {
             return;
         }

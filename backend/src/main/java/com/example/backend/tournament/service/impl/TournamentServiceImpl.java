@@ -1,10 +1,10 @@
 package com.example.backend.tournament.service.impl;
 
 import com.example.backend.base.BaseService;
-import com.example.backend.event.dto.EventDTO;
-import com.example.backend.tournament.dto.CreateTournamentRequest;
-import com.example.backend.tournament.dto.TournamentDTO;
-import com.example.backend.tournament.dto.UpdateTournamentRequest;
+import com.example.backend.event.dto.response.EventResponse;
+import com.example.backend.tournament.dto.request.CreateTournamentRequest;
+import com.example.backend.tournament.dto.response.TournamentResponse;
+import com.example.backend.tournament.dto.request.UpdateTournamentRequest;
 import com.example.backend.tournament.entity.Tournament;
 import com.example.backend.tournament.mapper.TournamentMapper;
 import com.example.backend.tournament.repository.TournamentRepository;
@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class TournamentServiceImpl extends BaseService<Tournament, UUID> implements TournamentService {
+public class TournamentServiceImpl extends BaseService<Tournament, UUID, TournamentResponse> implements TournamentService {
 
     private final TournamentRepository tournamentRepository;
     private final UserRepository userRepository;
@@ -28,7 +28,7 @@ public class TournamentServiceImpl extends BaseService<Tournament, UUID> impleme
 
     public TournamentServiceImpl(TournamentRepository tournamentRepository, UserRepository userRepository,
                                   ModelMapper modelMapper, TournamentMapper tournamentMapper) {
-        super(tournamentRepository);
+        super(tournamentRepository, tournamentMapper::toResponse, "Tournament");
         this.tournamentRepository = tournamentRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
@@ -36,64 +36,55 @@ public class TournamentServiceImpl extends BaseService<Tournament, UUID> impleme
     }
 
     @Override
-    public List<TournamentDTO> getAllTournaments(String username) {
+    public List<TournamentResponse> getAllTournaments(String username) {
         User owner = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return tournamentRepository.findByOwner(owner).stream()
-                .map(tournamentMapper::toDto)
+                .map(tournamentMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public TournamentDTO getTournamentById(UUID id) {
-        Tournament tournament = findById(id)
-                .orElseThrow(() -> new RuntimeException("Tournament not found"));
-        return tournamentMapper.toDto(tournament);
+    public TournamentResponse getTournamentById(UUID id) {
+        return getById(id);
     }
 
     @Override
-    public TournamentDTO createTournament(CreateTournamentRequest request, String username) {
+    public TournamentResponse createTournament(CreateTournamentRequest request, String username) {
         User owner = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Tournament tournament = modelMapper.map(request, Tournament.class);
         tournament.setOwner(owner);
         Tournament savedTournament = save(tournament);
-        return tournamentMapper.toDto(savedTournament);
+        return tournamentMapper.toResponse(savedTournament);
     }
 
     @Override
-    public TournamentDTO updateTournament(UUID id, UpdateTournamentRequest request, String username) {
-        Tournament tournament = findById(id)
-                .orElseThrow(() -> new RuntimeException("Tournament not found"));
+    public TournamentResponse updateTournament(UUID id, UpdateTournamentRequest request, String username) {
+        Tournament tournament = findByIdOrThrow(id);
         verifyOwnership(tournament, username);
 
         if (request.getName() != null)
             tournament.setName(request.getName());
         if (request.getDescription() != null)
             tournament.setDescription(request.getDescription());
-        if (request.getStartDate() != null)
-            tournament.setStartDate(request.getStartDate());
-        if (request.getEndDate() != null)
-            tournament.setEndDate(request.getEndDate());
 
         Tournament updatedTournament = save(tournament);
-        return tournamentMapper.toDto(updatedTournament);
+        return tournamentMapper.toResponse(updatedTournament);
     }
 
     @Override
     public void deleteTournament(UUID id, String username) {
-        Tournament tournament = findById(id)
-                .orElseThrow(() -> new RuntimeException("Tournament not found"));
+        Tournament tournament = findByIdOrThrow(id);
         verifyOwnership(tournament, username);
         deleteById(id);
     }
 
     @Override
-    public List<EventDTO> getEvents(UUID tournamentId) {
-        Tournament tournament = findById(tournamentId)
-                .orElseThrow(() -> new RuntimeException("Tournament not found"));
+    public List<EventResponse> getEvents(UUID tournamentId) {
+        Tournament tournament = findByIdOrThrow(tournamentId);
         return tournament.getEvents().stream()
-                .map(e -> modelMapper.map(e, EventDTO.class))
+                .map(e -> modelMapper.map(e, EventResponse.class))
                 .collect(Collectors.toList());
     }
 

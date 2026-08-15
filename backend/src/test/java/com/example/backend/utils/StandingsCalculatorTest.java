@@ -1,6 +1,6 @@
 package com.example.backend.utils;
 
-import com.example.backend.event.dto.PoolStandingDTO;
+import com.example.backend.event.dto.response.PoolStandingResponse;
 import com.example.backend.event.entity.Team;
 import com.example.backend.match.entity.Match;
 import com.example.backend.enums.MatchStatus;
@@ -31,7 +31,7 @@ class StandingsCalculatorTest {
         return match;
     }
 
-    private static PoolStandingDTO standingFor(List<PoolStandingDTO> standings, Team team) {
+    private static PoolStandingResponse standingFor(List<PoolStandingResponse> standings, Team team) {
         return standings.stream()
                 .filter(s -> s.getTeamId().equals(team.getId()))
                 .findFirst()
@@ -49,10 +49,10 @@ class StandingsCalculatorTest {
                 completedMatch(a, c, 11, 9),
                 completedMatch(b, c, 11, 3));
 
-        List<PoolStandingDTO> standings = StandingsCalculator.compute(List.of(a, b, c), matches);
+        List<PoolStandingResponse> standings = StandingsCalculator.compute(List.of(a, b, c), matches);
 
         assertEquals(3, standings.size());
-        PoolStandingDTO aStanding = standingFor(standings, a);
+        PoolStandingResponse aStanding = standingFor(standings, a);
         assertEquals(2, aStanding.getWins());
         assertEquals(0, aStanding.getLosses());
         assertEquals(22, aStanding.getPointsFor());
@@ -71,10 +71,10 @@ class StandingsCalculatorTest {
         forfeit.setWinner(a);
         forfeit.setStatus(MatchStatus.FORFEIT);
 
-        List<PoolStandingDTO> standings = StandingsCalculator.compute(List.of(a, b), List.of(forfeit));
+        List<PoolStandingResponse> standings = StandingsCalculator.compute(List.of(a, b), List.of(forfeit));
 
-        PoolStandingDTO aStanding = standingFor(standings, a);
-        PoolStandingDTO bStanding = standingFor(standings, b);
+        PoolStandingResponse aStanding = standingFor(standings, a);
+        PoolStandingResponse bStanding = standingFor(standings, b);
         assertEquals(1, aStanding.getWins());
         assertEquals(0, aStanding.getPointsFor());
         assertEquals(1, bStanding.getLosses());
@@ -97,7 +97,7 @@ class StandingsCalculatorTest {
                 completedMatch(a, c, 11, 9),
                 completedMatch(b, c, 11, 2));
 
-        List<PoolStandingDTO> standings = StandingsCalculator.compute(List.of(a, b, c), matches);
+        List<PoolStandingResponse> standings = StandingsCalculator.compute(List.of(a, b, c), matches);
 
         assertEquals(b.getId(), standings.get(0).getTeamId());
         assertEquals(a.getId(), standings.get(1).getTeamId());
@@ -118,7 +118,7 @@ class StandingsCalculatorTest {
                 completedMatch(a, b, 11, 9),
                 completedMatch(b, c, 11, 2));
 
-        List<PoolStandingDTO> standings = StandingsCalculator.compute(List.of(a, b, c), matches);
+        List<PoolStandingResponse> standings = StandingsCalculator.compute(List.of(a, b, c), matches);
 
         assertEquals(a.getId(), standings.get(0).getTeamId());
         assertEquals(b.getId(), standings.get(1).getTeamId());
@@ -144,10 +144,10 @@ class StandingsCalculatorTest {
                 completedMatch(b, e, 11, 1),
                 completedMatch(f, b, 11, 1));
 
-        List<PoolStandingDTO> standings = StandingsCalculator.compute(List.of(a, b, c, d, e, f), matches);
+        List<PoolStandingResponse> standings = StandingsCalculator.compute(List.of(a, b, c, d, e, f), matches);
 
-        PoolStandingDTO aStanding = standingFor(standings, a);
-        PoolStandingDTO bStanding = standingFor(standings, b);
+        PoolStandingResponse aStanding = standingFor(standings, a);
+        PoolStandingResponse bStanding = standingFor(standings, b);
         assertEquals(1, aStanding.getWins());
         assertEquals(0, aStanding.getPointDifferential());
         assertEquals(20, aStanding.getPointsFor());
@@ -170,7 +170,7 @@ class StandingsCalculatorTest {
         pending.setTeam2(b);
         pending.setStatus(MatchStatus.PENDING);
 
-        List<PoolStandingDTO> standings = StandingsCalculator.compute(List.of(a, b), List.of(pending));
+        List<PoolStandingResponse> standings = StandingsCalculator.compute(List.of(a, b), List.of(pending));
 
         assertEquals(0, standingFor(standings, a).getWins());
         assertEquals(0, standingFor(standings, b).getLosses());

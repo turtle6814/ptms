@@ -1,6 +1,6 @@
-package com.example.backend.event.dto;
+package com.example.backend.event.dto.request;
 
-import com.example.backend.match.dto.ScoreRulesDTO;
+import com.example.backend.match.dto.ScoreRules;
 import com.example.backend.enums.EventFormat;
 import lombok.Data;
 import java.util.List;
@@ -10,10 +10,10 @@ import java.util.UUID;
 public class CreateEventRequest {
     private String name;
     private UUID tournamentId;
-    private List<PoolConfigDTO> pools;
-    private EventFormat format = EventFormat.POOL_TO_ELIM;
+    private List<PoolConfigRequest> pools;
+    private EventFormat format = EventFormat.POOL_TO_ELIMINATION;
     private int advancementPerPool = 2;
     private int wildcardCount = 0;
-    private ScoreRulesDTO poolStageRules;
-    private ScoreRulesDTO playoffStageRules;
+    private ScoreRules poolStageRules;
+    private ScoreRules playoffStageRules;
 }

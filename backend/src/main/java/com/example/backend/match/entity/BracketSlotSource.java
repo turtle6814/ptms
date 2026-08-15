@@ -18,6 +18,7 @@ public class BracketSlotSource {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,6 +36,7 @@ public class BracketSlotSource {
     @Column(name = "source_rank", nullable = false)
     private Integer sourceRank;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "source_type", nullable = false)
     private SourceType sourceType = SourceType.POOL_RANK;

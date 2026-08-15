@@ -1,12 +1,12 @@
-package com.example.backend.event.dto;
+package com.example.backend.event.dto.response;
 
-import com.example.backend.match.dto.MatchDTO;
+import com.example.backend.match.dto.response.MatchResponse;
 import lombok.Data;
 import java.util.List;
 
 @Data
-public class BracketRoundDTO {
+public class BracketRoundResponse {
     private int roundNumber;
     private String name;
-    private List<MatchDTO> matches;
+    private List<MatchResponse> matches;
 }

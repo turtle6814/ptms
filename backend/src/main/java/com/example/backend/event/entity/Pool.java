@@ -19,6 +19,7 @@ public class Pool {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @Column(nullable = false)
@@ -28,15 +29,19 @@ public class Pool {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
+    @Builder.Default
     @OneToMany(mappedBy = "pool", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PoolEntry> poolEntries = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "pool", cascade = CascadeType.ALL)
     private List<Match> matches = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "sourcePool", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BracketSlotSource> bracketSlotSources = new ArrayList<>();
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean isComplete = false;
 }

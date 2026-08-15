@@ -5,9 +5,9 @@ import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;
-import com.example.backend.event.dto.CreateEventRequest;
-import com.example.backend.event.dto.EventDTO;
-import com.example.backend.event.dto.PoolConfigDTO;
+import com.example.backend.event.dto.request.CreateEventRequest;
+import com.example.backend.event.dto.response.EventResponse;
+import com.example.backend.event.dto.request.PoolConfigRequest;
 import com.example.backend.event.entity.Event;
 import com.example.backend.event.entity.Pool;
 import com.example.backend.event.entity.PoolEntry;
@@ -17,7 +17,7 @@ import com.example.backend.event.repository.EventRepository;
 import com.example.backend.event.repository.PoolRepository;
 import com.example.backend.event.repository.TeamRepository;
 import com.example.backend.event.service.EventService;
-import com.example.backend.match.dto.ScoreRulesDTO;
+import com.example.backend.match.dto.ScoreRules;
 import com.example.backend.match.entity.BracketSlotSource;
 import com.example.backend.match.entity.Match;
 import com.example.backend.match.repository.MatchRepository;
@@ -37,9 +37,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class EventServiceImpl extends BaseService<Event, UUID> implements EventService {
+public class EventServiceImpl extends BaseService<Event, UUID, EventResponse> implements EventService {
 
-    private final EventRepository eventRepository;
     private final TournamentRepository tournamentRepository;
     private final UserRepository userRepository;
     private final PoolRepository poolRepository;
@@ -51,8 +50,7 @@ public class EventServiceImpl extends BaseService<Event, UUID> implements EventS
                              UserRepository userRepository, PoolRepository poolRepository,
                              TeamRepository teamRepository, MatchRepository matchRepository,
                              EventMapper eventMapper) {
-        super(eventRepository);
-        this.eventRepository = eventRepository;
+        super(eventRepository, eventMapper::toResponse, "Event");
         this.tournamentRepository = tournamentRepository;
         this.userRepository = userRepository;
         this.poolRepository = poolRepository;
@@ -62,25 +60,23 @@ public class EventServiceImpl extends BaseService<Event, UUID> implements EventS
     }
 
     @Override
-    public List<EventDTO> getAllEvents(String username) {
+    public List<EventResponse> getAllEvents(String username) {
         User owner = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return tournamentRepository.findByOwner(owner).stream()
                 .flatMap(tournament -> tournament.getEvents().stream())
-                .map(eventMapper::toDto)
+                .map(eventMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public EventDTO getEventById(UUID id) {
-        Event event = findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
-        return eventMapper.toDto(event);
+    public EventResponse getEventById(UUID id) {
+        return getById(id);
     }
 
     @Override
     @Transactional
-    public EventDTO createEvent(CreateEventRequest request, String username) {
+    public EventResponse createEvent(CreateEventRequest request, String username) {
         Tournament tournament = tournamentRepository.findById(request.getTournamentId())
                 .orElseThrow(() -> new RuntimeException("Tournament not found"));
         verifyOwnership(tournament, username);
@@ -88,7 +84,7 @@ public class EventServiceImpl extends BaseService<Event, UUID> implements EventS
         Event event = new Event();
         event.setName(request.getName());
         event.setStatus(EventStatus.POOL_PLAY);
-        event.setFormat(request.getFormat() != null ? request.getFormat() : EventFormat.POOL_TO_ELIM);
+        event.setFormat(request.getFormat() != null ? request.getFormat() : EventFormat.POOL_TO_ELIMINATION);
         event.setAdvancementPerPool(request.getAdvancementPerPool() > 0 ? request.getAdvancementPerPool() : 2);
         event.setWildcardCount(request.getWildcardCount());
         event.setTournament(tournament);
@@ -97,7 +93,7 @@ public class EventServiceImpl extends BaseService<Event, UUID> implements EventS
         List<Team> allTeams = new ArrayList<>();
         List<Match> allMatches = new ArrayList<>();
 
-        for (PoolConfigDTO poolConfig : request.getPools()) {
+        for (PoolConfigRequest poolConfig : request.getPools()) {
             Pool pool = new Pool();
             pool.setName(poolConfig.getName());
             pool.setEvent(event);
@@ -121,10 +117,10 @@ public class EventServiceImpl extends BaseService<Event, UUID> implements EventS
         event.setPools(pools);
         event.setTeams(allTeams);
 
-        Event savedEvent = eventRepository.save(event);
+        Event savedEvent = save(event);
 
-        ScoreRulesDTO poolRules = resolveRules(request.getPoolStageRules(), 11, true, 15);
-        ScoreRulesDTO playoffRules = resolveRules(request.getPlayoffStageRules(), 15, true, 21);
+        ScoreRules poolRules = resolveRules(request.getPoolStageRules(), 11, true, 15);
+        ScoreRules playoffRules = resolveRules(request.getPlayoffStageRules(), 15, true, 21);
 
         // Now generate matches
         for (Pool pool : savedEvent.getPools()) {
@@ -136,7 +132,7 @@ public class EventServiceImpl extends BaseService<Event, UUID> implements EventS
         if (savedEvent.getFormat() != EventFormat.ROUND_ROBIN_ONLY) {
             BracketGenerator.Result bracket = switch (savedEvent.getFormat()) {
                 case POOL_TO_SERIES_AB -> SeriesAbBracketGenerator.generate(savedEvent, savedEvent.getPools(), playoffRules);
-                case POOL_TO_DOUBLE_ELIM -> DoubleElimBracketGenerator.generate(savedEvent, savedEvent.getPools(), playoffRules);
+                case POOL_TO_DOUBLE_ELIMINATION -> DoubleElimBracketGenerator.generate(savedEvent, savedEvent.getPools(), playoffRules);
                 default -> BracketGenerator.generate(savedEvent, savedEvent.getPools(), playoffRules);
             };
             allMatches.addAll(bracket.matches());
@@ -156,14 +152,14 @@ public class EventServiceImpl extends BaseService<Event, UUID> implements EventS
         }
 
         savedEvent.setMatches(allMatches);
-        eventRepository.save(savedEvent);
+        save(savedEvent);
 
-        return eventMapper.toDto(savedEvent);
+        return eventMapper.toResponse(savedEvent);
     }
 
-    private ScoreRulesDTO resolveRules(ScoreRulesDTO override, int defaultTarget, boolean defaultWinByTwo,
+    private ScoreRules resolveRules(ScoreRules override, int defaultTarget, boolean defaultWinByTwo,
             int defaultCap) {
-        ScoreRulesDTO resolved = new ScoreRulesDTO();
+        ScoreRules resolved = new ScoreRules();
         resolved.setTargetScore(override != null && override.getTargetScore() != null
                 ? override.getTargetScore() : defaultTarget);
         resolved.setWinByTwo(override != null && override.getWinByTwo() != null
@@ -173,7 +169,7 @@ public class EventServiceImpl extends BaseService<Event, UUID> implements EventS
         return resolved;
     }
 
-    private void stampRules(Match match, ScoreRulesDTO rules) {
+    private void stampRules(Match match, ScoreRules rules) {
         match.setTargetScore(rules.getTargetScore());
         match.setWinByTwo(rules.getWinByTwo());
         match.setScoreCap(rules.getScoreCap());
@@ -183,7 +179,7 @@ public class EventServiceImpl extends BaseService<Event, UUID> implements EventS
         return pool.getPoolEntries().stream().map(PoolEntry::getTeam).collect(Collectors.toList());
     }
 
-    private void generateRoundRobinMatches(Pool pool, Event event, List<Match> allMatches, ScoreRulesDTO rules) {
+    private void generateRoundRobinMatches(Pool pool, Event event, List<Match> allMatches, ScoreRules rules) {
         List<Team> teams = new ArrayList<>(teamsInPool(pool));
         int n = teams.size();
 
@@ -230,8 +226,7 @@ public class EventServiceImpl extends BaseService<Event, UUID> implements EventS
 
     @Override
     public void deleteEvent(UUID id, String username) {
-        Event event = findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+        Event event = findByIdOrThrow(id);
         verifyOwnership(event.getTournament(), username);
         deleteById(id);
     }

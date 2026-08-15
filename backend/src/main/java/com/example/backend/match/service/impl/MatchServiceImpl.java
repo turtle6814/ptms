@@ -7,7 +7,7 @@ import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;
-import com.example.backend.event.dto.PoolStandingDTO;
+import com.example.backend.event.dto.response.PoolStandingResponse;
 import com.example.backend.event.entity.Event;
 import com.example.backend.event.entity.Pool;
 import com.example.backend.event.entity.PoolEntry;
@@ -15,10 +15,10 @@ import com.example.backend.event.entity.Team;
 import com.example.backend.event.repository.EventRepository;
 import com.example.backend.event.repository.PoolRepository;
 import com.example.backend.exception.ValidationException;
-import com.example.backend.match.dto.ForfeitRequest;
-import com.example.backend.match.dto.MatchDTO;
-import com.example.backend.match.dto.ScoreRulesDTO;
-import com.example.backend.match.dto.ScoreUpdateRequest;
+import com.example.backend.match.dto.request.ForfeitRequest;
+import com.example.backend.match.dto.response.MatchResponse;
+import com.example.backend.match.dto.ScoreRules;
+import com.example.backend.match.dto.request.ScoreUpdateRequest;
 import com.example.backend.match.entity.BracketSlotSource;
 import com.example.backend.match.entity.Match;
 import com.example.backend.match.mapper.MatchMapper;
@@ -27,7 +27,6 @@ import com.example.backend.match.repository.MatchRepository;
 import com.example.backend.match.service.MatchService;
 import com.example.backend.tournament.entity.Tournament;
 import com.example.backend.utils.StandingsCalculator;
-import com.example.backend.validation.ScoreRules;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +38,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class MatchServiceImpl extends BaseService<Match, UUID> implements MatchService {
+public class MatchServiceImpl extends BaseService<Match, UUID, MatchResponse> implements MatchService {
 
     private final MatchRepository matchRepository;
     private final PoolRepository poolRepository;
@@ -50,7 +49,7 @@ public class MatchServiceImpl extends BaseService<Match, UUID> implements MatchS
     public MatchServiceImpl(MatchRepository matchRepository, PoolRepository poolRepository,
                              EventRepository eventRepository, BracketSlotSourceRepository bracketSlotSourceRepository,
                              MatchMapper matchMapper) {
-        super(matchRepository);
+        super(matchRepository, matchMapper::toResponse, "Match");
         this.matchRepository = matchRepository;
         this.poolRepository = poolRepository;
         this.eventRepository = eventRepository;
@@ -60,16 +59,15 @@ public class MatchServiceImpl extends BaseService<Match, UUID> implements MatchS
 
     @Override
     @Transactional
-    public MatchDTO updateScore(UUID matchId, ScoreUpdateRequest request, String username) {
-        Match match = findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match not found"));
+    public MatchResponse updateScore(UUID matchId, ScoreUpdateRequest request, String username) {
+        Match match = findByIdOrThrow(matchId);
 
         verifyOwnership(match.getEvent(), username);
 
         if (request.getTeam1Score() == null || request.getTeam2Score() == null) {
             throw new ValidationException("Both scores are required");
         }
-        ScoreRules.validate(match, request.getTeam1Score(), request.getTeam2Score());
+        com.example.backend.validation.ScoreRules.validate(match, request.getTeam1Score(), request.getTeam2Score());
 
         match.setTeam1Score(request.getTeam1Score());
         match.setTeam2Score(request.getTeam2Score());
@@ -79,14 +77,13 @@ public class MatchServiceImpl extends BaseService<Match, UUID> implements MatchS
         matchRepository.saveAndFlush(match);
         advanceTournamentState(match);
 
-        return matchMapper.toDto(match);
+        return matchMapper.toResponse(match);
     }
 
     @Override
     @Transactional
-    public MatchDTO updateRules(UUID matchId, ScoreRulesDTO request, String username) {
-        Match match = findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match not found"));
+    public MatchResponse updateRules(UUID matchId, ScoreRules request, String username) {
+        Match match = findByIdOrThrow(matchId);
 
         verifyOwnership(match.getEvent(), username);
 
@@ -105,14 +102,13 @@ public class MatchServiceImpl extends BaseService<Match, UUID> implements MatchS
         }
 
         matchRepository.save(match);
-        return matchMapper.toDto(match);
+        return matchMapper.toResponse(match);
     }
 
     @Override
     @Transactional
-    public MatchDTO recordForfeit(UUID matchId, ForfeitRequest request, String username) {
-        Match match = findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Match not found"));
+    public MatchResponse recordForfeit(UUID matchId, ForfeitRequest request, String username) {
+        Match match = findByIdOrThrow(matchId);
 
         verifyOwnership(match.getEvent(), username);
 
@@ -140,7 +136,7 @@ public class MatchServiceImpl extends BaseService<Match, UUID> implements MatchS
         matchRepository.saveAndFlush(match);
         advanceTournamentState(match);
 
-        return matchMapper.toDto(match);
+        return matchMapper.toResponse(match);
     }
 
     private void advanceTournamentState(Match match) {
@@ -182,7 +178,7 @@ public class MatchServiceImpl extends BaseService<Match, UUID> implements MatchS
         poolRepository.save(pool);
 
         List<Team> teams = teamsInPool(pool);
-        List<PoolStandingDTO> standings = StandingsCalculator.compute(teams, poolMatches);
+        List<PoolStandingResponse> standings = StandingsCalculator.compute(teams, poolMatches);
 
         Event event = pool.getEvent();
         int advancementPerPool = event.getAdvancementPerPool();
@@ -200,14 +196,14 @@ public class MatchServiceImpl extends BaseService<Match, UUID> implements MatchS
     // slots BracketGenerator pre-created. Only called once the last pool completes, since which
     // pools' runners-up qualify isn't knowable until every pool has finished.
     private void resolveWildcardSlots(Event event) {
-        record Candidate(Team team, PoolStandingDTO standing) {
+        record Candidate(Team team, PoolStandingResponse standing) {
         }
 
         int advancementPerPool = event.getAdvancementPerPool();
         List<Candidate> candidates = new ArrayList<>();
         for (Pool otherPool : poolRepository.findByEventId(event.getId())) {
             List<Team> teams = teamsInPool(otherPool);
-            List<PoolStandingDTO> standings = StandingsCalculator.compute(teams, matchRepository.findByPoolId(otherPool.getId()));
+            List<PoolStandingResponse> standings = StandingsCalculator.compute(teams, matchRepository.findByPoolId(otherPool.getId()));
             for (int i = advancementPerPool; i < standings.size(); i++) {
                 candidates.add(new Candidate(resolveTeam(teams, standings.get(i).getTeamId()), standings.get(i)));
             }

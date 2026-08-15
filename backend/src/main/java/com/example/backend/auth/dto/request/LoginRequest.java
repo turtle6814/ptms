@@ -1,4 +1,4 @@
-package com.example.backend.auth.dto;
+package com.example.backend.auth.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

@@ -1,12 +1,12 @@
 package com.example.backend.auth.controller;
 
-import com.example.backend.auth.dto.AuthResponse;
-import com.example.backend.auth.dto.LoginRequest;
-import com.example.backend.auth.dto.SignupRequest;
+import com.example.backend.auth.dto.response.AuthResponse;
+import com.example.backend.auth.dto.request.LoginRequest;
+import com.example.backend.auth.dto.request.SignupRequest;
 import com.example.backend.auth.service.AuthService;
 import com.example.backend.dto.ApiResponse;
 import com.example.backend.security.RateLimiter;
-import com.example.backend.user.dto.UserDTO;
+import com.example.backend.user.dto.response.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +39,8 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserDTO>> getCurrentUser() {
-        UserDTO user = authService.getCurrentUser();
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser() {
+        UserResponse user = authService.getCurrentUser();
         return ResponseEntity.ok(ApiResponse.success(user));
     }
 }

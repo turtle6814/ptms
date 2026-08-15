@@ -1,4 +1,4 @@
-package com.example.backend.match.dto;
+package com.example.backend.match.dto.request;
 
 import com.example.backend.enums.MatchStatus;
 import lombok.Data;

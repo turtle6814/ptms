@@ -1,11 +1,11 @@
 package com.example.backend;
 
-import com.example.backend.auth.dto.LoginRequest;
-import com.example.backend.auth.dto.SignupRequest;
-import com.example.backend.event.dto.CreateEventRequest;
-import com.example.backend.tournament.dto.CreateTournamentRequest;
-import com.example.backend.event.dto.PoolConfigDTO;
-import com.example.backend.match.dto.ScoreUpdateRequest;
+import com.example.backend.auth.dto.request.LoginRequest;
+import com.example.backend.auth.dto.request.SignupRequest;
+import com.example.backend.event.dto.request.CreateEventRequest;
+import com.example.backend.tournament.dto.request.CreateTournamentRequest;
+import com.example.backend.event.dto.request.PoolConfigRequest;
+import com.example.backend.match.dto.request.ScoreUpdateRequest;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -93,7 +93,7 @@ class BackendIntegrationTest {
     @Test
     @Order(3)
     void testCreateEvent() throws Exception {
-        PoolConfigDTO poolA = new PoolConfigDTO();
+        PoolConfigRequest poolA = new PoolConfigRequest();
         poolA.setName("Pool A");
         poolA.setTeamNames(List.of("Team 1", "Team 2", "Team 3"));
 
@@ -156,7 +156,7 @@ class BackendIntegrationTest {
     @Test
     @Order(6)
     void testRoundRobinOnlyEventSkipsBracket() throws Exception {
-        PoolConfigDTO poolA = new PoolConfigDTO();
+        PoolConfigRequest poolA = new PoolConfigRequest();
         poolA.setName("Pool A");
         poolA.setTeamNames(List.of("RR Team 1", "RR Team 2"));
 
@@ -178,11 +178,11 @@ class BackendIntegrationTest {
     @Test
     @Order(7)
     void testDuplicateTeamNameInSameEventIsRejected() throws Exception {
-        PoolConfigDTO poolA = new PoolConfigDTO();
+        PoolConfigRequest poolA = new PoolConfigRequest();
         poolA.setName("Dup Pool A");
         poolA.setTeamNames(List.of("Dup Team"));
 
-        PoolConfigDTO poolB = new PoolConfigDTO();
+        PoolConfigRequest poolB = new PoolConfigRequest();
         poolB.setName("Dup Pool B");
         poolB.setTeamNames(List.of("dup team"));
 

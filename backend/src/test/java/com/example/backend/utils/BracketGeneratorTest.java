@@ -2,7 +2,7 @@ package com.example.backend.utils;
 
 import com.example.backend.event.entity.Event;
 import com.example.backend.event.entity.Pool;
-import com.example.backend.match.dto.ScoreRulesDTO;
+import com.example.backend.match.dto.ScoreRules;
 import com.example.backend.match.entity.BracketSlotSource;
 import com.example.backend.match.entity.Match;
 import com.example.backend.enums.BracketSlot;
@@ -21,10 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class BracketGeneratorTest {
 
-    private static final ScoreRulesDTO RULES = rules(15, true, 21);
+    private static final ScoreRules RULES = rules(15, true, 21);
 
-    private static ScoreRulesDTO rules(int target, boolean winByTwo, int cap) {
-        ScoreRulesDTO dto = new ScoreRulesDTO();
+    private static ScoreRules rules(int target, boolean winByTwo, int cap) {
+        ScoreRules dto = new ScoreRules();
         dto.setTargetScore(target);
         dto.setWinByTwo(winByTwo);
         dto.setScoreCap(cap);

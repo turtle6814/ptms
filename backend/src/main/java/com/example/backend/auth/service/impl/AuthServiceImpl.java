@@ -1,13 +1,13 @@
 package com.example.backend.auth.service.impl;
 
-import com.example.backend.auth.dto.AuthResponse;
-import com.example.backend.auth.dto.LoginRequest;
-import com.example.backend.auth.dto.SignupRequest;
+import com.example.backend.auth.dto.response.AuthResponse;
+import com.example.backend.auth.dto.request.LoginRequest;
+import com.example.backend.auth.dto.request.SignupRequest;
 import com.example.backend.auth.service.AuthService;
 import com.example.backend.exception.UnauthorizedException;
 import com.example.backend.exception.UserAlreadyExistsException;
 import com.example.backend.security.JwtUtils;
-import com.example.backend.user.dto.UserDTO;
+import com.example.backend.user.dto.response.UserResponse;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.mapper.UserMapper;
 import com.example.backend.user.repository.UserRepository;
@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserDTO getCurrentUser() {
+    public UserResponse getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()
@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
 
-        return userMapper.toDto(user);
+        return userMapper.toResponse(user);
     }
 
     private AuthResponse authenticate(User user, String rawPassword) {
@@ -95,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
 
             AuthResponse response = new AuthResponse();
             response.setToken(jwt);
-            response.setUser(userMapper.toDto(user));
+            response.setUser(userMapper.toResponse(user));
 
             return response;
         } catch (AuthenticationException ex) {

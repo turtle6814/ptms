@@ -1,10 +1,10 @@
-package com.example.backend.event.dto;
+package com.example.backend.event.dto.response;
 
 import lombok.Data;
 import java.util.UUID;
 
 @Data
-public class TeamDTO {
+public class TeamResponse {
     private UUID id;
     private String name;
     private UUID eventId;

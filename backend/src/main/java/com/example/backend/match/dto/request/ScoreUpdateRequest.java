@@ -1,4 +1,4 @@
-package com.example.backend.match.dto;
+package com.example.backend.match.dto.request;
 
 import lombok.Data;
 import java.util.UUID;

@@ -1,6 +1,8 @@
 package com.example.backend.event.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -17,9 +19,11 @@ public class Team {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @Column(nullable = false)
+    @Size(min = 1, max = 255, message = "Team name must be between 1 and 255 characters")
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)

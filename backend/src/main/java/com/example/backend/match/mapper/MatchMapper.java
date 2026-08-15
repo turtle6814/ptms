@@ -1,6 +1,6 @@
 package com.example.backend.match.mapper;
 
-import com.example.backend.match.dto.MatchDTO;
+import com.example.backend.match.dto.response.MatchResponse;
 import com.example.backend.match.entity.Match;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -12,7 +12,7 @@ public class MatchMapper {
 
     private final ModelMapper modelMapper;
 
-    public MatchDTO toDto(Match match) {
-        return modelMapper.map(match, MatchDTO.class);
+    public MatchResponse toResponse(Match match) {
+        return modelMapper.map(match, MatchResponse.class);
     }
 }

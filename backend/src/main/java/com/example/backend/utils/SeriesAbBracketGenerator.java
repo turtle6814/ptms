@@ -4,7 +4,7 @@ import com.example.backend.enums.BracketSlot;
 import com.example.backend.enums.BracketType;
 import com.example.backend.event.entity.Event;
 import com.example.backend.event.entity.Pool;
-import com.example.backend.match.dto.ScoreRulesDTO;
+import com.example.backend.match.dto.ScoreRules;
 import com.example.backend.match.entity.Match;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public final class SeriesAbBracketGenerator {
     private SeriesAbBracketGenerator() {
     }
 
-    public static BracketGenerator.Result generate(Event event, List<Pool> pools, ScoreRulesDTO rules) {
+    public static BracketGenerator.Result generate(Event event, List<Pool> pools, ScoreRules rules) {
         BracketGenerator.Result winners = BracketGenerator.generate(event, pools, rules);
 
         List<Match> round1 = winners.matches().stream()

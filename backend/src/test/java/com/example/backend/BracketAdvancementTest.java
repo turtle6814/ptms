@@ -1,11 +1,11 @@
 package com.example.backend;
 
-import com.example.backend.auth.dto.SignupRequest;
+import com.example.backend.auth.dto.request.SignupRequest;
 import com.example.backend.enums.EventFormat;
-import com.example.backend.event.dto.CreateEventRequest;
-import com.example.backend.tournament.dto.CreateTournamentRequest;
-import com.example.backend.event.dto.PoolConfigDTO;
-import com.example.backend.match.dto.ScoreUpdateRequest;
+import com.example.backend.event.dto.request.CreateEventRequest;
+import com.example.backend.tournament.dto.request.CreateTournamentRequest;
+import com.example.backend.event.dto.request.PoolConfigRequest;
+import com.example.backend.match.dto.request.ScoreUpdateRequest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -74,12 +74,12 @@ class BracketAdvancementTest {
                 .path("data").path("id").asText());
     }
 
-    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigDTO> pools)
+    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigRequest> pools)
             throws Exception {
         return createEvent(token, tournamentId, name, pools, 2);
     }
 
-    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigDTO> pools,
+    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigRequest> pools,
             int advancementPerPool) throws Exception {
         CreateEventRequest request = new CreateEventRequest();
         request.setName(name);
@@ -97,7 +97,7 @@ class BracketAdvancementTest {
         return objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
     }
 
-    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigDTO> pools,
+    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigRequest> pools,
             int advancementPerPool, int wildcardCount) throws Exception {
         CreateEventRequest request = new CreateEventRequest();
         request.setName(name);
@@ -116,7 +116,7 @@ class BracketAdvancementTest {
         return objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
     }
 
-    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigDTO> pools,
+    private JsonNode createEvent(String token, UUID tournamentId, String name, List<PoolConfigRequest> pools,
             int advancementPerPool, EventFormat format) throws Exception {
         CreateEventRequest request = new CreateEventRequest();
         request.setName(name);
@@ -155,8 +155,8 @@ class BracketAdvancementTest {
                 .andExpect(status().isOk());
     }
 
-    private static PoolConfigDTO pool(String name, String... teamNames) {
-        PoolConfigDTO dto = new PoolConfigDTO();
+    private static PoolConfigRequest pool(String name, String... teamNames) {
+        PoolConfigRequest dto = new PoolConfigRequest();
         dto.setName(name);
         dto.setTeamNames(List.of(teamNames));
         return dto;
@@ -550,7 +550,7 @@ class BracketAdvancementTest {
         String token = signup("doubleelim1", "+19990000110");
         UUID tournamentId = createTournament(token, "Double Elim Sweep Tournament");
         UUID eventId = UUID.fromString(createEvent(token, tournamentId, "Double Elim Sweep",
-                List.of(pool("Pool A", "A1", "A2", "A3", "A4")), 4, EventFormat.POOL_TO_DOUBLE_ELIM)
+                List.of(pool("Pool A", "A1", "A2", "A3", "A4")), 4, EventFormat.POOL_TO_DOUBLE_ELIMINATION)
                 .path("id").asText());
         JsonNode created = getEvent(eventId);
 
@@ -665,7 +665,7 @@ class BracketAdvancementTest {
         String token = signup("doubleelim2", "+19990000111");
         UUID tournamentId = createTournament(token, "Double Elim Reset Tournament");
         UUID eventId = UUID.fromString(createEvent(token, tournamentId, "Double Elim Reset",
-                List.of(pool("Pool A", "A1", "A2", "A3", "A4")), 4, EventFormat.POOL_TO_DOUBLE_ELIM)
+                List.of(pool("Pool A", "A1", "A2", "A3", "A4")), 4, EventFormat.POOL_TO_DOUBLE_ELIMINATION)
                 .path("id").asText());
         JsonNode created = getEvent(eventId);
 

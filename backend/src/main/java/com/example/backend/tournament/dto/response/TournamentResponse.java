@@ -1,4 +1,4 @@
-package com.example.backend.tournament.dto;
+package com.example.backend.tournament.dto.response;
 
 import lombok.Data;
 import java.time.LocalDate;
@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-public class TournamentDTO {
+public class TournamentResponse {
     private UUID id;
     private String name;
     private String description;

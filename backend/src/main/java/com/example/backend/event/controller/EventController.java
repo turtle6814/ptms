@@ -1,8 +1,8 @@
 package com.example.backend.event.controller;
 
 import com.example.backend.dto.ApiResponse;
-import com.example.backend.event.dto.CreateEventRequest;
-import com.example.backend.event.dto.EventDTO;
+import com.example.backend.event.dto.request.CreateEventRequest;
+import com.example.backend.event.dto.response.EventResponse;
 import com.example.backend.event.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,19 +21,19 @@ public class EventController {
     private final EventService eventService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<EventDTO>>> getAllEvents(Authentication authentication) {
+    public ResponseEntity<ApiResponse<List<EventResponse>>> getAllEvents(Authentication authentication) {
         return ResponseEntity.ok(ApiResponse.success(eventService.getAllEvents(authentication.getName())));
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<EventDTO>> createEvent(@RequestBody CreateEventRequest request,
+    public ResponseEntity<ApiResponse<EventResponse>> createEvent(@RequestBody CreateEventRequest request,
             Authentication authentication) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(eventService.createEvent(request, authentication.getName())));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<EventDTO>> getEventById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<EventResponse>> getEventById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(eventService.getEventById(id)));
     }
 

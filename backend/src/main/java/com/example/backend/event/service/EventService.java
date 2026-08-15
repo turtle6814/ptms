@@ -1,17 +1,17 @@
 package com.example.backend.event.service;
 
-import com.example.backend.event.dto.CreateEventRequest;
-import com.example.backend.event.dto.EventDTO;
+import com.example.backend.event.dto.request.CreateEventRequest;
+import com.example.backend.event.dto.response.EventResponse;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface EventService {
-    List<EventDTO> getAllEvents(String username);
+    List<EventResponse> getAllEvents(String username);
 
-    EventDTO getEventById(UUID id);
+    EventResponse getEventById(UUID id);
 
-    EventDTO createEvent(CreateEventRequest request, String username);
+    EventResponse createEvent(CreateEventRequest request, String username);
 
     void deleteEvent(UUID id, String username);
 }
