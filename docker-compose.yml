@@ -17,9 +17,9 @@ services:
       timeout: 5s
       retries: 5
 
-  app:
-    build: .
-    container_name: ptms-app
+  backend:
+    build: ./backend
+    container_name: ptms-backend
     restart: unless-stopped
     depends_on:
       db:
@@ -29,7 +29,16 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
     ports:
-      - "3000:8080"
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    container_name: ptms-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
 
 volumes:
   pgdata:
