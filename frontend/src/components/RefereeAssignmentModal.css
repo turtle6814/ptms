@@ -1,0 +1,61 @@
+.referee-list {
+    list-style: none;
+    margin: 1rem 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.referee-list-empty {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.referee-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.referee-list-item button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.referee-add-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.referee-add-row select {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid rgba(169, 156, 136, 0.3);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.referee-add-row button {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent-court);
+    color: white;
+    cursor: pointer;
+}
+
+.referee-add-row button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

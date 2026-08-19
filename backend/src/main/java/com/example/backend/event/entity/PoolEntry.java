@@ -25,6 +25,4 @@ public class PoolEntry {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
-
-    private Integer seed;
 }

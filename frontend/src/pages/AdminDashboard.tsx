@@ -3,26 +3,24 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
-import { PoolStandings } from '../components/PoolStandings';
-import { MatchCard } from '../components/MatchCard';
-import { EliminationBracket } from '../components/EliminationBracket';
 import { QRCodeShare } from '../components/QRCodeShare';
-import { TournamentTabs } from '../components/TournamentTabs';
 import { Modal } from '../components/Modal';
+import { EventScoringPanel } from '../components/EventScoringPanel';
+import { RefereeAssignmentModal } from '../components/RefereeAssignmentModal';
 import {
     getEventById,
     getAllEvents,
-    updateMatchScore,
-    recordForfeit,
     getAllTournaments,
 } from '../api';
 import { Event, Tournament } from '../api/types';
-import { useEventSubscription } from '../hooks/useEventSubscription';
 import { getStatusLabel, getStatusColor } from '../utils/eventStatus';
-import { Share2, RefreshCw, ChevronDown, Calendar } from 'lucide-react';
+import { useAuth } from '../context/useAuth';
+import { Share2, Users, ChevronDown, Calendar } from 'lucide-react';
 import './AdminDashboard.css';
 
 export function AdminDashboard() {
+    const { user } = useAuth();
+    const canEdit = user?.role === 'ADMIN' || user?.role === 'ORGANIZER';
     const [searchParams] = useSearchParams();
     const eventId = searchParams.get('id');
 
@@ -32,8 +30,8 @@ export function AdminDashboard() {
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [shareTournamentId, setShareTournamentId] = useState<string | null>(null);
     const [showShareModal, setShowShareModal] = useState(false);
+    const [showRefereeModal, setShowRefereeModal] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [hasThirdPlaceMatch, setHasThirdPlaceMatch] = useState(false);
 
     const loadSidebarData = useCallback(async () => {
         const [eventsRes, tournamentsRes] = await Promise.all([
@@ -67,40 +65,9 @@ export function AdminDashboard() {
         init();
     }, [eventId, loadSidebarData, loadSelectedEvent]);
 
-    // Subscribe to live updates
-    useEventSubscription(selectedEvent, (updated) => {
+    const handleEventUpdate = (updated: Event) => {
         setSelectedEvent(updated);
-    });
-
-    const handleScoreUpdate = async (matchId: string, team1Score: number, team2Score: number) => {
-        if (!selectedEvent) return;
-
-        const response = await updateMatchScore(selectedEvent.id, {
-            matchId,
-            team1Score,
-            team2Score,
-        });
-
-        if (response.success) {
-            setSelectedEvent(response.data);
-            // Also update the events list
-            setEvents(prev =>
-                prev.map(e => e.id === response.data.id ? response.data : e)
-            );
-        }
-    };
-
-    const handleForfeit = async (matchId: string, winnerId: string, status: 'FORFEIT' | 'WALKOVER') => {
-        if (!selectedEvent) return;
-
-        const response = await recordForfeit(selectedEvent.id, matchId, { winnerId, status });
-
-        if (response.success) {
-            setSelectedEvent(response.data);
-            setEvents(prev =>
-                prev.map(e => e.id === response.data.id ? response.data : e)
-            );
-        }
+        setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
     };
 
     const handleSelectEvent = async (id: string) => {
@@ -220,20 +187,18 @@ export function AdminDashboard() {
                             }
                         />
                     ) : (
-                        <>
-                            <div className="detail-header">
-                                <div className="header-info">
-                                    <h1>{selectedEvent.name}</h1>
-                                    <span className={`status-badge ${getStatusColor(selectedEvent.status)}`}>
-                                        {getStatusLabel(selectedEvent.status)}
-                                    </span>
-                                </div>
-                                <div className="header-actions">
+                        <EventScoringPanel
+                            event={selectedEvent}
+                            canEdit={canEdit}
+                            onEventUpdate={handleEventUpdate}
+                            headerActions={canEdit ? (
+                                <>
                                     <button
-                                        className="action-btn refresh"
-                                        onClick={() => loadSelectedEvent(selectedEvent.id)}
+                                        className="action-btn"
+                                        onClick={() => setShowRefereeModal(true)}
                                     >
-                                        <RefreshCw size={16} />
+                                        <Users size={16} />
+                                        Referees
                                     </button>
                                     <button
                                         className="action-btn share"
@@ -245,71 +210,9 @@ export function AdminDashboard() {
                                         <Share2 size={16} />
                                         Share Tournament
                                     </button>
-                                </div>
-                            </div>
-
-                            <TournamentTabs
-                                hasPoolPlay={selectedEvent.pools.length > 0}
-                                hasPlayoffs={!!selectedEvent.eliminationBracket}
-                            >
-                                {{
-                                    poolPlay: (
-                                        <section className="pools-section">
-                                            {selectedEvent.pools.map(pool => (
-                                                <div key={pool.id} className="pool-container">
-                                                    <div className="pool-grid">
-                                                        <PoolStandings
-                                                            poolName={pool.name}
-                                                            standings={pool.standings}
-                                                            highlightTop={2}
-                                                            showQualifyBadge={false}
-                                                        />
-
-                                                        <div className="pool-matches">
-                                                            <h4>Matches</h4>
-                                                            <div className="matches-grid">
-                                                                {pool.matches.map((match) => (
-                                                                    <MatchCard
-                                                                        key={match.id}
-                                                                        match={match}
-                                                                        teams={selectedEvent.teams}
-                                                                        isAdmin={true}
-                                                                        poolTeamIds={pool.teamIds}
-                                                                        onScoreUpdate={handleScoreUpdate}
-                                                                        onForfeit={handleForfeit}
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </section>
-                                    ),
-                                    playoffs: (
-                                        <section className="elimination-section">
-                                            {selectedEvent.eliminationBracket ? (
-                                                <EliminationBracket
-                                                    bracket={selectedEvent.eliminationBracket}
-                                                    teams={selectedEvent.teams}
-                                                    isAdmin={true}
-                                                    hasThirdPlaceMatch={hasThirdPlaceMatch}
-                                                    onThirdPlaceToggle={setHasThirdPlaceMatch}
-                                                    onScoreUpdate={handleScoreUpdate}
-                                                    onForfeit={handleForfeit}
-                                                />
-                                            ) : (
-                                                <div className="empty-bracket-message">
-                                                    <div className="empty-icon">🏆</div>
-                                                    <h3>Playoffs Not Started</h3>
-                                                    <p>Complete all pool matches to generate the elimination bracket.</p>
-                                                </div>
-                                            )}
-                                        </section>
-                                    )
-                                }}
-                            </TournamentTabs>
-                        </>
+                                </>
+                            ) : undefined}
+                        />
                     )}
                 </div>
             </main>
@@ -323,6 +226,14 @@ export function AdminDashboard() {
                         tournamentName={tournaments.find(t => t.id === shareTournamentId)?.name || 'Tournament'}
                     />
                 </Modal>
+            )}
+
+            {/* Referee Assignment Modal */}
+            {showRefereeModal && selectedEvent && (
+                <RefereeAssignmentModal
+                    eventId={selectedEvent.id}
+                    onClose={() => setShowRefereeModal(false)}
+                />
             )}
         </div>
     );

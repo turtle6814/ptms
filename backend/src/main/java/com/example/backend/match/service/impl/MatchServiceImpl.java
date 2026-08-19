@@ -12,8 +12,10 @@ import com.example.backend.event.entity.Event;
 import com.example.backend.event.entity.Pool;
 import com.example.backend.event.entity.PoolEntry;
 import com.example.backend.event.entity.Team;
+import com.example.backend.event.repository.EventRefereeRepository;
 import com.example.backend.event.repository.EventRepository;
 import com.example.backend.event.repository.PoolRepository;
+import com.example.backend.exception.ForbiddenException;
 import com.example.backend.exception.ValidationException;
 import com.example.backend.match.dto.request.ForfeitRequest;
 import com.example.backend.match.dto.response.MatchResponse;
@@ -25,7 +27,7 @@ import com.example.backend.match.mapper.MatchMapper;
 import com.example.backend.match.repository.BracketSlotSourceRepository;
 import com.example.backend.match.repository.MatchRepository;
 import com.example.backend.match.service.MatchService;
-import com.example.backend.tournament.entity.Tournament;
+import com.example.backend.user.repository.UserRepository;
 import com.example.backend.utils.StandingsCalculator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,16 +46,19 @@ public class MatchServiceImpl extends BaseService<Match, UUID, MatchResponse> im
     private final PoolRepository poolRepository;
     private final EventRepository eventRepository;
     private final BracketSlotSourceRepository bracketSlotSourceRepository;
+    private final EventRefereeRepository eventRefereeRepository;
     private final MatchMapper matchMapper;
 
     public MatchServiceImpl(MatchRepository matchRepository, PoolRepository poolRepository,
                              EventRepository eventRepository, BracketSlotSourceRepository bracketSlotSourceRepository,
+                             EventRefereeRepository eventRefereeRepository, UserRepository userRepository,
                              MatchMapper matchMapper) {
-        super(matchRepository, matchMapper::toResponse, "Match");
+        super(matchRepository, matchMapper::toResponse, "Match", userRepository);
         this.matchRepository = matchRepository;
         this.poolRepository = poolRepository;
         this.eventRepository = eventRepository;
         this.bracketSlotSourceRepository = bracketSlotSourceRepository;
+        this.eventRefereeRepository = eventRefereeRepository;
         this.matchMapper = matchMapper;
     }
 
@@ -62,7 +67,7 @@ public class MatchServiceImpl extends BaseService<Match, UUID, MatchResponse> im
     public MatchResponse updateScore(UUID matchId, ScoreUpdateRequest request, String username) {
         Match match = findByIdOrThrow(matchId);
 
-        verifyOwnership(match.getEvent(), username);
+        verifyMatchAccess(match, username);
 
         if (request.getTeam1Score() == null || request.getTeam2Score() == null) {
             throw new ValidationException("Both scores are required");
@@ -85,7 +90,7 @@ public class MatchServiceImpl extends BaseService<Match, UUID, MatchResponse> im
     public MatchResponse updateRules(UUID matchId, ScoreRules request, String username) {
         Match match = findByIdOrThrow(matchId);
 
-        verifyOwnership(match.getEvent(), username);
+        verifyMatchAccess(match, username);
 
         if (match.getStatus().isFinished()) {
             throw new ValidationException("Cannot change scoring rules after a match has a result");
@@ -110,7 +115,7 @@ public class MatchServiceImpl extends BaseService<Match, UUID, MatchResponse> im
     public MatchResponse recordForfeit(UUID matchId, ForfeitRequest request, String username) {
         Match match = findByIdOrThrow(matchId);
 
-        verifyOwnership(match.getEvent(), username);
+        verifyMatchAccess(match, username);
 
         if (match.getTeam1() == null || match.getTeam2() == null) {
             throw new ValidationException("Cannot record a forfeit before both teams are set");
@@ -158,10 +163,19 @@ public class MatchServiceImpl extends BaseService<Match, UUID, MatchResponse> im
         }
     }
 
-    private void verifyOwnership(Event event, String username) {
-        Tournament tournament = event.getTournament();
-        if (tournament.getOwner() == null || !tournament.getOwner().getUsername().equals(username)) {
-            throw new RuntimeException("You do not have permission to update this match");
+    private void verifyMatchAccess(Match match, String username) {
+        if (isAdmin(username)) {
+            return;
+        }
+        var tournament = match.getEvent().getTournament();
+        boolean isOwner = tournament.getOwner() != null && tournament.getOwner().getUsername().equals(username);
+        if (isOwner) {
+            return;
+        }
+        boolean isAssignedReferee = eventRefereeRepository
+                .existsByEventIdAndRefereeUsername(match.getEvent().getId(), username);
+        if (!isAssignedReferee) {
+            throw new ForbiddenException("You do not have permission to update this match");
         }
     }
 

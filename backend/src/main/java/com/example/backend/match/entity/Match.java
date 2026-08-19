@@ -13,8 +13,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -73,12 +71,6 @@ public class Match {
     @Column(name = "bracket_type")
     private BracketType bracketType;
 
-    // Only populated for wildcard-sourced slots (no sourcePool to cascade-persist through) -
-    // pool-sourced slots still cascade via Pool.bracketSlotSources, unchanged.
-    @Builder.Default
-    @OneToMany(mappedBy = "bracketMatch", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BracketSlotSource> bracketSlotSources = new ArrayList<>();
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team1_id")
     private Team team1;
@@ -99,7 +91,7 @@ public class Match {
     private Integer targetScore = 11;
 
     @Builder.Default
-    @Column(name = "win_by_two")
+    @Column(name = "win_by_two", nullable = false)
     private Boolean winByTwo = true;
 
     @Builder.Default

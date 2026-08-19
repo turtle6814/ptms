@@ -1,7 +1,5 @@
 package com.example.backend.event.entity;
 
-import com.example.backend.match.entity.BracketSlotSource;
-import com.example.backend.match.entity.Match;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,14 +30,6 @@ public class Pool {
     @Builder.Default
     @OneToMany(mappedBy = "pool", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PoolEntry> poolEntries = new ArrayList<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "pool", cascade = CascadeType.ALL)
-    private List<Match> matches = new ArrayList<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "sourcePool", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BracketSlotSource> bracketSlotSources = new ArrayList<>();
 
     @Builder.Default
     @Column(nullable = false)

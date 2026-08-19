@@ -4,6 +4,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './pages/LandingPage';
 import { EventSetup } from './pages/EventSetup';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { RefereeDashboard } from './pages/RefereeDashboard';
+import { UserManagementPage } from './pages/UserManagementPage';
 import { TournamentViewerPage } from './pages/TournamentViewerPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
@@ -23,27 +25,41 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
 
-          {/* Protected admin routes */}
+          {/* Organizer/admin routes */}
           <Route path="/admin" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}>
               <AdminDashboard />
             </ProtectedRoute>
           } />
           <Route path="/setup" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}>
               <EventSetup />
             </ProtectedRoute>
           } />
 
           {/* Tournaments routes */}
           <Route path="/tournaments" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}>
               <TournamentsPage />
             </ProtectedRoute>
           } />
           <Route path="/tournaments/:tournamentId" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}>
               <TournamentDetailPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Referee routes */}
+          <Route path="/referee" element={
+            <ProtectedRoute allowedRoles={['REFEREE', 'ADMIN']}>
+              <RefereeDashboard />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin-only routes */}
+          <Route path="/admin/users" element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <UserManagementPage />
             </ProtectedRoute>
           } />
 

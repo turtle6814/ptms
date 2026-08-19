@@ -13,6 +13,8 @@ import {
     ScoreUpdateRequest,
     ScoreRules,
     ForfeitRequest,
+    Role,
+    EventReferee,
 } from './types';
 
 // ================================
@@ -152,6 +154,59 @@ export async function deleteEvent(id: string): Promise<ApiResponse<void>> {
     return apiCall(
         async () => (await client.delete<ApiResponse<void>>(`/events/${id}`)).data,
         'Failed to delete event'
+    );
+}
+
+export async function getEventReferees(eventId: string): Promise<ApiResponse<EventReferee[]>> {
+    return apiCall(
+        async () => (await client.get<ApiResponse<EventReferee[]>>(`/events/${eventId}/referees`)).data,
+        'Failed to fetch referees'
+    );
+}
+
+export async function assignReferee(eventId: string, userId: string): Promise<ApiResponse<EventReferee>> {
+    return apiCall(
+        async () => (await client.post<ApiResponse<EventReferee>>(`/events/${eventId}/referees`, { userId })).data,
+        'Failed to assign referee'
+    );
+}
+
+export async function unassignReferee(eventId: string, userId: string): Promise<ApiResponse<void>> {
+    return apiCall(
+        async () => (await client.delete<ApiResponse<void>>(`/events/${eventId}/referees/${userId}`)).data,
+        'Failed to unassign referee'
+    );
+}
+
+// ================================
+// User API (role management)
+// ================================
+
+export async function getAllUsers(): Promise<ApiResponse<User[]>> {
+    return apiCall(
+        async () => (await client.get<ApiResponse<User[]>>('/users')).data,
+        'Failed to fetch users'
+    );
+}
+
+export async function getReferees(): Promise<ApiResponse<User[]>> {
+    return apiCall(
+        async () => (await client.get<ApiResponse<User[]>>('/users/referees')).data,
+        'Failed to fetch referees'
+    );
+}
+
+export async function updateUserRole(userId: string, role: Role): Promise<ApiResponse<User>> {
+    return apiCall(
+        async () => (await client.patch<ApiResponse<User>>(`/users/${userId}/role`, { role })).data,
+        'Failed to update role'
+    );
+}
+
+export async function getMyAssignedEvents(): Promise<ApiResponse<Event[]>> {
+    return apiCall(
+        async () => (await client.get<ApiResponse<Event[]>>('/users/me/assigned-events')).data,
+        'Failed to fetch assigned events'
     );
 }
 

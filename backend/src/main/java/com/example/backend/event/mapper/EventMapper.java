@@ -7,6 +7,7 @@ import com.example.backend.event.dto.response.BracketRoundResponse;
 import com.example.backend.event.dto.response.EliminationBracketResponse;
 import com.example.backend.event.dto.response.EventResponse;
 import com.example.backend.event.dto.response.PoolResponse;
+import com.example.backend.event.dto.response.TeamResponse;
 import com.example.backend.event.entity.Event;
 import com.example.backend.event.entity.Pool;
 import com.example.backend.event.entity.PoolEntry;
@@ -34,49 +35,59 @@ public class EventMapper {
     public EventResponse toResponse(Event event) {
         EventResponse response = modelMapper.map(event, EventResponse.class);
 
-        // Manual mapping for Pool Team IDs and Sort Matches
+        // Manual mapping: Event.teams and Pool.matches have no backing JPA collection
+        // (removed as dead inverse collections) so ModelMapper can't auto-populate them -
+        // both must be assembled here from PoolEntry/MatchRepository instead.
         if (event.getPools() != null && response.getPools() != null) {
             // Sort pools by name to ensure stable ordering (Pool A, Pool B, Pool C...)
             response.getPools().sort(java.util.Comparator.comparing(PoolResponse::getName));
 
+            List<TeamResponse> allTeams = new ArrayList<>();
+
             for (int i = 0; i < event.getPools().size(); i++) {
                 Pool pool = event.getPools().get(i);
+                List<Team> poolTeams = teamsInPool(pool);
                 // Find matching PoolResponse
                 for (PoolResponse poolResponse : response.getPools()) {
                     if (poolResponse.getId().equals(pool.getId())) {
                         // Sort Teams by CreatedAt to respect input order
                         if (pool.getPoolEntries() != null) {
-                            poolResponse.setTeamIds(teamsInPool(pool).stream()
+                            poolResponse.setTeamIds(poolTeams.stream()
                                     .sorted(java.util.Comparator.comparing(Team::getCreatedAt,
                                             java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
                                     .map(Team::getId)
                                     .collect(Collectors.toList()));
+                            allTeams.addAll(poolTeams.stream()
+                                    .map(t -> modelMapper.map(t, TeamResponse.class))
+                                    .toList());
                         }
+
+                        List<Match> poolMatches = matchRepository.findByPoolId(pool.getId());
 
                         // Sort Matches: Round (asc), then CreatedAt (asc), then ID (asc) for stability
-                        if (poolResponse.getMatches() != null) {
-                            poolResponse.getMatches().sort(java.util.Comparator.comparing(MatchResponse::getRoundNumber,
-                                    java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
-                                    .thenComparing(MatchResponse::getCreatedAt,
-                                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
-                                    .thenComparing(MatchResponse::getId));
-                        }
+                        poolResponse.setMatches(poolMatches.stream()
+                                .map(m -> modelMapper.map(m, MatchResponse.class))
+                                .sorted(java.util.Comparator.comparing(MatchResponse::getRoundNumber,
+                                        java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                                        .thenComparing(MatchResponse::getCreatedAt,
+                                                java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                                        .thenComparing(MatchResponse::getId))
+                                .collect(Collectors.toList()));
 
-                        poolResponse.setStandings(StandingsCalculator.compute(
-                                teamsInPool(pool), matchRepository.findByPoolId(pool.getId())));
+                        poolResponse.setStandings(StandingsCalculator.compute(poolTeams, poolMatches));
                         break;
                     }
                 }
             }
+
+            response.setTeams(allTeams);
         }
 
         // Populate Elimination Bracket response. WINNERS and LOSERS (Series A/B consolation)
         // matches are built into separate responses - each bracket's rounds restart at 1, and
         // mixing them into one match list would make the structural champion/3rd-place detection
         // below ambiguous (both brackets' finals look identical: terminal, not a loser-edge target).
-        List<Match> allBracketMatches = event.getMatches().stream()
-                .filter(m -> m.getMatchType() == MatchType.BRACKET)
-                .collect(Collectors.toList());
+        List<Match> allBracketMatches = matchRepository.findByEventIdAndMatchType(event.getId(), MatchType.BRACKET);
         List<Match> winnersMatches = allBracketMatches.stream()
                 .filter(m -> m.getBracketType() == BracketType.WINNERS)
                 .collect(Collectors.toList());

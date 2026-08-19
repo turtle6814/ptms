@@ -1,6 +1,7 @@
 package com.example.backend.match.repository;
 
 import com.example.backend.enums.BracketType;
+import com.example.backend.enums.MatchType;
 import com.example.backend.match.entity.Match;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,6 +15,8 @@ public interface MatchRepository extends JpaRepository<Match, UUID> {
     List<Match> findByEventId(UUID eventId);
 
     List<Match> findByPoolId(UUID poolId);
+
+    List<Match> findByEventIdAndMatchType(UUID eventId, MatchType matchType);
 
     List<Match> findByWinnerNextMatch_Id(UUID matchId);
 

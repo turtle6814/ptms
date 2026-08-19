@@ -76,7 +76,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
                         .requestMatchers("/assets/**", "/*.js", "/*.css", "/*.png", "/*.svg", "/*.ico").permitAll()
                         .requestMatchers("/login", "/signup", "/admin", "/admin/**", "/setup", "/setup/**",
-                                "/tournaments", "/tournaments/**", "/view/**")
+                                "/tournaments", "/tournaments/**", "/view/**", "/referee", "/referee/**")
                         .permitAll()
                         .anyRequest().authenticated());
 

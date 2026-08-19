@@ -5,21 +5,28 @@ import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
 import com.example.backend.enums.MatchStatus;
 import com.example.backend.enums.MatchType;
+import com.example.backend.enums.Role;
 import com.example.backend.event.dto.request.CreateEventRequest;
+import com.example.backend.event.dto.response.EventRefereeResponse;
 import com.example.backend.event.dto.response.EventResponse;
 import com.example.backend.event.dto.request.PoolConfigRequest;
 import com.example.backend.event.entity.Event;
+import com.example.backend.event.entity.EventReferee;
 import com.example.backend.event.entity.Pool;
 import com.example.backend.event.entity.PoolEntry;
 import com.example.backend.event.entity.Team;
 import com.example.backend.event.mapper.EventMapper;
+import com.example.backend.event.mapper.EventRefereeMapper;
+import com.example.backend.event.repository.EventRefereeRepository;
 import com.example.backend.event.repository.EventRepository;
 import com.example.backend.event.repository.PoolRepository;
 import com.example.backend.event.repository.TeamRepository;
 import com.example.backend.event.service.EventService;
+import com.example.backend.exception.NotFoundException;
+import com.example.backend.exception.ValidationException;
 import com.example.backend.match.dto.ScoreRules;
-import com.example.backend.match.entity.BracketSlotSource;
 import com.example.backend.match.entity.Match;
+import com.example.backend.match.repository.BracketSlotSourceRepository;
 import com.example.backend.match.repository.MatchRepository;
 import com.example.backend.tournament.entity.Tournament;
 import com.example.backend.tournament.repository.TournamentRepository;
@@ -44,19 +51,27 @@ public class EventServiceImpl extends BaseService<Event, UUID, EventResponse> im
     private final PoolRepository poolRepository;
     private final TeamRepository teamRepository;
     private final MatchRepository matchRepository;
+    private final BracketSlotSourceRepository bracketSlotSourceRepository;
+    private final EventRefereeRepository eventRefereeRepository;
     private final EventMapper eventMapper;
+    private final EventRefereeMapper eventRefereeMapper;
 
     public EventServiceImpl(EventRepository eventRepository, TournamentRepository tournamentRepository,
                              UserRepository userRepository, PoolRepository poolRepository,
                              TeamRepository teamRepository, MatchRepository matchRepository,
-                             EventMapper eventMapper) {
-        super(eventRepository, eventMapper::toResponse, "Event");
+                             BracketSlotSourceRepository bracketSlotSourceRepository,
+                             EventRefereeRepository eventRefereeRepository,
+                             EventMapper eventMapper, EventRefereeMapper eventRefereeMapper) {
+        super(eventRepository, eventMapper::toResponse, "Event", userRepository);
         this.tournamentRepository = tournamentRepository;
         this.userRepository = userRepository;
         this.poolRepository = poolRepository;
         this.teamRepository = teamRepository;
         this.matchRepository = matchRepository;
+        this.bracketSlotSourceRepository = bracketSlotSourceRepository;
+        this.eventRefereeRepository = eventRefereeRepository;
         this.eventMapper = eventMapper;
+        this.eventRefereeMapper = eventRefereeMapper;
     }
 
     @Override
@@ -89,20 +104,21 @@ public class EventServiceImpl extends BaseService<Event, UUID, EventResponse> im
         event.setWildcardCount(request.getWildcardCount());
         event.setTournament(tournament);
 
+        Event savedEvent = save(event);
+
         List<Pool> pools = new ArrayList<>();
         List<Team> allTeams = new ArrayList<>();
-        List<Match> allMatches = new ArrayList<>();
 
         for (PoolConfigRequest poolConfig : request.getPools()) {
             Pool pool = new Pool();
             pool.setName(poolConfig.getName());
-            pool.setEvent(event);
+            pool.setEvent(savedEvent);
 
             List<PoolEntry> poolEntries = new ArrayList<>();
             for (String teamName : poolConfig.getTeamNames()) {
                 Team team = new Team();
                 team.setName(teamName);
-                team.setEvent(event);
+                team.setEvent(savedEvent);
                 allTeams.add(team);
 
                 PoolEntry entry = new PoolEntry();
@@ -114,17 +130,19 @@ public class EventServiceImpl extends BaseService<Event, UUID, EventResponse> im
             pools.add(pool);
         }
 
-        event.setPools(pools);
-        event.setTeams(allTeams);
+        // Teams must be persisted before pools, since PoolEntry.team (cascaded via
+        // Pool.poolEntries below) requires a non-transient Team to satisfy its FK.
+        teamRepository.saveAll(allTeams);
 
-        Event savedEvent = save(event);
+        savedEvent.setPools(pools);
+        savedEvent = save(savedEvent);
 
         ScoreRules poolRules = resolveRules(request.getPoolStageRules(), 11, true, 15);
         ScoreRules playoffRules = resolveRules(request.getPlayoffStageRules(), 15, true, 21);
 
         // Now generate matches
         for (Pool pool : savedEvent.getPools()) {
-            generateRoundRobinMatches(pool, savedEvent, allMatches, poolRules);
+            generateRoundRobinMatches(pool, savedEvent, poolRules);
         }
 
         // Generate placeholder elimination bracket (Semis and Finals), unless the event skips
@@ -135,24 +153,9 @@ public class EventServiceImpl extends BaseService<Event, UUID, EventResponse> im
                 case POOL_TO_DOUBLE_ELIMINATION -> DoubleElimBracketGenerator.generate(savedEvent, savedEvent.getPools(), playoffRules);
                 default -> BracketGenerator.generate(savedEvent, savedEvent.getPools(), playoffRules);
             };
-            allMatches.addAll(bracket.matches());
-            // Cascade-persisted via Pool (like matches are via Event) rather than saved directly:
-            // these BracketSlotSource rows have client-assigned UUIDs (needed so the generator
-            // can wire pointers before anything is persisted), which would make a direct
-            // repository.save() incorrectly attempt an UPDATE instead of an INSERT.
-            for (BracketSlotSource source : bracket.bracketSlotSources()) {
-                if (source.getSourcePool() != null) {
-                    source.getSourcePool().getBracketSlotSources().add(source);
-                } else {
-                    // Wildcard-sourced slots have no pool to cascade through - cascade via the
-                    // bracket match instead.
-                    source.getBracketMatch().getBracketSlotSources().add(source);
-                }
-            }
+            matchRepository.saveAll(bracket.matches());
+            bracketSlotSourceRepository.saveAll(bracket.bracketSlotSources());
         }
-
-        savedEvent.setMatches(allMatches);
-        save(savedEvent);
 
         return eventMapper.toResponse(savedEvent);
     }
@@ -179,7 +182,7 @@ public class EventServiceImpl extends BaseService<Event, UUID, EventResponse> im
         return pool.getPoolEntries().stream().map(PoolEntry::getTeam).collect(Collectors.toList());
     }
 
-    private void generateRoundRobinMatches(Pool pool, Event event, List<Match> allMatches, ScoreRules rules) {
+    private void generateRoundRobinMatches(Pool pool, Event event, ScoreRules rules) {
         List<Team> teams = new ArrayList<>(teamsInPool(pool));
         int n = teams.size();
 
@@ -214,7 +217,6 @@ public class EventServiceImpl extends BaseService<Event, UUID, EventResponse> im
                     stampRules(match, rules);
 
                     matchRepository.save(match);
-                    allMatches.add(match);
                 }
             }
 
@@ -231,9 +233,48 @@ public class EventServiceImpl extends BaseService<Event, UUID, EventResponse> im
         deleteById(id);
     }
 
-    private void verifyOwnership(Tournament tournament, String username) {
-        if (tournament.getOwner() == null || !tournament.getOwner().getUsername().equals(username)) {
-            throw new RuntimeException("You do not have permission to modify this tournament's events");
+    @Override
+    public List<EventRefereeResponse> getReferees(UUID eventId, String actingUsername) {
+        Event event = findByIdOrThrow(eventId);
+        verifyOwnership(event.getTournament(), actingUsername);
+        return eventRefereeRepository.findByEventId(eventId).stream()
+                .map(eventRefereeMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public EventRefereeResponse assignReferee(UUID eventId, UUID userId, String actingUsername) {
+        Event event = findByIdOrThrow(eventId);
+        verifyOwnership(event.getTournament(), actingUsername);
+
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        if (targetUser.getRole() != Role.REFEREE) {
+            throw new ValidationException("User must have the REFEREE role to be assigned");
         }
+        if (eventRefereeRepository.existsByEventIdAndRefereeId(eventId, userId)) {
+            throw new ValidationException("User is already assigned as a referee for this event");
+        }
+
+        EventReferee eventReferee = EventReferee.builder()
+                .event(event)
+                .referee(targetUser)
+                .build();
+        return eventRefereeMapper.toResponse(eventRefereeRepository.save(eventReferee));
+    }
+
+    @Override
+    public void unassignReferee(UUID eventId, UUID userId, String actingUsername) {
+        Event event = findByIdOrThrow(eventId);
+        verifyOwnership(event.getTournament(), actingUsername);
+        eventRefereeRepository.deleteByEventIdAndRefereeId(eventId, userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventResponse> getAssignedEvents(String username) {
+        return eventRefereeRepository.findByRefereeUsername(username).stream()
+                .map(eventReferee -> eventMapper.toResponse(eventReferee.getEvent()))
+                .collect(Collectors.toList());
     }
 }

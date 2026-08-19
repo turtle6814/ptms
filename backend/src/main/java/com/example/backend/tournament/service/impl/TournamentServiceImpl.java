@@ -1,7 +1,9 @@
 package com.example.backend.tournament.service.impl;
 
 import com.example.backend.base.BaseService;
+import com.example.backend.enums.Role;
 import com.example.backend.event.dto.response.EventResponse;
+import com.example.backend.exception.ForbiddenException;
 import com.example.backend.tournament.dto.request.CreateTournamentRequest;
 import com.example.backend.tournament.dto.response.TournamentResponse;
 import com.example.backend.tournament.dto.request.UpdateTournamentRequest;
@@ -28,7 +30,7 @@ public class TournamentServiceImpl extends BaseService<Tournament, UUID, Tournam
 
     public TournamentServiceImpl(TournamentRepository tournamentRepository, UserRepository userRepository,
                                   ModelMapper modelMapper, TournamentMapper tournamentMapper) {
-        super(tournamentRepository, tournamentMapper::toResponse, "Tournament");
+        super(tournamentRepository, tournamentMapper::toResponse, "Tournament", userRepository);
         this.tournamentRepository = tournamentRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
@@ -53,6 +55,7 @@ public class TournamentServiceImpl extends BaseService<Tournament, UUID, Tournam
     public TournamentResponse createTournament(CreateTournamentRequest request, String username) {
         User owner = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        requireOrganizer(owner);
         Tournament tournament = modelMapper.map(request, Tournament.class);
         tournament.setOwner(owner);
         Tournament savedTournament = save(tournament);
@@ -80,17 +83,17 @@ public class TournamentServiceImpl extends BaseService<Tournament, UUID, Tournam
         deleteById(id);
     }
 
+    private void requireOrganizer(User user) {
+        if (user.getRole() != Role.ORGANIZER && user.getRole() != Role.ADMIN) {
+            throw new ForbiddenException("Only organizers or admins can create tournaments");
+        }
+    }
+
     @Override
     public List<EventResponse> getEvents(UUID tournamentId) {
         Tournament tournament = findByIdOrThrow(tournamentId);
         return tournament.getEvents().stream()
                 .map(e -> modelMapper.map(e, EventResponse.class))
                 .collect(Collectors.toList());
-    }
-
-    private void verifyOwnership(Tournament tournament, String username) {
-        if (tournament.getOwner() == null || !tournament.getOwner().getUsername().equals(username)) {
-            throw new RuntimeException("You do not have permission to modify this tournament");
-        }
     }
 }

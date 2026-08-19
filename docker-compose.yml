@@ -25,10 +25,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: pickleball_tms
-      DB_USER: postgres
+      SPRING_PROFILES_ACTIVE: docker
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
     ports:

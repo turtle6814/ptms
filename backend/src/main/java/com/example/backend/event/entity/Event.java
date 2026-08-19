@@ -2,7 +2,6 @@ package com.example.backend.event.entity;
 
 import com.example.backend.enums.EventFormat;
 import com.example.backend.enums.EventStatus;
-import com.example.backend.match.entity.Match;
 import com.example.backend.tournament.entity.Tournament;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -60,15 +59,7 @@ public class Event {
 
     @Builder.Default
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Team> teams = new ArrayList<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pool> pools = new ArrayList<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Match> matches = new ArrayList<>();
 
     @CreationTimestamp
     @Column(updatable = false)

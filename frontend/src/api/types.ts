@@ -6,11 +6,26 @@
 // ----------------------------------------------------------
 // User & Auth Schemas
 // ----------------------------------------------------------
+export type Role = 'ADMIN' | 'ORGANIZER' | 'REFEREE' | 'USER';
+
 export interface User {
   id: string; // uuid
   username: string;
   phoneNumber: string;
+  role: Role;
   createdAt: string; // date-time
+}
+
+export interface UpdateRoleRequest {
+  role: Role;
+}
+
+export interface EventReferee {
+  id: string; // uuid
+  eventId: string; // uuid
+  refereeId: string; // uuid
+  refereeUsername: string;
+  assignedAt: string; // date-time
 }
 
 export interface LoginRequest {

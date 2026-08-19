@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Settings, Eye, LogIn, LogOut, User, Calendar } from 'lucide-react';
+import { Settings, Eye, LogIn, LogOut, User, Calendar, Users } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import './Header.css';
 
@@ -86,6 +86,12 @@ export function Header() {
                                         <Settings size={16} />
                                         Dashboard
                                     </Link>
+                                    {user?.role === 'ADMIN' && (
+                                        <Link to="/admin/users" className="nav-link">
+                                            <Users size={16} />
+                                            Users
+                                        </Link>
+                                    )}
                                 </>
                             ) : (
                                 <Link to="/login" className="nav-link nav-link-primary">
