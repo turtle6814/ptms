@@ -17,6 +17,8 @@ The repo is two independent projects (`backend/`, `frontend/`) that get combined
 
 ## Commands
 
+**Always run/test the app via Docker, not local installs.** Use `docker compose up --build` for the full stack rather than `./mvnw spring-boot:run` / `npm run dev`, and `docker compose up db` + `./mvnw test` (test needs a reachable Postgres, no container for that) for backend tests. Requires a repo-root `.env` with `DB_PASSWORD` and `JWT_SECRET` set (see `.env.example`) — the `docker` Spring profile hardcodes the rest of the DB connection to the compose `db` service.
+
 ### Backend (`backend/`)
 ```
 ./mvnw spring-boot:run              # run the API (port 8080, or $PORT)
@@ -41,9 +43,11 @@ Dev API/WS targets come from `.env.development` (`VITE_API_URL`, `VITE_WS_URL`, 
 
 ### Full stack via Docker
 ```
-docker compose up          # Postgres + full app (multi-stage build: frontend build -> backend build -> JRE runtime)
+docker compose up --build          # Postgres + backend + frontend as three separate services
+docker compose logs -f backend     # tail just the Spring Boot logs
+docker compose logs -f frontend    # tail just the nginx logs
 ```
-`Dockerfile` (repo root) builds both projects into one image; `backend/Dockerfile` is a backend-only build. Deployed to Render via `render.yaml` (single `docker` runtime web service + managed Postgres).
+`docker-compose.yml` runs `backend` (`backend/Dockerfile`, port 8080) and `frontend` (`frontend/Dockerfile`, nginx on port 3000→80) as separate services for local dev — if you have an old combined `app` service running, run `docker compose down` or `docker compose up --build --remove-orphans` first. `frontend/nginx.conf` reverse-proxies `/api/v1/*` and `/ws` to `backend:8080` same-origin, so no CORS or `VITE_API_URL`/`VITE_WS_URL` config is needed. This is a *local-dev-only* split: production still ships as the single combined jar — root `Dockerfile` builds both projects into one image and is what `render.yaml` deploys (single `docker` runtime web service + managed Postgres).
 
 ## Architecture
 
