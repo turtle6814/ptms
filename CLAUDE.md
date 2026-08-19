@@ -59,6 +59,8 @@ JWT-based, stateless (`SessionCreationPolicy.STATELESS`). `AuthTokenFilter` runs
 
 Public (unauthenticated) reads are deliberately narrow: only single-resource GETs (`/tournaments/{id}`, `/tournaments/{id}/events`, `/events/{id}`) are open, list endpoints are not — this is what backs the public tournament-viewer page (`/view/tournament/:tournamentId`) without exposing the admin's full tournament list.
 
+Tournament/event creation requires `ORGANIZER` or `ADMIN` role (`TournamentServiceImpl.requireOrganizer`, `ProtectedRoute` on `/tournaments`) — a freshly self-registered account defaults to `Role.USER` and cannot create tournaments. `RoleAccountSeeder` seeds one dev/test account per role on boot for exactly this reason: `admin`/`organizer`/`referee`/`user`, phone-number logins `0900000001`-`0900000004`, passwords `Admin@123`/`Organizer@123`/`Referee@123`/`User@123`.
+
 ### Tournament domain logic (the core complexity)
 `TournamentServiceImpl` is a thin CRUD class for the top-level `Tournament` container. The real domain logic lives in `EventServiceImpl` and `MatchServiceImpl` (`backend/src/main/java/com/example/backend/service/impl/`):
 

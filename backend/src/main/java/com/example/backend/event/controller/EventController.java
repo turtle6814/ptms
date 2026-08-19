@@ -29,7 +29,7 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<EventResponse>> createEvent(@RequestBody CreateEventRequest request,
+    public ResponseEntity<ApiResponse<EventResponse>> createEvent(@Valid @RequestBody CreateEventRequest request,
             Authentication authentication) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(eventService.createEvent(request, authentication.getName())));

@@ -6,6 +6,7 @@ import com.example.backend.tournament.dto.request.CreateTournamentRequest;
 import com.example.backend.tournament.dto.response.TournamentResponse;
 import com.example.backend.tournament.dto.request.UpdateTournamentRequest;
 import com.example.backend.tournament.service.TournamentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,8 @@ public class TournamentController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<TournamentResponse>> createTournament(@RequestBody CreateTournamentRequest request,
+    public ResponseEntity<ApiResponse<TournamentResponse>> createTournament(
+            @Valid @RequestBody CreateTournamentRequest request,
             Authentication authentication) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(tournamentService.createTournament(request, authentication.getName())));
@@ -41,7 +43,7 @@ public class TournamentController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<TournamentResponse>> updateTournament(@PathVariable UUID id,
-            @RequestBody UpdateTournamentRequest request, Authentication authentication) {
+            @Valid @RequestBody UpdateTournamentRequest request, Authentication authentication) {
         return ResponseEntity
                 .ok(ApiResponse.success(tournamentService.updateTournament(id, request, authentication.getName())));
     }

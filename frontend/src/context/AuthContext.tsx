@@ -43,7 +43,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (response.success) {
             setUser(response.data.user);
             localStorage.setItem('pickleball_auth_token', response.data.token);
-            return { success: true };
+            return { success: true, role: response.data.user.role };
         }
         return { success: false, error: response.error };
     };

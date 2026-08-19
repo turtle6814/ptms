@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { User } from '../api/types';
+import { Role, User } from '../api/types';
 
 // ================================
 // Auth Context Types
@@ -9,7 +9,7 @@ export interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (phoneNumber: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    login: (phoneNumber: string, password: string) => Promise<{ success: boolean; error?: string; role?: Role }>;
     signup: (username: string, phoneNumber: string, password: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => Promise<void>;
 }

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { LogIn, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import { Header } from '../components/Header';
+import { getHomeRoute } from '../utils/roleHome';
 import './LoginPage.css';
 
 export function LoginPage() {
@@ -27,7 +28,7 @@ export function LoginPage() {
         try {
             const result = await login(phoneNumber, password);
             if (result.success) {
-                navigate('/admin');
+                navigate(getHomeRoute(result.role!));
             } else {
                 setError(result.error || 'Login failed');
             }

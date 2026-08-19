@@ -19,6 +19,7 @@ export function TournamentDetailPage() {
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState('');
     const [editDescription, setEditDescription] = useState('');
+    const [editError, setEditError] = useState('');
 
     useEffect(() => {
         const init = async () => {
@@ -44,16 +45,25 @@ export function TournamentDetailPage() {
     }, [tournamentId]);
 
     const handleSaveEdit = async () => {
-        if (!tournamentId || !editName.trim()) return;
+        if (!tournamentId) return;
+
+        setEditError('');
+
+        if (!editName.trim()) {
+            setEditError('Tournament name is required');
+            return;
+        }
 
         const result = await updateTournament(tournamentId, {
             name: editName.trim(),
             description: editDescription.trim() || undefined,
         });
 
-        if (result.success && result.data) {
+        if (result.success) {
             setTournament(result.data);
             setIsEditing(false);
+        } else {
+            setEditError(result.error || 'Failed to update tournament');
         }
     };
 
@@ -123,6 +133,7 @@ export function TournamentDetailPage() {
                                     onChange={e => setEditName(e.target.value)}
                                     className="edit-name-input"
                                     placeholder="Tournament name"
+                                    maxLength={255}
                                     autoFocus
                                 />
                                 <textarea
@@ -132,8 +143,9 @@ export function TournamentDetailPage() {
                                     placeholder="Description (optional)"
                                     rows={2}
                                 />
+                                {editError && <p className="error-message">{editError}</p>}
                                 <div className="edit-actions">
-                                    <button className="btn-icon btn-cancel" onClick={() => setIsEditing(false)}>
+                                    <button className="btn-icon btn-cancel" onClick={() => { setIsEditing(false); setEditError(''); }}>
                                         <X size={18} />
                                     </button>
                                     <button className="btn-icon btn-save" onClick={handleSaveEdit}>
@@ -143,7 +155,7 @@ export function TournamentDetailPage() {
                             </div>
                         ) : (
                             <>
-                                <h1>{tournament.name}</h1>
+                                <h1 title={tournament.name}>{tournament.name}</h1>
                                 {tournament.description && <p className="event-description">{tournament.description}</p>}
                                 <div className="event-meta">
                                     <span className="tournament-count">
@@ -157,7 +169,7 @@ export function TournamentDetailPage() {
 
                     {!isEditing && (
                         <div className="event-header-actions">
-                            <button className="btn-icon" onClick={() => setIsEditing(true)}>
+                            <button className="btn-icon" onClick={() => { setIsEditing(true); setEditError(''); }}>
                                 <Edit2 size={18} />
                             </button>
                             <button className="btn-icon btn-danger" onClick={handleDeleteTournament}>
@@ -198,7 +210,7 @@ export function TournamentDetailPage() {
                                 <div key={event.id} className="tournament-card">
                                     <Link to={`/admin?id=${event.id}`} className="tournament-card-content">
                                         <div className="tournament-info">
-                                            <h3>{event.name}</h3>
+                                            <h3 title={event.name}>{event.name}</h3>
                                             <div className="tournament-meta">
                                                 <span className={`status-badge ${getStatusColor(event.status)}`}>
                                                     {getStatusLabel(event.status)}

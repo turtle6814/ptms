@@ -3,14 +3,18 @@ import { Users, BarChart3, Share2, ArrowRight, Zap, Shield, Globe } from 'lucide
 import { Header, PickleballMark } from '../components/Header';
 import { useAuth } from '../context/useAuth';
 import { Navigate } from 'react-router-dom';
+import { getHomeRoute } from '../utils/roleHome';
 import './LandingPage.css';
 
 export function LandingPage() {
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading, user } = useAuth();
 
-    // Redirect to admin if already logged in
-    if (!isLoading && isAuthenticated) {
-        return <Navigate to="/admin" replace />;
+    // Redirect to the role's dashboard if already logged in (USER has none, stays here)
+    if (!isLoading && isAuthenticated && user) {
+        const home = getHomeRoute(user.role);
+        if (home !== '/') {
+            return <Navigate to={home} replace />;
+        }
     }
 
     return (

@@ -177,6 +177,20 @@ class BackendIntegrationTest {
 
     @Test
     @Order(7)
+    void testSeededAdminAccountCanLogIn() throws Exception {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setPhoneNumber("0900000001");
+        loginRequest.setPassword("Admin@123");
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.token").exists());
+    }
+
+    @Test
+    @Order(8)
     void testDuplicateTeamNameInSameEventIsRejected() throws Exception {
         PoolConfigRequest poolA = new PoolConfigRequest();
         poolA.setName("Dup Pool A");

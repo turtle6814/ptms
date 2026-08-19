@@ -182,6 +182,7 @@ export function EventSetup() {
                                 value={eventName}
                                 onChange={(e) => setEventName(e.target.value)}
                                 placeholder="e.g. Summer Pickleball Open 2024"
+                                maxLength={255}
                                 disabled={loading}
                             />
                         </div>
@@ -267,6 +268,7 @@ export function EventSetup() {
                                                 value={team}
                                                 onChange={(e) => updateTeamName(poolIndex, teamIndex, e.target.value)}
                                                 placeholder={`Team Name`}
+                                                maxLength={255}
                                                 disabled={loading}
                                             />
                                             {pool.teams.length > 2 && (

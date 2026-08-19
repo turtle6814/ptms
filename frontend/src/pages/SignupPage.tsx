@@ -49,7 +49,7 @@ export function SignupPage() {
         try {
             const result = await signup(username, phoneNumber, password);
             if (result.success) {
-                navigate('/admin');
+                navigate('/');
             } else {
                 setError(result.error || 'Signup failed');
             }

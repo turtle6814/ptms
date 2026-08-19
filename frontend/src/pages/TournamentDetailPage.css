@@ -194,6 +194,16 @@
     gap: 0.5rem;
 }
 
+.error-message {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    background: rgba(193, 85, 59, 0.1);
+    border: 1px solid rgba(193, 85, 59, 0.3);
+    border-radius: 8px;
+    color: #c1553b;
+    font-size: 0.875rem;
+}
+
 /* Tournaments Section */
 .tournaments-section {
     background: rgba(240, 231, 211, 0.6);
@@ -286,11 +296,19 @@
     color: inherit;
 }
 
+.tournament-info {
+    flex: 1;
+    min-width: 0;
+}
+
 .tournament-info h3 {
     margin: 0 0 0.5rem;
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tournament-meta {

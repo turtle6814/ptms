@@ -123,7 +123,7 @@ export function TournamentsPage() {
                                                 <Calendar size={24} />
                                             </div>
                                             <div className="event-info">
-                                                <h3>{tournament.name}</h3>
+                                                <h3 title={tournament.name}>{tournament.name}</h3>
                                                 {tournament.description && (
                                                     <p className="event-description">{tournament.description}</p>
                                                 )}
@@ -156,6 +156,7 @@ export function TournamentsPage() {
                                 value={newTournamentName}
                                 onChange={e => setNewTournamentName(e.target.value)}
                                 placeholder="e.g., Summer Pickleball Championship 2026"
+                                maxLength={255}
                                 autoFocus
                             />
                         </div>
