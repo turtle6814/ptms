@@ -1,9 +1,9 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogIn, AlertCircle, Loader2 } from 'lucide-react';
-import { useAuth } from '../context/useAuth';
-import { Header } from '../components/Header';
-import { getHomeRoute } from '../utils/roleHome';
+import { useAuth } from '../../context/useAuth';
+import { Header } from '../../components/Header/Header';
+import { getHomeRoute } from '../../utils/roleHome';
 import './LoginPage.css';
 
 export function LoginPage() {

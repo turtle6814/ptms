@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Users, BarChart3, Share2, ArrowRight, Zap, Shield, Globe } from 'lucide-react';
-import { Header, PickleballMark } from '../components/Header';
-import { useAuth } from '../context/useAuth';
+import { Header, PickleballMark } from '../../components/Header/Header';
+import { useAuth } from '../../context/useAuth';
 import { Navigate } from 'react-router-dom';
-import { getHomeRoute } from '../utils/roleHome';
+import { getHomeRoute } from '../../utils/roleHome';
 import './LandingPage.css';
 
 export function LandingPage() {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Match, Team } from '../api/types';
+import { Match, Team } from '../../api/types';
 import { Edit2, Check, X, Flag } from 'lucide-react';
 import './MatchCard.css';
 

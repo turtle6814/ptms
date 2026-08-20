@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Header } from '../components/Header';
-import { PoolStandings } from '../components/PoolStandings';
-import { MatchCard } from '../components/MatchCard';
-import { EliminationBracket } from '../components/EliminationBracket';
-import { TournamentTabs } from '../components/TournamentTabs';
-import { getTournamentById, getTournamentEvents, pollEvent } from '../api';
-import { Event, Tournament } from '../api/types';
-import { useEventSubscription } from '../hooks/useEventSubscription';
-import { LoadingState } from '../components/LoadingState';
-import { EmptyState } from '../components/EmptyState';
-import { getStatusLabel, getStatusColor } from '../utils/eventStatus';
+import { Header } from '../../components/Header/Header';
+import { PoolStandings } from '../../components/PoolStandings/PoolStandings';
+import { MatchCard } from '../../components/MatchCard/MatchCard';
+import { EliminationBracket } from '../../components/EliminationBracket/EliminationBracket';
+import { TournamentTabs } from '../../components/TournamentTabs/TournamentTabs';
+import { getTournamentById, getTournamentEvents, pollEvent } from '../../api';
+import { Event, Tournament } from '../../api/types';
+import { useEventSubscription } from '../../hooks/useEventSubscription';
+import { LoadingState } from '../../components/LoadingState/LoadingState';
+import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { getStatusLabel, getStatusColor } from '../../utils/eventStatus';
 import { Wifi, ChevronDown, Trophy } from 'lucide-react';
 import './TournamentViewerPage.css';
 

@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Header } from '../components/Header';
-import { LoadingState } from '../components/LoadingState';
-import { EmptyState } from '../components/EmptyState';
-import { QRCodeShare } from '../components/QRCodeShare';
-import { Modal } from '../components/Modal';
-import { EventScoringPanel } from '../components/EventScoringPanel';
-import { RefereeAssignmentModal } from '../components/RefereeAssignmentModal';
+import { Header } from '../../components/Header/Header';
+import { LoadingState } from '../../components/LoadingState/LoadingState';
+import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { QRCodeShare } from '../../components/QRCodeShare/QRCodeShare';
+import { Modal } from '../../components/Modal/Modal';
+import { EventScoringPanel } from '../../components/EventScoringPanel';
+import { RefereeAssignmentModal } from '../../components/RefereeAssignmentModal/RefereeAssignmentModal';
 import {
     getEventById,
     getAllEvents,
     getAllTournaments,
-} from '../api';
-import { Event, Tournament } from '../api/types';
-import { getStatusLabel, getStatusColor } from '../utils/eventStatus';
-import { useAuth } from '../context/useAuth';
+} from '../../api';
+import { Event, Tournament } from '../../api/types';
+import { getStatusLabel, getStatusColor } from '../../utils/eventStatus';
+import { useAuth } from '../../context/useAuth';
 import { Share2, Users, ChevronDown, Calendar } from 'lucide-react';
 import './AdminDashboard.css';
 

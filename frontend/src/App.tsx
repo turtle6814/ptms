@@ -1,16 +1,16 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { LandingPage } from './pages/LandingPage';
-import { EventSetup } from './pages/EventSetup';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { RefereeDashboard } from './pages/RefereeDashboard';
-import { UserManagementPage } from './pages/UserManagementPage';
-import { TournamentViewerPage } from './pages/TournamentViewerPage';
-import { LoginPage } from './pages/LoginPage';
-import { SignupPage } from './pages/SignupPage';
-import { TournamentsPage } from './pages/TournamentsPage';
-import { TournamentDetailPage } from './pages/TournamentDetailPage';
+import { LandingPage } from './pages/LandingPage/LandingPage';
+import { EventSetup } from './pages/EventSetup/EventSetup';
+import { AdminDashboard } from './pages/AdminDashboard/AdminDashboard';
+import { RefereeDashboard } from './pages/RefereeDashboard/RefereeDashboard';
+import { UserManagementPage } from './pages/UserManagementPage/UserManagementPage';
+import { TournamentViewerPage } from './pages/TournamentViewerPage/TournamentViewerPage';
+import { LoginPage } from './pages/LoginPage/LoginPage';
+import { SignupPage } from './pages/SignupPage/SignupPage';
+import { TournamentsPage } from './pages/TournamentsPage/TournamentsPage';
+import { TournamentDetailPage } from './pages/TournamentDetailPage/TournamentDetailPage';
 import './index.css';
 
 function App() {

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Plus, Trophy } from 'lucide-react';
-import { Tournament } from '../api/types';
-import { getAllTournaments, createTournament } from '../api';
-import { Header } from '../components/Header';
-import { LoadingState } from '../components/LoadingState';
-import { EmptyState } from '../components/EmptyState';
-import { Modal } from '../components/Modal';
+import { Tournament } from '../../api/types';
+import { getAllTournaments, createTournament } from '../../api';
+import { Header } from '../../components/Header/Header';
+import { LoadingState } from '../../components/LoadingState/LoadingState';
+import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { Modal } from '../../components/Modal/Modal';
 import './TournamentsPage.css';
 
 export function TournamentsPage() {

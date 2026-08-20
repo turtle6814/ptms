@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Trophy, Plus, Trash2, Edit2, X, Check } from 'lucide-react';
-import { Tournament, Event } from '../api/types';
-import { getTournamentById, updateTournament, getTournamentEvents, deleteEvent, deleteTournament } from '../api';
-import { Header } from '../components/Header';
-import { LoadingState } from '../components/LoadingState';
-import { EmptyState } from '../components/EmptyState';
-import { getStatusLabel, getStatusColor } from '../utils/eventStatus';
+import { Tournament, Event } from '../../api/types';
+import { getTournamentById, updateTournament, getTournamentEvents, deleteEvent, deleteTournament } from '../../api';
+import { Header } from '../../components/Header/Header';
+import { LoadingState } from '../../components/LoadingState/LoadingState';
+import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { getStatusLabel, getStatusColor } from '../../utils/eventStatus';
 import './TournamentDetailPage.css';
 
 export function TournamentDetailPage() {

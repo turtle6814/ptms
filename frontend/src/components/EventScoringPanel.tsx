@@ -1,8 +1,8 @@
 import { ReactNode, useState } from 'react';
-import { PoolStandings } from './PoolStandings';
-import { MatchCard } from './MatchCard';
-import { EliminationBracket } from './EliminationBracket';
-import { TournamentTabs } from './TournamentTabs';
+import { PoolStandings } from './PoolStandings/PoolStandings';
+import { MatchCard } from './MatchCard/MatchCard';
+import { EliminationBracket } from './EliminationBracket/EliminationBracket';
+import { TournamentTabs } from './TournamentTabs/TournamentTabs';
 import { getEventById, updateMatchScore, recordForfeit } from '../api';
 import { Event } from '../api/types';
 import { getStatusLabel, getStatusColor } from '../utils/eventStatus';

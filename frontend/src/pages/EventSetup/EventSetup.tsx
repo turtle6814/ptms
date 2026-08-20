@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { createEvent } from '../api';
-import { EventFormat, ScoreRules } from '../api/types';
+import { createEvent } from '../../api';
+import { EventFormat, ScoreRules } from '../../api/types';
 import { ChevronLeft, Plus, Trash2, Users } from 'lucide-react';
 import './EventSetup.css';
 

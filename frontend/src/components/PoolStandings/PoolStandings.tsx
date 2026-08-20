@@ -1,4 +1,4 @@
-import { PoolStanding } from '../api/types';
+import { PoolStanding } from '../../api/types';
 import './PoolStandings.css';
 
 interface PoolStandingsProps {

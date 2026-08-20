@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Header } from '../components/Header';
-import { LoadingState } from '../components/LoadingState';
-import { EmptyState } from '../components/EmptyState';
-import { EventScoringPanel } from '../components/EventScoringPanel';
-import { getMyAssignedEvents } from '../api';
-import { Event } from '../api/types';
-import { getStatusLabel, getStatusColor } from '../utils/eventStatus';
-import './AdminDashboard.css';
+import { Header } from '../../components/Header/Header';
+import { LoadingState } from '../../components/LoadingState/LoadingState';
+import { EmptyState } from '../../components/EmptyState/EmptyState';
+import { EventScoringPanel } from '../../components/EventScoringPanel';
+import { getMyAssignedEvents } from '../../api';
+import { Event } from '../../api/types';
+import { getStatusLabel, getStatusColor } from '../../utils/eventStatus';
+import '../AdminDashboard/AdminDashboard.css';
 
 export function RefereeDashboard() {
     const [events, setEvents] = useState<Event[]>([]);

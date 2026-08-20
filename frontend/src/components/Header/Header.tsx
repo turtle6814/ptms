@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Settings, Eye, LogIn, LogOut, User, Calendar, Users } from 'lucide-react';
-import { useAuth } from '../context/useAuth';
+import { useAuth } from '../../context/useAuth';
 import './Header.css';
 
 export function PickleballMark() {

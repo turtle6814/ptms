@@ -1,8 +1,8 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
-import { useAuth } from '../context/useAuth';
-import { Header } from '../components/Header';
+import { useAuth } from '../../context/useAuth';
+import { Header } from '../../components/Header/Header';
 import './SignupPage.css';
 
 export function SignupPage() {

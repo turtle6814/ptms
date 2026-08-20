@@ -1,6 +1,6 @@
 import React from 'react';
-import { EliminationBracket as BracketType, Match, Team } from '../api/types';
-import { MatchCard } from './MatchCard';
+import { EliminationBracket as BracketType, Match, Team } from '../../api/types';
+import { MatchCard } from '../MatchCard/MatchCard';
 import { Trophy, Medal } from 'lucide-react';
 import './EliminationBracket.css';
 

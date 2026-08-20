@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Modal } from './Modal';
-import { getEventReferees, getReferees, assignReferee, unassignReferee } from '../api';
-import { EventReferee, User } from '../api/types';
+import { Modal } from '../Modal/Modal';
+import { getEventReferees, getReferees, assignReferee, unassignReferee } from '../../api';
+import { EventReferee, User } from '../../api/types';
 import { X } from 'lucide-react';
 import './RefereeAssignmentModal.css';
 

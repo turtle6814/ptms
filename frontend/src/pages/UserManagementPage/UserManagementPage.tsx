@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
-import { Header } from '../components/Header';
-import { LoadingState } from '../components/LoadingState';
-import { getAllUsers, updateUserRole } from '../api';
-import { User, Role } from '../api/types';
-import { useAuth } from '../context/useAuth';
+import { Header } from '../../components/Header/Header';
+import { LoadingState } from '../../components/LoadingState/LoadingState';
+import { getAllUsers, updateUserRole } from '../../api';
+import { User, Role } from '../../api/types';
+import { useAuth } from '../../context/useAuth';
 import './UserManagementPage.css';
 
 const ROLES: Role[] = ['ADMIN', 'ORGANIZER', 'REFEREE', 'USER'];
